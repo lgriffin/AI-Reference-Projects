@@ -14,6 +14,8 @@ import com.example.taskmanager.domain.model.User;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +67,10 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
+    public Page<Task> findAll(Pageable pageable) {
+        return taskRepository.findAll(pageable);
+    }
+
     public Task findById(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
@@ -72,6 +78,10 @@ public class TaskService {
 
     public List<Task> findByStatus(Task.TaskStatus status) {
         return taskRepository.findByStatus(status);
+    }
+
+    public Page<Task> findByStatus(Task.TaskStatus status, Pageable pageable) {
+        return taskRepository.findByStatus(status, pageable);
     }
 
     public List<Task> findByAssignee(Long assigneeId) {

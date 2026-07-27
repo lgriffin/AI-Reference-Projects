@@ -63,8 +63,8 @@ class TaskService:
             raise TaskNotFoundError(task_id)
         return task
 
-    async def list_tasks(self) -> Sequence[Task]:
-        return await self._task_repo.list_all()
+    async def list_tasks(self, *, limit: int = 20, offset: int = 0) -> Sequence[Task]:
+        return await self._task_repo.list_all(limit=limit, offset=offset)
 
     async def update_task(
         self,

@@ -21,7 +21,7 @@ import {
   TaskStatus,
   ALLOWED_TRANSITIONS,
 } from "../domain/entities/task";
-import { ITaskRepository, TaskFilters } from "../repositories/interfaces/task-repository";
+import { ITaskRepository, TaskFilters, PaginationOptions } from "../repositories/interfaces/task-repository";
 import { IUserRepository } from "../repositories/interfaces/user-repository";
 import {
   Result,
@@ -56,8 +56,8 @@ export class TaskService {
     return ok(task);
   }
 
-  async listTasks(filters?: TaskFilters): Promise<Task[]> {
-    return this.taskRepo.findAll(filters);
+  async listTasks(filters?: TaskFilters, pagination?: PaginationOptions): Promise<Task[]> {
+    return this.taskRepo.findAll(filters, pagination);
   }
 
   async getTasksByAssignee(assigneeId: string): Promise<Result<Task[], NotFoundError>> {

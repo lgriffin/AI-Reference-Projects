@@ -112,4 +112,16 @@ describe("PrismaTaskRepository (integration)", () => {
     expect(inProgress).toHaveLength(1);
     expect(inProgress[0].title).toBe("Task C");
   });
+
+  it("paginates results with limit and offset", async () => {
+    await repo.create({ title: "Task A" });
+    await repo.create({ title: "Task B" });
+    await repo.create({ title: "Task C" });
+
+    const firstPage = await repo.findAll(undefined, { limit: 2, offset: 0 });
+    const secondPage = await repo.findAll(undefined, { limit: 2, offset: 2 });
+
+    expect(firstPage).toHaveLength(2);
+    expect(secondPage).toHaveLength(1);
+  });
 });

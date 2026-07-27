@@ -27,6 +27,12 @@ const configSchema = z.object({
   logLevel: z
     .enum(["trace", "debug", "info", "warn", "error", "fatal"])
     .default("info"),
+
+  defaultPageSize: z
+    .string()
+    .default("20")
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(100)),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -38,6 +44,7 @@ function loadConfig(): AppConfig {
     nodeEnv: process.env["NODE_ENV"],
     databaseUrl: process.env["DATABASE_URL"],
     logLevel: process.env["LOG_LEVEL"],
+    defaultPageSize: process.env["DEFAULT_PAGE_SIZE"],
   });
 
   if (!result.success) {

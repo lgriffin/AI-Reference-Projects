@@ -4,11 +4,11 @@ import com.example.taskmanager.domain.model.Task;
 import com.example.taskmanager.service.TaskService;
 import com.example.taskmanager.web.dto.*;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Pattern 1 -- Layered Architecture (presentation layer).
@@ -35,12 +35,13 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> list(
-            @RequestParam(required = false) Task.TaskStatus status) {
-        List<Task> tasks = (status != null)
-                ? taskService.findByStatus(status)
-                : taskService.findAll();
-        return tasks.stream().map(TaskResponse::from).toList();
+    public Page<TaskResponse> list(
+            @RequestParam(required = false) Task.TaskStatus status,
+            Pageable pageable) {
+        Page<Task> tasks = (status != null)
+                ? taskService.findByStatus(status, pageable)
+                : taskService.findAll(pageable);
+        return tasks.map(TaskResponse::from);
     }
 
     @GetMapping("/{id}")

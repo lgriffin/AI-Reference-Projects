@@ -81,6 +81,25 @@ describe("Task Routes", () => {
       expect(body).toHaveLength(1);
       expect(body[0].title).toBe("Test task");
       expect(body[0].createdAt).toBe("2025-01-01T00:00:00.000Z");
+      expect(mockTaskService.listTasks).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ limit: expect.any(Number), offset: 0 }),
+      );
+    });
+
+    it("passes explicit limit and offset to the service", async () => {
+      mockTaskService.listTasks.mockResolvedValue([]);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/tasks?limit=5&offset=10",
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mockTaskService.listTasks).toHaveBeenCalledWith(
+        undefined,
+        { limit: 5, offset: 10 },
+      );
     });
   });
 

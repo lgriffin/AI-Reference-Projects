@@ -9,15 +9,25 @@
 import { PrismaClient, Task as PrismaTask } from "@prisma/client";
 import { injectable, inject } from "tsyringe";
 import { Task, CreateTaskInput, UpdateTaskInput, TaskStatus, Priority } from "../../domain/entities/task";
-import { ITaskRepository, TaskFilters } from "../interfaces/task-repository";
+import { ITaskRepository, TaskFilters, PaginationOptions } from "../interfaces/task-repository";
+
+const VALID_STATUSES: Set<string> = new Set(Object.values(TaskStatus));
+const VALID_PRIORITIES: Set<string> = new Set(Object.values(Priority));
+
+function validateEnum<T extends string>(value: string, validValues: Set<string>, label: string): T {
+  if (!validValues.has(value)) {
+    throw new Error(`Invalid ${label} value from database: "${value}"`);
+  }
+  return value as T;
+}
 
 function toDomain(record: PrismaTask): Task {
   return {
     id: record.id,
     title: record.title,
     description: record.description,
-    status: record.status as TaskStatus,
-    priority: record.priority as Priority,
+    status: validateEnum<TaskStatus>(record.status, VALID_STATUSES, "TaskStatus"),
+    priority: validateEnum<Priority>(record.priority, VALID_PRIORITIES, "Priority"),
     assigneeId: record.assigneeId,
     dueDate: record.dueDate,
     completedAt: record.completedAt,
@@ -35,13 +45,18 @@ export class PrismaTaskRepository implements ITaskRepository {
     return record ? toDomain(record) : null;
   }
 
-  async findAll(filters?: TaskFilters): Promise<Task[]> {
+  async findAll(filters?: TaskFilters, pagination?: PaginationOptions): Promise<Task[]> {
     const where: Record<string, unknown> = {};
     if (filters?.status) where["status"] = filters.status;
     if (filters?.priority) where["priority"] = filters.priority;
     if (filters?.assigneeId) where["assigneeId"] = filters.assigneeId;
 
-    const records = await this.prisma.task.findMany({ where, orderBy: { createdAt: "desc" } });
+    const records = await this.prisma.task.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      ...(pagination?.limit !== undefined && { take: pagination.limit }),
+      ...(pagination?.offset !== undefined && { skip: pagination.offset }),
+    });
     return records.map(toDomain);
   }
 

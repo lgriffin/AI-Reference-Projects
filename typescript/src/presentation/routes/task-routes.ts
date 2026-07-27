@@ -7,6 +7,7 @@
 
 import { FastifyInstance } from "fastify";
 import { container } from "tsyringe";
+import { config } from "../../config";
 import { TaskService } from "../../services/task-service";
 import {
   createTaskSchema,
@@ -48,14 +49,19 @@ export async function taskRoutes(app: FastifyInstance): Promise<void> {
 
   // GET /tasks
   app.get("/tasks", async (request, reply) => {
-    const query = taskFiltersSchema.parse(request.query);
+    const { limit, offset, ...filterQuery } = taskFiltersSchema.parse(request.query);
     const filters = {
-      ...(query.status && { status: query.status as TaskStatus }),
-      ...(query.priority && { priority: query.priority as Priority }),
-      ...(query.assigneeId && { assigneeId: query.assigneeId }),
+      ...(filterQuery.status && { status: filterQuery.status as TaskStatus }),
+      ...(filterQuery.priority && { priority: filterQuery.priority as Priority }),
+      ...(filterQuery.assigneeId && { assigneeId: filterQuery.assigneeId }),
+    };
+    const pagination = {
+      limit: limit ?? config.defaultPageSize,
+      offset: offset ?? 0,
     };
     const tasks = await taskService.listTasks(
       Object.keys(filters).length > 0 ? filters : undefined,
+      pagination,
     );
     return reply.send(tasks.map(serializeTask));
   });

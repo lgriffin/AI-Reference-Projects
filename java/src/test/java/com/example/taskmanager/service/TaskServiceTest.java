@@ -22,6 +22,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -217,6 +221,40 @@ class TaskServiceTest {
 
             assertThat(tasks).hasSize(1);
             verify(taskRepository).findByStatus(TaskStatus.PENDING);
+        }
+
+        @Test
+        @DisplayName("paginated overload delegates to repository")
+        void paginatedDelegates() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Task> page = new PageImpl<>(List.of(taskWithId(1L, "Open task")), pageable, 1);
+            when(taskRepository.findByStatus(TaskStatus.PENDING, pageable)).thenReturn(page);
+
+            Page<Task> result = taskService.findByStatus(TaskStatus.PENDING, pageable);
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            verify(taskRepository).findByStatus(TaskStatus.PENDING, pageable);
+        }
+    }
+
+    @Nested
+    @DisplayName("findAll(Pageable)")
+    class FindAllPageableTests {
+
+        @Test
+        @DisplayName("delegates to repository with pageable")
+        void delegates() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Task> page = new PageImpl<>(
+                    List.of(taskWithId(1L, "Task 1"), taskWithId(2L, "Task 2")), pageable, 2);
+            when(taskRepository.findAll(pageable)).thenReturn(page);
+
+            Page<Task> result = taskService.findAll(pageable);
+
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            verify(taskRepository).findAll(pageable);
         }
     }
 

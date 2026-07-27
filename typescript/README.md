@@ -78,7 +78,7 @@ typescript/
 ### Prerequisites
 
 - Node.js 20+
-- PostgreSQL (for full runtime; tests run without a database)
+- SQLite (bundled; no external database server required)
 
 ### Setup
 
@@ -88,12 +88,9 @@ npm install
 
 # Copy environment config
 cp .env.example .env
-# Edit .env with your database connection string
 
-# Generate Prisma client
+# Generate Prisma client and set up database
 npx prisma generate
-
-# Run database migrations
 npx prisma migrate dev
 
 # Start the development server

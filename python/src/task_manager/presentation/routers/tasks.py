@@ -12,7 +12,7 @@ import uuid
 from typing import Sequence
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from task_manager.container import Container
 from task_manager.presentation.schemas.task_schemas import (
@@ -40,9 +40,11 @@ async def create_task(
 @router.get("", response_model=list[TaskResponse])
 @inject
 async def list_tasks(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     service: TaskService = Depends(Provide[Container.task_service]),
 ) -> Sequence[TaskResponse]:
-    tasks = await service.list_tasks()
+    tasks = await service.list_tasks(limit=limit, offset=offset)
     return [TaskResponse.model_validate(t, from_attributes=True) for t in tasks]
 
 

@@ -44,6 +44,8 @@ export const taskFiltersSchema = z.object({
   status: taskStatusSchema.optional(),
   priority: prioritySchema.optional(),
   assigneeId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export const changeStatusSchema = z.object({

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # -- database -----------------------------------------------------------
     database_url: str = "sqlite+aiosqlite:///./tasks.db"
 
+    # -- pagination ---------------------------------------------------------
+    default_page_size: int = 20
+
     # -- server -------------------------------------------------------------
     server_host: str = "0.0.0.0"
     server_port: int = 8000

@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    env: {
+      DATABASE_URL: "file:./test.db",
+    },
     setupFiles: ["tests/setup.ts"],
     include: ["tests/**/*.test.ts"],
     hookTimeout: 60000,

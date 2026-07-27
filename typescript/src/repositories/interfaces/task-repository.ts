@@ -8,9 +8,14 @@
 
 import { Task, CreateTaskInput, UpdateTaskInput } from "../../domain/entities/task";
 
+export interface PaginationOptions {
+  limit?: number;
+  offset?: number;
+}
+
 export interface ITaskRepository {
   findById(id: string): Promise<Task | null>;
-  findAll(filters?: TaskFilters): Promise<Task[]>;
+  findAll(filters?: TaskFilters, pagination?: PaginationOptions): Promise<Task[]>;
   create(input: CreateTaskInput): Promise<Task>;
   update(id: string, input: UpdateTaskInput): Promise<Task>;
   updateStatus(id: string, status: Task["status"], completedAt?: Date): Promise<Task>;

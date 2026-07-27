@@ -55,8 +55,9 @@ class SQLAlchemyTaskRepository:
         row = await self._session.get(TaskRow, task_id)
         return self._to_domain(row) if row else None
 
-    async def list_all(self) -> Sequence[Task]:
-        result = await self._session.execute(select(TaskRow))
+    async def list_all(self, *, limit: int = 20, offset: int = 0) -> Sequence[Task]:
+        stmt = select(TaskRow).offset(offset).limit(limit)
+        result = await self._session.execute(stmt)
         return [self._to_domain(r) for r in result.scalars().all()]
 
     async def list_by_assignee(self, user_id: uuid.UUID) -> Sequence[Task]:

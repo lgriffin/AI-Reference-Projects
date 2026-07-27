@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -43,14 +45,29 @@ class TaskControllerTest {
     // ---- GET /api/tasks ----------------------------------------------------
 
     @Test
-    @DisplayName("GET /api/tasks returns 200 with task list")
+    @DisplayName("GET /api/tasks returns 200 with paginated task list")
     void listTasks() throws Exception {
-        when(taskService.findAll()).thenReturn(List.of(taskWithId(1L, "First")));
+        var page = new PageImpl<>(List.of(taskWithId(1L, "First")));
+        when(taskService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/tasks"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].title", is("First")));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].title", is("First")))
+                .andExpect(jsonPath("$.totalElements", is(1)));
+    }
+
+    @Test
+    @DisplayName("GET /api/tasks?status=PENDING returns paginated filtered results")
+    void listTasksByStatus() throws Exception {
+        var page = new PageImpl<>(List.of(taskWithId(2L, "Pending task")));
+        when(taskService.findByStatus(eq(TaskStatus.PENDING), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/tasks").param("status", "PENDING"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].title", is("Pending task")))
+                .andExpect(jsonPath("$.totalElements", is(1)));
     }
 
     // ---- GET /api/tasks/{id} -----------------------------------------------
