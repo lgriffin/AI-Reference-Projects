@@ -1,53 +1,26 @@
-/**
- * Pattern 7 — Event-Driven Communication
- *
- * A lightweight, typed event bus built on Node's EventEmitter.  Services
- * publish domain events here; handlers subscribe and react.  This keeps
- * feature modules decoupled — the publisher does not know (or care) who
- * is listening.
- */
+/** Events: an in-process publish/subscribe bus. Publishers never learn who listens. */
 
-import { EventEmitter } from "node:events";
-import { injectable } from "tsyringe";
-import { DomainEvent } from "../domain/events";
+import type { DomainEvent } from "../domain/events.ts";
 
-export type EventHandler<T extends DomainEvent = DomainEvent> = (event: T) => void | Promise<void>;
+type EventOf<T extends DomainEvent["type"]> = Extract<DomainEvent, { type: T }>;
+type Handler<E> = (event: E) => void | Promise<void>;
 
-@injectable()
 export class EventBus {
-  private readonly emitter = new EventEmitter();
+  private readonly handlers = new Map<string, Handler<DomainEvent>[]>();
 
-  constructor() {
-    // Allow many listeners — each event type may have several handlers.
-    this.emitter.setMaxListeners(50);
+  subscribe<T extends DomainEvent["type"]>(type: T, handler: Handler<EventOf<T>>): void {
+    const registered = this.handlers.get(type) ?? [];
+    this.handlers.set(type, [...registered, handler as Handler<DomainEvent>]);
   }
 
-  /**
-   * Publish a domain event.  All registered handlers for the event's
-   * `type` are invoked asynchronously.
-   */
-  publish<T extends DomainEvent>(event: T): void {
-    this.emitter.emit(event.type, event);
-  }
-
-  /**
-   * Subscribe a handler to a specific event type.
-   */
-  subscribe<T extends DomainEvent>(eventType: T["type"], handler: EventHandler<T>): void {
-    this.emitter.on(eventType, handler as EventHandler);
-  }
-
-  /**
-   * Remove a previously registered handler.
-   */
-  unsubscribe<T extends DomainEvent>(eventType: T["type"], handler: EventHandler<T>): void {
-    this.emitter.off(eventType, handler as EventHandler);
-  }
-
-  /**
-   * Remove all handlers (useful in tests).
-   */
-  clear(): void {
-    this.emitter.removeAllListeners();
+  async publish(event: DomainEvent): Promise<void> {
+    for (const handler of this.handlers.get(event.type) ?? []) {
+      try {
+        await handler(event);
+      } catch (error) {
+        // a failing side effect must never fail the use case
+        console.error("Handler failed for", event, error);
+      }
+    }
   }
 }

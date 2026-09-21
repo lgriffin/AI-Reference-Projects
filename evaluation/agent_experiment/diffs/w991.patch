@@ -1,0 +1,198 @@
+diff --git a/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java b/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java
+index ef17c8e..176d61d 100644
+--- a/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java
++++ b/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java
+@@ -2,6 +2,7 @@ package com.example.taskboard.api;
+ 
+ import com.example.taskboard.domain.DomainException;
+ import com.example.taskboard.domain.DomainException.InvalidTransition;
++import com.example.taskboard.domain.DomainException.TaskInProgress;
+ import com.example.taskboard.domain.DomainException.TaskNotFound;
+ import com.example.taskboard.domain.DomainException.WipLimitExceeded;
+ import org.springframework.http.HttpStatus;
+@@ -22,6 +23,7 @@ class ApiExceptionHandler {
+             case TaskNotFound e -> HttpStatus.NOT_FOUND;
+             case InvalidTransition e -> HttpStatus.CONFLICT;
+             case WipLimitExceeded e -> HttpStatus.CONFLICT;
++            case TaskInProgress e -> HttpStatus.CONFLICT;
+         };
+         return problem(status, error.code(), error.getMessage());
+     }
+diff --git a/src/main/java/com/example/taskboard/api/TaskController.java b/src/main/java/com/example/taskboard/api/TaskController.java
+index 0c47fda..cb9fa6a 100644
+--- a/src/main/java/com/example/taskboard/api/TaskController.java
++++ b/src/main/java/com/example/taskboard/api/TaskController.java
+@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
+ import jakarta.validation.constraints.Size;
+ import java.util.List;
+ import org.springframework.http.HttpStatus;
++import org.springframework.web.bind.annotation.DeleteMapping;
+ import org.springframework.web.bind.annotation.GetMapping;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.PostMapping;
+@@ -52,4 +53,10 @@ class TaskController {
+     Task moveTask(@PathVariable String taskId, @Valid @RequestBody MoveTask body) {
+         return service.moveTask(taskId, body.status());
+     }
++
++    @DeleteMapping("/{taskId}")
++    @ResponseStatus(HttpStatus.NO_CONTENT)
++    void deleteTask(@PathVariable String taskId) {
++        service.deleteTask(taskId);
++    }
+ }
+diff --git a/src/main/java/com/example/taskboard/domain/DomainException.java b/src/main/java/com/example/taskboard/domain/DomainException.java
+index b89b2b6..71c8a09 100644
+--- a/src/main/java/com/example/taskboard/domain/DomainException.java
++++ b/src/main/java/com/example/taskboard/domain/DomainException.java
+@@ -45,4 +45,15 @@ public abstract sealed class DomainException extends RuntimeException {
+             return "wip_limit_exceeded";
+         }
+     }
++
++    public static final class TaskInProgress extends DomainException {
++        public TaskInProgress() {
++            super("Cannot delete a task that is in progress.");
++        }
++
++        @Override
++        public String code() {
++            return "task_in_progress";
++        }
++    }
+ }
+diff --git a/src/main/java/com/example/taskboard/repository/JdbcTaskRepository.java b/src/main/java/com/example/taskboard/repository/JdbcTaskRepository.java
+index 21499f8..91153b5 100644
+--- a/src/main/java/com/example/taskboard/repository/JdbcTaskRepository.java
++++ b/src/main/java/com/example/taskboard/repository/JdbcTaskRepository.java
+@@ -49,6 +49,13 @@ class JdbcTaskRepository implements TaskRepository {
+                 .single();
+     }
+ 
++    @Override
++    public void delete(String taskId) {
++        jdbc.sql("DELETE FROM tasks WHERE id = ?")
++                .param(taskId)
++                .update();
++    }
++
+     private static Task toTask(ResultSet row, int rowNumber) throws SQLException {
+         return new Task(row.getString("id"), row.getString("title"), Status.valueOf(row.getString("status")));
+     }
+diff --git a/src/main/java/com/example/taskboard/repository/TaskRepository.java b/src/main/java/com/example/taskboard/repository/TaskRepository.java
+index 5297880..36bae4a 100644
+--- a/src/main/java/com/example/taskboard/repository/TaskRepository.java
++++ b/src/main/java/com/example/taskboard/repository/TaskRepository.java
+@@ -15,4 +15,6 @@ public interface TaskRepository {
+     List<Task> findAll();
+ 
+     int countByStatus(Status status);
++
++    void delete(String taskId);
+ }
+diff --git a/src/main/java/com/example/taskboard/service/TaskService.java b/src/main/java/com/example/taskboard/service/TaskService.java
+index d98d3ca..d4c449a 100644
+--- a/src/main/java/com/example/taskboard/service/TaskService.java
++++ b/src/main/java/com/example/taskboard/service/TaskService.java
+@@ -1,6 +1,7 @@
+ package com.example.taskboard.service;
+ 
+ import com.example.taskboard.config.AppProperties;
++import com.example.taskboard.domain.DomainException.TaskInProgress;
+ import com.example.taskboard.domain.DomainException.TaskNotFound;
+ import com.example.taskboard.domain.DomainException.WipLimitExceeded;
+ import com.example.taskboard.domain.Status;
+@@ -8,6 +9,8 @@ import com.example.taskboard.domain.Task;
+ import com.example.taskboard.domain.TaskCompleted;
+ import com.example.taskboard.repository.TaskRepository;
+ import java.util.List;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import org.springframework.context.ApplicationEventPublisher;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+@@ -16,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
+ @Service
+ public class TaskService {
+ 
++    private static final Logger log = LoggerFactory.getLogger(TaskService.class);
++
+     private final TaskRepository tasks;
+     private final ApplicationEventPublisher events;
+     private final int wipLimit;
+@@ -53,6 +58,16 @@ public class TaskService {
+         return task;
+     }
+ 
++    @Transactional
++    public void deleteTask(String taskId) {
++        Task task = getTask(taskId);
++        if (task.status() == Status.IN_PROGRESS) {
++            throw new TaskInProgress();
++        }
++        tasks.delete(taskId);
++        log.info("Task deleted: {} ({})", task.title(), task.id());
++    }
++
+     private boolean boardIsFull() {
+         return tasks.countByStatus(Status.IN_PROGRESS) >= wipLimit;
+     }
+diff --git a/src/test/java/com/example/taskboard/api/TaskApiTest.java b/src/test/java/com/example/taskboard/api/TaskApiTest.java
+index 0a3add4..20519c2 100644
+--- a/src/test/java/com/example/taskboard/api/TaskApiTest.java
++++ b/src/test/java/com/example/taskboard/api/TaskApiTest.java
+@@ -1,6 +1,7 @@
+ package com.example.taskboard.api;
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+@@ -55,6 +56,32 @@ class TaskApiTest {
+         expectProblem(http.perform(json(post("/tasks"), "{\"title\": \"\"}")), 400, "validation_failed");
+     }
+ 
++    @Test
++    void aTaskCanBeDeleted(CapturedOutput log) throws Exception {
++        String taskId = create("Task to delete");
++
++        http.perform(delete("/tasks/" + taskId))
++                .andExpect(status().isNoContent())
++                .andExpect(content().string(""));
++
++        http.perform(get("/tasks")).andExpect(jsonPath("$.length()").value(0));
++        assertThat(log).contains("Task deleted: Task to delete");
++    }
++
++    @Test
++    void deletingAnUnknownTaskReturns404() throws Exception {
++        expectProblem(http.perform(delete("/tasks/no-such-id")), 404, "task_not_found");
++    }
++
++    @Test
++    void deletingATaskInProgressReturns409() throws Exception {
++        String taskId = create("In progress task");
++        move(taskId, "in_progress");
++
++        expectProblem(http.perform(delete("/tasks/" + taskId)), 409, "task_in_progress");
++        http.perform(get("/tasks")).andExpect(jsonPath("$.length()").value(1));
++    }
++
+     private String create(String title) throws Exception {
+         String body = http.perform(json(post("/tasks"), "{\"title\": \"%s\"}".formatted(title)))
+                 .andExpect(status().isCreated())
+diff --git a/src/test/java/com/example/taskboard/support/InMemoryTaskRepository.java b/src/test/java/com/example/taskboard/support/InMemoryTaskRepository.java
+index 8753b2b..7d63645 100644
+--- a/src/test/java/com/example/taskboard/support/InMemoryTaskRepository.java
++++ b/src/test/java/com/example/taskboard/support/InMemoryTaskRepository.java
+@@ -32,4 +32,9 @@ public class InMemoryTaskRepository implements TaskRepository {
+     public int countByStatus(Status status) {
+         return (int) tasks.values().stream().filter(task -> task.status() == status).count();
+     }
++
++    @Override
++    public void delete(String taskId) {
++        tasks.remove(taskId);
++    }
+ }

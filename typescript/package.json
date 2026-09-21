@@ -1,34 +1,23 @@
 {
-  "name": "ai-patterns-task-management",
+  "name": "taskboard",
   "version": "1.0.0",
-  "description": "Reference implementation: 8 architectural patterns for AI-assisted development",
-  "main": "dist/index.js",
+  "description": "Reference repository: eight default architectural patterns for human-AI development (TypeScript / Fastify)",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:api": "vitest run tests/api",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "start": "node --env-file-if-exists=.env src/main.ts",
+    "test": "tsc && vitest run"
   },
   "dependencies": {
-    "@fastify/cors": "^10.0.0",
-    "@prisma/client": "^6.0.0",
     "fastify": "^5.0.0",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.8.0",
-    "zod": "^3.23.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "prisma": "^6.0.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
   }
 }

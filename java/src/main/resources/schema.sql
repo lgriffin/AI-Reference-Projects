@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS tasks (
+    position BIGINT AUTO_INCREMENT,
+    id       VARCHAR(36)  PRIMARY KEY,
+    title    VARCHAR(200) NOT NULL,
+    status   VARCHAR(20)  NOT NULL
+);

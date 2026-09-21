@@ -1,0 +1,315 @@
+diff --git a/src/api/error-handler.ts b/src/api/error-handler.ts
+index 87305f2..c124ad6 100644
+--- a/src/api/error-handler.ts
++++ b/src/api/error-handler.ts
+@@ -9,6 +9,7 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
+   task_not_found: 404,
+   invalid_transition: 409,
+   wip_limit_exceeded: 409,
++  task_in_progress: 409,
+ };
+ 
+ function problem(reply: FastifyReply, status: number, code: string, detail: string): FastifyReply {
+diff --git a/src/api/task-routes.ts b/src/api/task-routes.ts
+index e5a7050..fd0f982 100644
+--- a/src/api/task-routes.ts
++++ b/src/api/task-routes.ts
+@@ -27,4 +27,10 @@ export function registerTaskRoutes(app: FastifyInstance, service: TaskService):
+     const { status } = MoveTask.parse(request.body);
+     return service.moveTask(taskId, status);
+   });
++
++  app.delete("/tasks/:taskId", async (request, reply) => {
++    const { taskId } = TaskId.parse(request.params);
++    await service.deleteTask(taskId);
++    return reply.code(204).send();
++  });
+ }
+diff --git a/src/app.ts b/src/app.ts
+index 9935ac7..e3d25de 100644
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -5,13 +5,14 @@ import { errorHandler } from "./api/error-handler.ts";
+ import { registerTaskRoutes } from "./api/task-routes.ts";
+ import type { Config } from "./config.ts";
+ import { EventBus } from "./events/event-bus.ts";
+-import { announceCompletion } from "./events/handlers.ts";
++import { announceCompletion, announceDeletion } from "./events/handlers.ts";
+ import { SqliteTaskRepository } from "./repositories/sqlite-task-repository.ts";
+ import { TaskService } from "./services/task-service.ts";
+ 
+ export function buildApp(config: Config): FastifyInstance {
+   const events = new EventBus();
+   events.subscribe("task_completed", announceCompletion);
++  events.subscribe("task_deleted", announceDeletion);
+ 
+   const tasks = new SqliteTaskRepository(config.databasePath);
+   const service = new TaskService(tasks, events, config.wipLimit);
+diff --git a/src/domain/errors.ts b/src/domain/errors.ts
+index 19ea0e8..db356ff 100644
+--- a/src/domain/errors.ts
++++ b/src/domain/errors.ts
+@@ -1,6 +1,10 @@
+ /** Domain: every way a request can break a business rule. No HTTP in here. */
+ 
+-export type ErrorCode = "task_not_found" | "invalid_transition" | "wip_limit_exceeded";
++export type ErrorCode =
++  | "task_not_found"
++  | "invalid_transition"
++  | "wip_limit_exceeded"
++  | "task_in_progress";
+ 
+ export abstract class DomainError extends Error {
+   abstract readonly code: ErrorCode;
+@@ -29,3 +33,11 @@ export class WipLimitExceeded extends DomainError {
+     super(`No more than ${limit} tasks may be in progress at once.`);
+   }
+ }
++
++export class TaskInProgress extends DomainError {
++  readonly code = "task_in_progress";
++
++  constructor(taskId: string) {
++    super(`Task '${taskId}' is in progress and cannot be deleted.`);
++  }
++}
+diff --git a/src/domain/events.ts b/src/domain/events.ts
+index 0030027..b53d388 100644
+--- a/src/domain/events.ts
++++ b/src/domain/events.ts
+@@ -2,4 +2,6 @@
+ 
+ export type TaskCompleted = Readonly<{ type: "task_completed"; taskId: string; title: string }>;
+ 
+-export type DomainEvent = TaskCompleted;
++export type TaskDeleted = Readonly<{ type: "task_deleted"; taskId: string; title: string }>;
++
++export type DomainEvent = TaskCompleted | TaskDeleted;
+diff --git a/src/domain/task.ts b/src/domain/task.ts
+index 7268630..aabf584 100644
+--- a/src/domain/task.ts
++++ b/src/domain/task.ts
+@@ -1,7 +1,7 @@
+ /** Domain: a task, and the rule for how its status may change. Pure; no I/O. */
+ 
+ import { randomUUID } from "node:crypto";
+-import { InvalidTransition } from "./errors.ts";
++import { InvalidTransition, TaskInProgress } from "./errors.ts";
+ 
+ export const STATUSES = ["todo", "in_progress", "done"] as const;
+ export type Status = (typeof STATUSES)[number];
+@@ -24,3 +24,9 @@ export function moveTo(task: Task, status: Status): Task {
+   }
+   return { ...task, status };
+ }
++
++export function ensureDeletable(task: Task): void {
++  if (task.status === "in_progress") {
++    throw new TaskInProgress(task.id);
++  }
++}
+diff --git a/src/events/handlers.ts b/src/events/handlers.ts
+index 7e5a323..2b881ed 100644
+--- a/src/events/handlers.ts
++++ b/src/events/handlers.ts
+@@ -1,8 +1,13 @@
+ /** Events: side effects live here, one small function per reaction. */
+ 
+-import type { TaskCompleted } from "../domain/events.ts";
++import type { TaskCompleted, TaskDeleted } from "../domain/events.ts";
+ 
+ /** Stands in for an e-mail or chat notification. */
+ export function announceCompletion(event: TaskCompleted): void {
+   console.info(`Task completed: ${event.title} (${event.taskId})`);
+ }
++
++/** Stands in for an e-mail or chat notification. */
++export function announceDeletion(event: TaskDeleted): void {
++  console.info(`Task deleted: ${event.title} (${event.taskId})`);
++}
+diff --git a/src/repositories/sqlite-task-repository.ts b/src/repositories/sqlite-task-repository.ts
+index b26ddc5..10fcdca 100644
+--- a/src/repositories/sqlite-task-repository.ts
++++ b/src/repositories/sqlite-task-repository.ts
+@@ -44,4 +44,8 @@ export class SqliteTaskRepository implements TaskRepository {
+     const row = this.db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status = ?").get(status);
+     return Number(row?.n);
+   }
++
++  async delete(taskId: string): Promise<void> {
++    this.db.prepare("DELETE FROM tasks WHERE id = ?").run(taskId);
++  }
+ }
+diff --git a/src/repositories/task-repository.ts b/src/repositories/task-repository.ts
+index 0dfebe4..6cc3b80 100644
+--- a/src/repositories/task-repository.ts
++++ b/src/repositories/task-repository.ts
+@@ -7,4 +7,5 @@ export interface TaskRepository {
+   find(taskId: string): Promise<Task | null>;
+   findAll(): Promise<Task[]>;
+   countByStatus(status: Status): Promise<number>;
++  delete(taskId: string): Promise<void>;
+ }
+diff --git a/src/services/task-service.ts b/src/services/task-service.ts
+index eca2dec..cc717ff 100644
+--- a/src/services/task-service.ts
++++ b/src/services/task-service.ts
+@@ -1,7 +1,7 @@
+ /** Services: every use case of the board. No HTTP, no SQL, no environment. */
+ 
+ import { TaskNotFound, WipLimitExceeded } from "../domain/errors.ts";
+-import { moveTo, newTask, type Status, type Task } from "../domain/task.ts";
++import { ensureDeletable, moveTo, newTask, type Status, type Task } from "../domain/task.ts";
+ import type { EventBus } from "../events/event-bus.ts";
+ import type { TaskRepository } from "../repositories/task-repository.ts";
+ 
+@@ -44,6 +44,13 @@ export class TaskService {
+     return task;
+   }
+ 
++  async deleteTask(taskId: string): Promise<void> {
++    const task = await this.getTask(taskId);
++    ensureDeletable(task);
++    await this.tasks.delete(taskId);
++    await this.events.publish({ type: "task_deleted", taskId: task.id, title: task.title });
++  }
++
+   private async boardIsFull(): Promise<boolean> {
+     return (await this.tasks.countByStatus("in_progress")) >= this.wipLimit;
+   }
+diff --git a/tests/api/task-api.test.ts b/tests/api/task-api.test.ts
+index 1bfa1e3..fd811d1 100644
+--- a/tests/api/task-api.test.ts
++++ b/tests/api/task-api.test.ts
+@@ -20,6 +20,10 @@ function move(taskId: string, status: string) {
+   return app.inject({ method: "POST", url: `/tasks/${taskId}/status`, payload: { status } });
+ }
+ 
++function destroy(taskId: string) {
++  return app.inject({ method: "DELETE", url: `/tasks/${taskId}` });
++}
++
+ test("a task moves across the board", async () => {
+   const announced = vi.spyOn(console, "info").mockImplementation(() => {});
+   const taskId = await create("Write the paper");
+@@ -42,6 +46,7 @@ test("every failure is a problem document", async () => {
+     invalid_transition: [409, await move(waiting, "done")],
+     wip_limit_exceeded: [409, await move(waiting, "in_progress")],
+     validation_failed: [400, await app.inject({ method: "POST", url: "/tasks", payload: { title: "" } })],
++    task_in_progress: [409, await destroy(started)],
+   } as const;
+ 
+   for (const [code, [status, response]] of Object.entries(failures)) {
+@@ -50,3 +55,22 @@ test("every failure is a problem document", async () => {
+     expect(response.json().code).toBe(code);
+   }
+ });
++
++test("a task can be deleted", async () => {
++  const announced = vi.spyOn(console, "info").mockImplementation(() => {});
++  const taskId = await create("Write the paper");
++
++  const response = await destroy(taskId);
++
++  expect(response.statusCode).toBe(204);
++  expect(response.body).toBe("");
++  expect(announced).toHaveBeenCalledWith(expect.stringContaining("Task deleted: Write the paper"));
++  expect((await app.inject("/tasks")).json()).toEqual([]);
++});
++
++test("an unknown task cannot be deleted", async () => {
++  const response = await destroy("no-such-id");
++
++  expect(response.statusCode).toBe(404);
++  expect(response.json().code).toBe("task_not_found");
++});
+diff --git a/tests/integration/task-repository.contract.test.ts b/tests/integration/task-repository.contract.test.ts
+index 0ef408f..7083dc6 100644
+--- a/tests/integration/task-repository.contract.test.ts
++++ b/tests/integration/task-repository.contract.test.ts
+@@ -44,4 +44,16 @@ describe.each(implementations)("TaskRepository (%s)", (_, create) => {
+     await repository.save(moveTo(newTask("Started"), "in_progress"));
+     expect(await repository.countByStatus("in_progress")).toBe(1);
+   });
++
++  test("a deleted task can no longer be found", async () => {
++    const repository = create();
++    const task = newTask("Write the paper");
++    await repository.save(task);
++    await repository.delete(task.id);
++    expect(await repository.find(task.id)).toBeNull();
++  });
++
++  test("deleting an unknown task is a no-op", async () => {
++    await expect(create().delete("no-such-id")).resolves.toBeUndefined();
++  });
+ });
+diff --git a/tests/support/in-memory-task-repository.ts b/tests/support/in-memory-task-repository.ts
+index 1095ab7..296b25d 100644
+--- a/tests/support/in-memory-task-repository.ts
++++ b/tests/support/in-memory-task-repository.ts
+@@ -21,4 +21,8 @@ export class InMemoryTaskRepository implements TaskRepository {
+   async countByStatus(status: Status): Promise<number> {
+     return [...this.tasks.values()].filter((task) => task.status === status).length;
+   }
++
++  async delete(taskId: string): Promise<void> {
++    this.tasks.delete(taskId);
++  }
+ }
+diff --git a/tests/unit/task-service.test.ts b/tests/unit/task-service.test.ts
+index 83f6a28..52b054c 100644
+--- a/tests/unit/task-service.test.ts
++++ b/tests/unit/task-service.test.ts
+@@ -1,20 +1,23 @@
+ /** Unit: business rules, exercised through the service with an in-memory repository. */
+ 
+ import { beforeEach, expect, test, vi } from "vitest";
+-import { InvalidTransition, TaskNotFound, WipLimitExceeded } from "../../src/domain/errors.ts";
+-import type { TaskCompleted } from "../../src/domain/events.ts";
++import { InvalidTransition, TaskInProgress, TaskNotFound, WipLimitExceeded } from "../../src/domain/errors.ts";
++import type { TaskCompleted, TaskDeleted } from "../../src/domain/events.ts";
+ import { EventBus } from "../../src/events/event-bus.ts";
+ import { TaskService } from "../../src/services/task-service.ts";
+ import { InMemoryTaskRepository } from "../support/in-memory-task-repository.ts";
+ 
+ let published: TaskCompleted[];
++let deleted: TaskDeleted[];
+ let events: EventBus;
+ let service: TaskService;
+ 
+ beforeEach(() => {
+   published = [];
++  deleted = [];
+   events = new EventBus();
+   events.subscribe("task_completed", (event) => void published.push(event));
++  events.subscribe("task_deleted", (event) => void deleted.push(event));
+   service = new TaskService(new InMemoryTaskRepository(), events, 1);
+ });
+ 
+@@ -46,6 +49,25 @@ test("an unknown task is reported", async () => {
+   await expect(service.getTask("no-such-id")).rejects.toThrow(TaskNotFound);
+ });
+ 
++test("a task can be deleted", async () => {
++  const task = await service.createTask("Write the paper");
++  await service.deleteTask(task.id);
++  await expect(service.getTask(task.id)).rejects.toThrow(TaskNotFound);
++  expect(deleted).toEqual([{ type: "task_deleted", taskId: task.id, title: "Write the paper" }]);
++});
++
++test("a task in progress cannot be deleted", async () => {
++  const task = await service.createTask("Write the paper");
++  await service.moveTask(task.id, "in_progress");
++  await expect(service.deleteTask(task.id)).rejects.toThrow(TaskInProgress);
++  expect((await service.getTask(task.id)).status).toBe("in_progress");
++  expect(deleted).toEqual([]);
++});
++
++test("deleting an unknown task is reported", async () => {
++  await expect(service.deleteTask("no-such-id")).rejects.toThrow(TaskNotFound);
++});
++
+ test("a failing handler is logged and does not fail the use case", async () => {
+   const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+   events.subscribe("task_completed", () => {

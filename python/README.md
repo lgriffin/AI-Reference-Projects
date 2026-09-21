@@ -1,94 +1,47 @@
-# Task Manager -- Python Reference Implementation
+# taskboard (Python / FastAPI)
 
-A reference implementation demonstrating eight architectural patterns for AI-assisted software development. Built with FastAPI, SQLAlchemy 2.0, Pydantic v2, and dependency-injector.
+A deliberately small Kanban API that is a complete example of a repository prepared for
+human-AI development: eight default architectural patterns, a manifest that states them
+([AGENTS.md](AGENTS.md)), and tests that enforce them. The same application exists in
+[Java](../java), [Python](../python) and [TypeScript](../typescript); the three are
+behaviourally identical.
 
-## Patterns Demonstrated
+## Run it
 
-| # | Pattern | Key Files |
-|---|---------|-----------|
-| 1 | **Layered Architecture** | `presentation/routers/`, `services/`, `repositories/` |
-| 2 | **Repository Pattern** | `repositories/interfaces.py`, `repositories/sqlalchemy/` |
-| 3 | **Service Layer** | `services/task_service.py`, `services/user_service.py` |
-| 4 | **Dependency Injection** | `container.py`, router `Depends(Provide[...])` |
-| 5 | **Configuration Externalisation** | `config.py`, `.env.example` |
-| 6 | **Structured Error Handling** | `domain/errors.py`, `presentation/error_handlers.py` |
-| 7 | **Event-Driven Communication** | `domain/events.py`, `events/bus.py`, `events/handlers.py` |
-| 8 | **Test Scaffold** | `tests/unit/`, `tests/integration/`, `tests/api/` |
+    python -m venv .venv && .venv/bin/pip install -e ".[dev]"    # Windows: .venv\Scripts\pip
+    cp .env.example .env                                         # optional; defaults work
+    .venv/bin/uvicorn taskboard.app:create_app --factory
 
-## Prerequisites
+## Verify it
 
-- Python 3.11 or later
-- pip (or any PEP 517-compatible installer)
+    pytest
 
-## Getting Started
+One command: `mypy --strict`, the architecture rules, and the unit, integration and API tests.
 
-```bash
-# Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+## The API
 
-# Install the package with development dependencies
-pip install -e ".[dev]"
+| Request                                   | Success        | Failures                                         |
+| ----------------------------------------- | -------------- | ------------------------------------------------ |
+| `POST /tasks` `{"title": "..."}`          | `201` the task | `400 validation_failed`                          |
+| `GET /tasks`                              | `200` a list   |                                                  |
+| `GET /tasks/{id}`                         | `200` the task | `404 task_not_found`                             |
+| `POST /tasks/{id}/status` `{"status": …}` | `200` the task | `404`, `409 invalid_transition`, `409 wip_limit_exceeded` |
 
-# Copy the example environment file
-cp .env.example .env
+A task moves `todo -> in_progress -> done` (and back from `in_progress` to `todo`). No more
+than `WIP_LIMIT` tasks may be in progress at once. Failures are RFC 9457 problem documents
+(`application/problem+json`) carrying a stable `code`.
 
-# Run the server
-uvicorn task_manager.main:app --reload
-```
+## The eight patterns, and where to find them
 
-The API is available at `http://localhost:8000`. Interactive docs are served at `/docs` (Swagger UI) and `/redoc`.
+| # | Pattern                     | Here                                   |
+| - | --------------------------- | -------------------------------------- |
+| 1 | Layered architecture        | `src/taskboard/{api,services,repositories,domain}` |
+| 2 | Repository                  | `repositories/task_repository.py` (a `Protocol`), `sqlite_task_repository.py` |
+| 3 | Service layer               | `services/task_service.py` |
+| 4 | Dependency injection        | constructors, wired once in `app.py` |
+| 5 | Externalised configuration  | `config.py`, `.env.example` |
+| 6 | Structured error handling   | `domain/errors.py`, `api/error_handlers.py` |
+| 7 | Domain events               | `domain/events.py`, `events/bus.py`, `events/handlers.py` |
+| 8 | Test scaffold               | `tests/{unit,integration,api,architecture,support}` |
 
-## Running Tests
-
-```bash
-pytest
-```
-
-The test suite includes three layers:
-
-- **Unit tests** (`tests/unit/`) -- mock repositories, pure business-logic validation.
-- **Integration tests** (`tests/integration/`) -- real SQLite via async engine.
-- **API tests** (`tests/api/`) -- full HTTP round-trip through the FastAPI app.
-
-## Project Structure
-
-```
-src/task_manager/
-    main.py              FastAPI app factory and lifespan
-    container.py         DI container (dependency-injector)
-    config.py            Pydantic Settings (env-based config)
-    domain/
-        models.py        Domain entities (dataclasses)
-        errors.py        Domain exception hierarchy
-        events.py        Domain event types
-    repositories/
-        interfaces.py    Protocol-based repository contracts
-        sqlalchemy/      Concrete SQLAlchemy implementations
-    services/
-        task_service.py  Task business logic
-        user_service.py  User business logic
-    events/
-        bus.py           Async event bus
-        handlers.py      Event handler functions
-    presentation/
-        routers/         FastAPI routers (thin HTTP layer)
-        schemas/         Pydantic request/response models
-        error_handlers.py Domain-to-HTTP error mapping
-```
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/tasks` | Create a task |
-| GET | `/api/tasks` | List all tasks |
-| GET | `/api/tasks/{id}` | Get a task |
-| PATCH | `/api/tasks/{id}` | Update a task |
-| POST | `/api/tasks/{id}/status` | Change task status |
-| POST | `/api/tasks/{id}/assign` | Assign task to user |
-| DELETE | `/api/tasks/{id}` | Delete a task |
-| POST | `/api/users` | Create a user |
-| GET | `/api/users` | List all users |
-| GET | `/api/users/{id}` | Get a user |
-| DELETE | `/api/users/{id}` | Delete a user |
+How to extend the application, and what needs a human decision, is in [AGENTS.md](AGENTS.md).

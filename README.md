@@ -2,50 +2,63 @@
 
 Reference implementations accompanying the paper:
 
-> **Default Architectural Software Patterns for AI-Assisted Development: Convention over Configuration for Code Generation**
+> **Convention over Configuration for Coding Agents: A Repository Standard of Default
+> Architectural Patterns for Human-AI Software Development**
 >
-> Published in the *Journal of Object Technology* (JOT)
+> Submitted to the *Journal of Object Technology* (JOT)
 
 ## Purpose
 
-This repository contains three functionally equivalent reference implementations of a Task Management API, each built in a different language and framework stack. Together they demonstrate that a common set of architectural defaults can be applied consistently across languages when AI coding assistants generate production code.
+When a human and an AI coding agent work in the same repository, the agent starts every session
+with no memory of the last one. The repository is the only contract the two share. This
+repository shows what such a contract can look like: eight default architectural patterns,
+carried in three ways.
 
-The eight patterns explored are:
+| Carrier         | What it is                                                   | Where            |
+| --------------- | ------------------------------------------------------------ | ---------------- |
+| **Exemplified** | one complete vertical slice, small enough to read whole      | `src/`           |
+| **Declared**    | a manifest of under 400 words, including what needs a human  | `AGENTS.md`      |
+| **Enforced**    | architecture rules as tests, behind one verify command       | the test suite   |
 
-1. **Layered Architecture** -- strict separation of presentation, service, and data access layers.
-2. **Repository Pattern** -- data access abstracted behind interfaces with concrete ORM implementations.
-3. **Service Layer** -- all business logic lives in service classes; no HTTP concerns leak in.
-4. **Dependency Injection** -- constructor-based injection wired through a DI container.
-5. **Configuration Externalisation** -- environment-driven configuration validated at startup.
-6. **Structured Error Handling** -- typed domain error hierarchies mapped to HTTP responses.
-7. **Event-Driven Communication** -- in-process event bus decoupling cross-cutting side-effects.
-8. **Test Scaffold** -- three-tier test suites (unit, integration, API) mirroring the architecture.
+The same application, *taskboard*, a small Kanban API with a work-in-progress limit, is
+implemented three times. The three are behaviourally identical.
 
-## Implementations
+| Directory                    | Stack                          | Verify        | Application code |
+| ---------------------------- | ------------------------------ | ------------- | ---------------- |
+| [`java/`](java/)             | Java 21, Spring Boot, JDBC, H2 | `mvn verify`  | 283 lines        |
+| [`python/`](python/)         | Python 3.12+, FastAPI, SQLite  | `pytest`      | 223 lines        |
+| [`typescript/`](typescript/) | Node 24+, Fastify, SQLite      | `npm test`    | 242 lines        |
 
-| Directory | Stack | Framework | ORM / Data | DI |
-|-----------|-------|-----------|------------|----|
-| [`java/`](java/) | Java 17 | Spring Boot | Spring Data JPA / H2 | Spring (constructor injection) |
-| [`python/`](python/) | Python 3.11+ | FastAPI | SQLAlchemy 2.0 / SQLite | dependency-injector |
-| [`typescript/`](typescript/) | TypeScript | Fastify 5 | Prisma 6 | tsyringe |
+## The eight patterns, as invariants
 
-Each implementation has its own README with setup instructions, API endpoint documentation, and project structure details.
+1. **Layered Architecture**: code lives in `api`, `services`, `repositories` or `domain`; imports
+   point only downwards; the domain imports no framework.
+2. **Repository**: persistence sits behind an interface the application owns; only its
+   implementation speaks SQL.
+3. **Service Layer**: every use case is a service method; rules about one entity live on the
+   entity, rules that need collaborators live in the service.
+4. **Dependency Injection**: collaborators arrive through constructors; exactly one composition
+   root constructs them. No container is required.
+5. **Configuration Externalisation**: one typed, validated object reads the environment at
+   start-up; nothing else does.
+6. **Structured Error Handling**: failures are typed domain errors; one handler maps every error
+   to an RFC 9457 problem document; routes catch nothing.
+7. **Event-Driven Communication**: side effects subscribe to immutable domain events; a failing
+   handler never fails the use case.
+8. **Test Scaffold**: tests mirror the layers; one command runs them all, with the architecture
+   rules.
 
-## Getting Started
+## Evaluation
 
-Navigate into any implementation directory and follow its README:
+[`evaluation/`](evaluation/) contains the scripts behind the paper's numbers: `measure.py` (size)
+and `seed_violations.py`, which plants twelve canonical structural mistakes in each
+implementation and records what, if anything, catches them. [`evaluation/agent_experiment/`](evaluation/agent_experiment/)
+holds the pilot experiment: eighteen coding agents given the same feature request in repositories
+offering one, two or all three carriers, with the scripted audit and every agent's diff.
 
-```bash
-# Java
-cd java && mvn spring-boot:run
+## How this was built
 
-# Python
-cd python && pip install -e ".[dev]" && uvicorn task_manager.main:app --reload
-
-# TypeScript
-cd typescript && npm install && npm run dev
-```
-
-## Licence
-
-This project is provided as academic reference material. See individual implementation directories for any framework-specific licence requirements.
+The implementations and the evaluation were developed by the author working with an AI coding
+agent, in the collaborative mode the paper examines. The first iteration (preserved in this
+repository's history) used DI containers, ORMs and two entities; a forensic review of it
+motivated the smaller, invariant-first second iteration found here.

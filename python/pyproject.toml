@@ -3,42 +3,33 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "task-manager"
-version = "0.1.0"
-description = "Reference implementation: 8 architectural patterns for AI-assisted development"
-requires-python = ">=3.11"
+name = "taskboard"
+version = "1.0.0"
+description = "Reference repository: eight default architectural patterns for human-AI development (Python / FastAPI)"
+requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.111,<1",
-    "uvicorn[standard]>=0.30,<1",
-    "sqlalchemy[asyncio]>=2.0,<3",
-    "aiosqlite>=0.20,<1",
-    "pydantic>=2.0,<3",
-    "pydantic-settings>=2.0,<3",
-    "dependency-injector>=4.41,<5",
+    "fastapi>=0.115,<1",
+    "pydantic-settings>=2.6,<3",
+    "uvicorn>=0.32,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8,<9",
-    "pytest-asyncio>=0.23,<1",
-    "httpx>=0.27,<1",
-    "ruff>=0.4,<1",
-    "mypy>=1.10,<2",
+    "httpx2>=2,<3",
+    "mypy>=1.13,<2",
+    "pytest>=8,<10",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/taskboard"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_mode = "auto"
-filterwarnings = [
-    "ignore::DeprecationWarning:dependency_injector",
-    "ignore::DeprecationWarning:pytest_asyncio",
-]
-
-[tool.ruff]
-target-version = "py311"
-line-length = 99
+pythonpath = ["src", "."]
 
 [tool.mypy]
-python_version = "3.11"
 strict = true
+files = ["src", "tests"]
+mypy_path = "src"
+explicit_package_bases = true
 plugins = ["pydantic.mypy"]

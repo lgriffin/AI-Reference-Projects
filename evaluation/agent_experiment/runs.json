@@ -1,0 +1,503 @@
+{
+  "w137": {
+    "language": "java",
+    "condition": "manifest",
+    "model": "haiku",
+    "lines_added": 141,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "repository",
+      "service",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w179": {
+    "language": "java",
+    "condition": "enforced",
+    "model": "haiku",
+    "lines_added": 128,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "repository",
+      "service",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w295": {
+    "language": "java",
+    "condition": "manifest",
+    "model": "sonnet",
+    "lines_added": 118,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "repository",
+      "service",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w347": {
+    "language": "java",
+    "condition": "exemplar",
+    "model": "sonnet",
+    "lines_added": 117,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "repository",
+      "service",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w947": {
+    "language": "java",
+    "condition": "enforced",
+    "model": "sonnet",
+    "lines_added": 128,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "repository",
+      "service",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w991": {
+    "language": "java",
+    "condition": "exemplar",
+    "model": "haiku",
+    "lines_added": 76,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "services"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": false,
+    "tests_touched": [
+      "api",
+      "support"
+    ],
+    "manifest_modified": false
+  },
+  "w146": {
+    "language": "python",
+    "condition": "exemplar",
+    "model": "haiku",
+    "lines_added": 95,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [
+      "test_the_code_type_checks"
+    ],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": false,
+    "contract_updated": false,
+    "tests_touched": [
+      "api"
+    ],
+    "manifest_modified": false
+  },
+  "w261": {
+    "language": "python",
+    "condition": "manifest",
+    "model": "sonnet",
+    "lines_added": 135,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "domain"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w457": {
+    "language": "python",
+    "condition": "enforced",
+    "model": "sonnet",
+    "lines_added": 122,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w488": {
+    "language": "python",
+    "condition": "enforced",
+    "model": "haiku",
+    "lines_added": 121,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w834": {
+    "language": "python",
+    "condition": "manifest",
+    "model": "haiku",
+    "lines_added": 152,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w988": {
+    "language": "python",
+    "condition": "exemplar",
+    "model": "sonnet",
+    "lines_added": 133,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w172": {
+    "language": "typescript",
+    "condition": "enforced",
+    "model": "haiku",
+    "lines_added": 119,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w292": {
+    "language": "typescript",
+    "condition": "exemplar",
+    "model": "haiku",
+    "lines_added": 118,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w434": {
+    "language": "typescript",
+    "condition": "manifest",
+    "model": "sonnet",
+    "lines_added": 115,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "domain"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w438": {
+    "language": "typescript",
+    "condition": "manifest",
+    "model": "haiku",
+    "lines_added": 129,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w466": {
+    "language": "typescript",
+    "condition": "enforced",
+    "model": "sonnet",
+    "lines_added": 119,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "domain"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  },
+  "w837": {
+    "language": "typescript",
+    "condition": "exemplar",
+    "model": "sonnet",
+    "lines_added": 116,
+    "delivered_green": true,
+    "delivered_failures": [],
+    "rules_modified": false,
+    "acceptance_failures": [],
+    "acceptance_passed": 4,
+    "rule_failures": [],
+    "notify_layer": [
+      "events"
+    ],
+    "error_in_domain": true,
+    "rule_layer": [
+      "services"
+    ],
+    "double_updated": true,
+    "contract_updated": true,
+    "tests_touched": [
+      "api",
+      "integration",
+      "support",
+      "unit"
+    ],
+    "manifest_modified": false
+  }
+}
