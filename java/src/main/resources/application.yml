@@ -1,67 +1,22 @@
-# =============================================================================
-# Pattern 5 -- Configuration Externalisation
-#
-# Values under the "app" prefix are bound to the AppConfig record and validated
-# at startup via Jakarta Bean Validation constraints.
-# =============================================================================
-
+# Every setting the application reads, with its default. Override through the environment.
 app:
-  name: Task Manager
-  default-page-size: 20
-  task-defaults:
-    default-priority: MEDIUM
-    due-date-days-from-now: 7
-
-# --- Spring configuration ----------------------------------------------------
-
-spring:
-  application:
-    name: task-manager
-
-  data:
-    web:
-      pageable:
-        default-page-size: ${app.default-page-size}
-
-  datasource:
-    url: jdbc:h2:mem:taskdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    open-in-view: false
-    properties:
-      hibernate:
-        format_sql: true
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  wip-limit: ${WIP_LIMIT:3}
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 logging:
   level:
-    com.example.taskmanager: DEBUG
-    org.springframework.web: INFO
+    root: ${LOG_LEVEL:INFO}
 
----
-# Profile: test
 spring:
-  config:
-    activate:
-      on-profile: test
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-
-logging:
-  level:
-    com.example.taskmanager: WARN
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:file:./taskboard}
+  sql:
+    init:
+      mode: always
+  jackson:
+    serialization:
+      write-enums-using-to-string: true
+    deserialization:
+      read-enums-using-to-string: true

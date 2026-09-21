@@ -1,0 +1,65 @@
+{
+  "java": {
+    "source_files": 12,
+    "source_loc": 283,
+    "largest_source_file_loc": 49,
+    "loc_by_layer": {
+      "api": 77,
+      "composition root": 11,
+      "config": 7,
+      "domain": 69,
+      "events": 14,
+      "repositories": 56,
+      "services": 49
+    },
+    "test_files": 8,
+    "test_loc": 287,
+    "manifest_words": 397,
+    "dependencies": {
+      "runtime": 4,
+      "development": 2
+    }
+  },
+  "python": {
+    "source_files": 12,
+    "source_loc": 223,
+    "largest_source_file_loc": 40,
+    "loc_by_layer": {
+      "api": 50,
+      "composition root": 22,
+      "config": 7,
+      "domain": 45,
+      "events": 21,
+      "repositories": 47,
+      "services": 31
+    },
+    "test_files": 5,
+    "test_loc": 193,
+    "manifest_words": 347,
+    "dependencies": {
+      "runtime": 3,
+      "development": 3
+    }
+  },
+  "typescript": {
+    "source_files": 13,
+    "source_loc": 242,
+    "largest_source_file_loc": 41,
+    "loc_by_layer": {
+      "api": 48,
+      "composition root": 22,
+      "config": 22,
+      "domain": 43,
+      "events": 23,
+      "repositories": 43,
+      "services": 41
+    },
+    "test_files": 5,
+    "test_loc": 193,
+    "manifest_words": 388,
+    "dependencies": {
+      "runtime": 2,
+      "development": 3
+    }
+  }
+}

@@ -1,100 +1,48 @@
-# Task Manager -- Java Reference Implementation
+# taskboard (Java / Spring Boot)
 
-A Spring Boot application demonstrating eight architectural patterns that AI coding assistants should use as defaults when generating Java code.
+A deliberately small Kanban API that is a complete example of a repository prepared for
+human-AI development: eight default architectural patterns, a manifest that states them
+([AGENTS.md](AGENTS.md)), and tests that enforce them. The same application exists in
+[Java](../java), [Python](../python) and [TypeScript](../typescript); the three are
+behaviourally identical.
 
-## Patterns Demonstrated
+## Run it
 
-| # | Pattern | Key Files |
-|---|---------|-----------|
-| 1 | **Layered Architecture** | `web/controller/`, `service/`, `repository/`, `domain/model/` |
-| 2 | **Repository Pattern** | `TaskRepository`, `UserRepository` (Spring Data JPA interfaces) |
-| 3 | **Service Layer** | `TaskService`, `UserService` (`@Service`, transactional boundaries) |
-| 4 | **Dependency Injection** | Constructor injection throughout; no `@Autowired` on fields |
-| 5 | **Configuration Externalisation** | `AppConfig` record with `@ConfigurationProperties` + Jakarta Validation |
-| 6 | **Structured Error Handling** | `ResourceNotFoundException` hierarchy, `GlobalExceptionHandler`, RFC 9457 Problem Details |
-| 7 | **Event-Driven Communication** | `TaskCreatedEvent` / `TaskCompletedEvent` records, `TaskEventHandler` with `@Async` |
-| 8 | **Test Scaffold** | Unit tests (Mockito), repository tests (`@DataJpaTest`), API tests (`@WebMvcTest` + MockMvc) |
+    mvn spring-boot:run
 
-## Prerequisites
+Requires Java 21. Settings (`WIP_LIMIT`, `PORT`, `DATABASE_URL`, `LOG_LEVEL`) are read from the
+environment; `src/main/resources/application.yml` lists them with their defaults.
 
-- Java 17 or later
-- Maven 3.8+
+## Verify it
 
-## Running
+    mvn verify
 
-```bash
-cd java
-mvn spring-boot:run
-```
+One command: compilation, the ArchUnit architecture rules, and the unit, integration and API tests.
 
-The application starts on `http://localhost:8080` with an H2 in-memory database.  
-The H2 console is available at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:taskdb`).
+## The API
 
-## Running Tests
+| Request                                   | Success        | Failures                                         |
+| ----------------------------------------- | -------------- | ------------------------------------------------ |
+| `POST /tasks` `{"title": "..."}`          | `201` the task | `400 validation_failed`                          |
+| `GET /tasks`                              | `200` a list   |                                                  |
+| `GET /tasks/{id}`                         | `200` the task | `404 task_not_found`                             |
+| `POST /tasks/{id}/status` `{"status": …}` | `200` the task | `404`, `409 invalid_transition`, `409 wip_limit_exceeded` |
 
-```bash
-mvn test
-```
+A task moves `todo -> in_progress -> done` (and back from `in_progress` to `todo`). No more
+than `WIP_LIMIT` tasks may be in progress at once. Failures are RFC 9457 problem documents
+(`application/problem+json`) carrying a stable `code`.
 
-## API Endpoints
+## The eight patterns, and where to find them
 
-### Tasks
+| # | Pattern                     | Here                                   |
+| - | --------------------------- | -------------------------------------- |
+| 1 | Layered architecture        | packages `api`, `service`, `repository`, `domain` |
+| 2 | Repository                  | `repository/TaskRepository`, `JdbcTaskRepository` |
+| 3 | Service layer               | `service/TaskService` |
+| 4 | Dependency injection        | constructors, wired by Spring |
+| 5 | Externalised configuration  | `config/AppProperties`, `application.yml` |
+| 6 | Structured error handling   | `domain/DomainException` (sealed), `api/ApiExceptionHandler` |
+| 7 | Domain events               | `domain/TaskCompleted`, `events/CompletionAnnouncer` |
+| 8 | Test scaffold               | `src/test/java/.../{service,repository,api,support}`, `ArchitectureTest` |
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/tasks` | List all tasks (optional `?status=OPEN`) |
-| GET | `/api/tasks/{id}` | Get a task by ID |
-| POST | `/api/tasks` | Create a task |
-| PUT | `/api/tasks/{id}` | Update a task |
-| POST | `/api/tasks/{id}/assign` | Assign a user to a task |
-| POST | `/api/tasks/{id}/complete` | Mark a task as completed |
-| DELETE | `/api/tasks/{id}` | Delete a task |
-
-### Users
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/users` | List all users |
-| GET | `/api/users/{id}` | Get a user by ID |
-| POST | `/api/users` | Create a user |
-| DELETE | `/api/users/{id}` | Delete a user |
-
-## Example Requests
-
-```bash
-# Create a user
-curl -X POST http://localhost:8080/api/users \
-  -H 'Content-Type: application/json' \
-  -d '{"name": "Alice", "email": "alice@example.com"}'
-
-# Create a task
-curl -X POST http://localhost:8080/api/tasks \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "Write documentation", "description": "Cover all 8 patterns", "priority": "HIGH"}'
-
-# Assign user 1 to task 1
-curl -X POST http://localhost:8080/api/tasks/1/assign \
-  -H 'Content-Type: application/json' \
-  -d '{"userId": 1}'
-
-# Complete task 1
-curl -X POST http://localhost:8080/api/tasks/1/complete
-```
-
-## Project Structure
-
-```
-src/main/java/com/example/taskmanager/
-  config/          Configuration properties (Pattern 5)
-  domain/
-    model/         JPA entities with domain behaviour
-    exception/     Custom exception hierarchy (Pattern 6)
-    event/         Domain event records (Pattern 7)
-  repository/      Spring Data JPA repositories (Pattern 2)
-  service/         Business logic (Patterns 3, 4)
-  event/           Event listeners (Pattern 7)
-  web/
-    controller/    REST controllers (Pattern 1)
-    dto/           Request/response records
-    advice/        Global exception handler (Pattern 6)
-```
+How to extend the application, and what needs a human decision, is in [AGENTS.md](AGENTS.md).

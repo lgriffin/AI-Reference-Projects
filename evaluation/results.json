@@ -1,0 +1,221 @@
+{
+  "python": {
+    "V1": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_layers_only_import_downwards[api/task_routes.py]"
+      ]
+    },
+    "V2": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/api/test_task_api.py::test_every_failure_is_a_problem_document",
+        "tests/architecture/test_architecture.py::test_ambient_capabilities_stay_in_their_layer[services/task_service.py]",
+        "tests/unit/test_task_service.py::test_an_unknown_task_is_reported"
+      ]
+    },
+    "V3": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_ambient_capabilities_stay_in_their_layer[services/task_service.py]"
+      ]
+    },
+    "V4": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_only_the_composition_root_constructs_collaborators"
+      ]
+    },
+    "V5": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_ambient_capabilities_stay_in_their_layer[services/task_service.py]"
+      ]
+    },
+    "V6": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_every_domain_error_has_an_http_status"
+      ]
+    },
+    "V7": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/api/test_task_api.py::test_every_failure_is_a_problem_document"
+      ]
+    },
+    "V8": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V9": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/integration/test_task_repository_contract.py::test_tasks_are_listed_in_creation_order[in_memory]"
+      ]
+    },
+    "V10": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V11": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/api/test_task_api.py::test_every_failure_is_a_problem_document",
+        "tests/unit/test_task_service.py::test_the_wip_limit_is_enforced"
+      ]
+    },
+    "V12": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/test_architecture.py::test_the_domain_is_free_of_frameworks"
+      ]
+    }
+  },
+  "typescript": {
+    "V1": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/architecture.test.ts::'api/task-routes.ts' imports only from the layers beneath it"
+      ]
+    },
+    "V2": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/api/task-api.test.ts::every failure is a problem document",
+        "tests/unit/task-service.test.ts::an unknown task is reported"
+      ]
+    },
+    "V3": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/architecture.test.ts::'services/task-service.ts' leaves ambient capabilities to the layer that owns them"
+      ]
+    },
+    "V4": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/architecture.test.ts::'services/task-service.ts' does not construct its own collaborators"
+      ]
+    },
+    "V5": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/architecture.test.ts::'services/task-service.ts' leaves ambient capabilities to the layer that owns them"
+      ]
+    },
+    "V6": {
+      "caught_by": "compiler",
+      "evidence": [
+        "error TS2741: Property 'title_taken' is missing in type '{ task_not_found: number; invalid_transition: number; wip_limit_exceeded: number; }' but required in type 'Record<ErrorCode, number>'."
+      ]
+    },
+    "V7": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/api/task-api.test.ts::every failure is a problem document"
+      ]
+    },
+    "V8": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V9": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/integration/task-repository.contract.test.ts::TaskRepository (in memory) tasks are listed in creation order"
+      ]
+    },
+    "V10": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V11": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "tests/api/task-api.test.ts::every failure is a problem document",
+        "tests/unit/task-service.test.ts::the WIP limit is enforced"
+      ]
+    },
+    "V12": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "tests/architecture/architecture.test.ts::the domain is free of frameworks"
+      ]
+    }
+  },
+  "java": {
+    "V1": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "ArchitectureTest::layersOnlyDependDownwards"
+      ]
+    },
+    "V2": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "TaskApiTest::everyFailureIsAProblemDocument",
+        "ArchitectureTest::onlyTheApiSpeaksHttp",
+        "TaskServiceTest::anUnknownTaskIsReported"
+      ]
+    },
+    "V3": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "ArchitectureTest::onlyRepositoriesSpeakSql"
+      ]
+    },
+    "V4": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "ArchitectureTest::onlySpringConstructsCollaborators"
+      ]
+    },
+    "V5": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "ArchitectureTest::onlyConfigReadsTheEnvironment"
+      ]
+    },
+    "V6": {
+      "caught_by": "compiler",
+      "evidence": [
+        "/D:/Academic/paper2-ai-patterns-JOT/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values",
+        "/D:/Academic/paper2-ai-patterns-JOT/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values"
+      ]
+    },
+    "V7": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "TaskApiTest::everyFailureIsAProblemDocument"
+      ]
+    },
+    "V8": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V9": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "InMemoryTaskRepositoryTest::tasksAreListedInCreationOrder"
+      ]
+    },
+    "V10": {
+      "caught_by": "not caught",
+      "evidence": []
+    },
+    "V11": {
+      "caught_by": "behavioural test",
+      "evidence": [
+        "TaskApiTest::everyFailureIsAProblemDocument",
+        "TaskServiceTest::theWipLimitIsEnforced"
+      ]
+    },
+    "V12": {
+      "caught_by": "architecture test",
+      "evidence": [
+        "ArchitectureTest::theDomainIsFreeOfFrameworks"
+      ]
+    }
+  }
+}
