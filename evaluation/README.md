@@ -7,6 +7,7 @@ must first be installed (see its README) so that its verify command runs.
 | -------------------- | --------------- | --------------------------------------- |
 | `measure.py`         | `metrics.json`  | Table 4 (size of the implementations)   |
 | `seed_violations.py` | `results.json`  | Table 5 (violation seeding)             |
+| [`agent_experiment/`](agent_experiment/) | `runs.json`, `diffs/` | Table 6 (pilot agent experiment) |
 
     python evaluation/measure.py
     python evaluation/measure.py <other-checkout>    # e.g. the first iteration, for comparison

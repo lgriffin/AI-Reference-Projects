@@ -1,0 +1,21 @@
+{
+  "_note": "Total tokens, tool calls and wall-clock time of each subject agent, as reported by the agent harness on completion.",
+  "w146": {"tokens": 47528, "tool_uses": 30, "seconds": 100},
+  "w991": {"tokens": 66538, "tool_uses": 32, "seconds": 132},
+  "w834": {"tokens": 50860, "tool_uses": 38, "seconds": 117},
+  "w292": {"tokens": 47138, "tool_uses": 36, "seconds": 113},
+  "w172": {"tokens": 54060, "tool_uses": 40, "seconds": 130},
+  "w438": {"tokens": 48106, "tool_uses": 38, "seconds": 124},
+  "w488": {"tokens": 53440, "tool_uses": 41, "seconds": 153},
+  "w137": {"tokens": 70150, "tool_uses": 40, "seconds": 166},
+  "w988": {"tokens": 60345, "tool_uses": 39, "seconds": 110},
+  "w466": {"tokens": 63698, "tool_uses": 39, "seconds": 112},
+  "w261": {"tokens": 60525, "tool_uses": 36, "seconds": 118},
+  "w837": {"tokens": 63586, "tool_uses": 39, "seconds": 111},
+  "w457": {"tokens": 64205, "tool_uses": 40, "seconds": 134},
+  "w947": {"tokens": 79915, "tool_uses": 40, "seconds": 156},
+  "w295": {"tokens": 80977, "tool_uses": 42, "seconds": 147},
+  "w434": {"tokens": 61322, "tool_uses": 38, "seconds": 120},
+  "w347": {"tokens": 84768, "tool_uses": 42, "seconds": 162},
+  "w179": {"tokens": 78856, "tool_uses": 44, "seconds": 221}
+}

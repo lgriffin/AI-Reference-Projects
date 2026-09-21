@@ -52,7 +52,9 @@ implemented three times. The three are behaviourally identical.
 
 [`evaluation/`](evaluation/) contains the scripts behind the paper's numbers: `measure.py` (size)
 and `seed_violations.py`, which plants twelve canonical structural mistakes in each
-implementation and records what, if anything, catches them.
+implementation and records what, if anything, catches them. [`evaluation/agent_experiment/`](evaluation/agent_experiment/)
+holds the pilot experiment: eighteen coding agents given the same feature request in repositories
+offering one, two or all three carriers, with the scripted audit and every agent's diff.
 
 ## How this was built
 

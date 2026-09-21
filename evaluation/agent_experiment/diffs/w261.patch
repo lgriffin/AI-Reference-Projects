@@ -1,0 +1,326 @@
+diff --git a/src/taskboard/api/error_handlers.py b/src/taskboard/api/error_handlers.py
+index 24ab812..4e4b7be 100644
+--- a/src/taskboard/api/error_handlers.py
++++ b/src/taskboard/api/error_handlers.py
+@@ -4,12 +4,19 @@ from fastapi import FastAPI, Request
+ from fastapi.exceptions import RequestValidationError
+ from fastapi.responses import JSONResponse
+ 
+-from taskboard.domain.errors import DomainError, InvalidTransition, TaskNotFound, WipLimitExceeded
++from taskboard.domain.errors import (
++    DomainError,
++    InvalidTransition,
++    TaskInProgress,
++    TaskNotFound,
++    WipLimitExceeded,
++)
+ 
+ STATUS_BY_ERROR: dict[type[DomainError], int] = {
+     TaskNotFound: 404,
+     InvalidTransition: 409,
+     WipLimitExceeded: 409,
++    TaskInProgress: 409,
+ }
+ 
+ 
+diff --git a/src/taskboard/api/task_routes.py b/src/taskboard/api/task_routes.py
+index e4c328b..7b4a2be 100644
+--- a/src/taskboard/api/task_routes.py
++++ b/src/taskboard/api/task_routes.py
+@@ -45,3 +45,8 @@ def get_task(task_id: str, service: Service) -> Task:
+ @router.post("/{task_id}/status")
+ def move_task(task_id: str, body: MoveTask, service: Service) -> Task:
+     return service.move_task(task_id, body.status)
++
++
++@router.delete("/{task_id}", status_code=204)
++def delete_task(task_id: str, service: Service) -> None:
++    service.delete_task(task_id)
+diff --git a/src/taskboard/app.py b/src/taskboard/app.py
+index 9c57631..f018889 100644
+--- a/src/taskboard/app.py
++++ b/src/taskboard/app.py
+@@ -10,9 +10,9 @@ from fastapi import FastAPI
+ from taskboard.api.error_handlers import register_error_handlers
+ from taskboard.api.task_routes import router
+ from taskboard.config import Settings
+-from taskboard.domain.events import TaskCompleted
++from taskboard.domain.events import TaskCompleted, TaskDeleted
+ from taskboard.events.bus import EventBus
+-from taskboard.events.handlers import announce_completion
++from taskboard.events.handlers import announce_completion, announce_deletion
+ from taskboard.repositories.sqlite_task_repository import SqliteTaskRepository
+ from taskboard.services.task_service import TaskService
+ 
+@@ -23,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
+ 
+     events = EventBus()
+     events.subscribe(TaskCompleted, announce_completion)
++    events.subscribe(TaskDeleted, announce_deletion)
+ 
+     tasks = SqliteTaskRepository(settings.database_path)
+     service = TaskService(tasks, events, settings.wip_limit)
+diff --git a/src/taskboard/domain/errors.py b/src/taskboard/domain/errors.py
+index 13da590..919d270 100644
+--- a/src/taskboard/domain/errors.py
++++ b/src/taskboard/domain/errors.py
+@@ -24,3 +24,10 @@ class WipLimitExceeded(DomainError):
+ 
+     def __init__(self, limit: int) -> None:
+         super().__init__(f"No more than {limit} tasks may be in progress at once.")
++
++
++class TaskInProgress(DomainError):
++    code = "task_in_progress"
++
++    def __init__(self, task_id: str) -> None:
++        super().__init__(f"Task '{task_id}' is in progress and cannot be deleted.")
+diff --git a/src/taskboard/domain/events.py b/src/taskboard/domain/events.py
+index c0feff0..a422010 100644
+--- a/src/taskboard/domain/events.py
++++ b/src/taskboard/domain/events.py
+@@ -7,3 +7,9 @@ from dataclasses import dataclass
+ class TaskCompleted:
+     task_id: str
+     title: str
++
++
++@dataclass(frozen=True)
++class TaskDeleted:
++    task_id: str
++    title: str
+diff --git a/src/taskboard/domain/task.py b/src/taskboard/domain/task.py
+index ea4653e..a6f29ef 100644
+--- a/src/taskboard/domain/task.py
++++ b/src/taskboard/domain/task.py
+@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
+ from enum import StrEnum
+ from uuid import uuid4
+ 
+-from taskboard.domain.errors import InvalidTransition
++from taskboard.domain.errors import InvalidTransition, TaskInProgress
+ 
+ 
+ class Status(StrEnum):
+@@ -36,3 +36,7 @@ class Task:
+         if status not in TRANSITIONS[self.status]:
+             raise InvalidTransition(self.status, status)
+         return replace(self, status=status)
++
++    def ensure_deletable(self) -> None:
++        if self.status is Status.IN_PROGRESS:
++            raise TaskInProgress(self.id)
+diff --git a/src/taskboard/events/handlers.py b/src/taskboard/events/handlers.py
+index d9baaff..48f4f82 100644
+--- a/src/taskboard/events/handlers.py
++++ b/src/taskboard/events/handlers.py
+@@ -2,7 +2,7 @@
+ 
+ import logging
+ 
+-from taskboard.domain.events import TaskCompleted
++from taskboard.domain.events import TaskCompleted, TaskDeleted
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -10,3 +10,8 @@ logger = logging.getLogger(__name__)
+ def announce_completion(event: TaskCompleted) -> None:
+     """Stands in for an e-mail or chat notification."""
+     logger.info("Task completed: %s (%s)", event.title, event.task_id)
++
++
++def announce_deletion(event: TaskDeleted) -> None:
++    """Stands in for an e-mail or chat notification."""
++    logger.info("Task deleted: %s (%s)", event.title, event.task_id)
+diff --git a/src/taskboard/repositories/sqlite_task_repository.py b/src/taskboard/repositories/sqlite_task_repository.py
+index be0edf0..ab343b4 100644
+--- a/src/taskboard/repositories/sqlite_task_repository.py
++++ b/src/taskboard/repositories/sqlite_task_repository.py
+@@ -49,6 +49,10 @@ class SqliteTaskRepository:
+             ).fetchone()
+         return int(count)
+ 
++    def delete(self, task_id: str) -> None:
++        with self._connect() as db:
++            db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
++
+     @contextmanager
+     def _connect(self) -> Iterator[sqlite3.Connection]:
+         db = sqlite3.connect(self._path)
+diff --git a/src/taskboard/repositories/task_repository.py b/src/taskboard/repositories/task_repository.py
+index 93b7e29..da8251d 100644
+--- a/src/taskboard/repositories/task_repository.py
++++ b/src/taskboard/repositories/task_repository.py
+@@ -13,3 +13,5 @@ class TaskRepository(Protocol):
+     def find_all(self) -> list[Task]: ...
+ 
+     def count_by_status(self, status: Status) -> int: ...
++
++    def delete(self, task_id: str) -> None: ...
+diff --git a/src/taskboard/services/task_service.py b/src/taskboard/services/task_service.py
+index a6993a5..ef00c60 100644
+--- a/src/taskboard/services/task_service.py
++++ b/src/taskboard/services/task_service.py
+@@ -1,7 +1,7 @@
+ """Services: every use case of the board. No HTTP, no SQL, no environment."""
+ 
+ from taskboard.domain.errors import TaskNotFound, WipLimitExceeded
+-from taskboard.domain.events import TaskCompleted
++from taskboard.domain.events import TaskCompleted, TaskDeleted
+ from taskboard.domain.task import Status, Task
+ from taskboard.events.bus import EventBus
+ from taskboard.repositories.task_repository import TaskRepository
+@@ -36,5 +36,11 @@ class TaskService:
+             self._events.publish(TaskCompleted(task.id, task.title))
+         return task
+ 
++    def delete_task(self, task_id: str) -> None:
++        task = self.get_task(task_id)
++        task.ensure_deletable()
++        self._tasks.delete(task.id)
++        self._events.publish(TaskDeleted(task.id, task.title))
++
+     def _board_is_full(self) -> bool:
+         return self._tasks.count_by_status(Status.IN_PROGRESS) >= self._wip_limit
+diff --git a/tests/api/test_task_api.py b/tests/api/test_task_api.py
+index e658677..240fe6d 100644
+--- a/tests/api/test_task_api.py
++++ b/tests/api/test_task_api.py
+@@ -49,9 +49,40 @@ def test_every_failure_is_a_problem_document(client: TestClient) -> None:
+         "invalid_transition": (409, move(client, waiting, "done")),
+         "wip_limit_exceeded": (409, move(client, waiting, "in_progress")),
+         "validation_failed": (400, client.post("/tasks", json={"title": ""})),
++        "task_in_progress": (409, client.delete(f"/tasks/{started}")),
+     }
+ 
+     for code, (status, response) in failures.items():
+         assert response.status_code == status
+         assert response.headers["content-type"] == "application/problem+json"
+         assert response.json()["code"] == code
++
++
++def test_a_task_can_be_deleted(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
++    caplog.set_level("INFO")
++    task_id = create(client, "Write the paper")
++
++    response = client.delete(f"/tasks/{task_id}")
++
++    assert response.status_code == 204
++    assert response.content == b""
++    assert client.get(f"/tasks/{task_id}").status_code == 404
++    assert f"Task deleted: Write the paper ({task_id})" in caplog.text
++
++
++def test_a_task_in_progress_cannot_be_deleted(client: TestClient) -> None:
++    task_id = create(client, "Write the paper")
++    move(client, task_id, "in_progress")
++
++    response = client.delete(f"/tasks/{task_id}")
++
++    assert response.status_code == 409
++    assert response.json()["code"] == "task_in_progress"
++    assert client.get(f"/tasks/{task_id}").status_code == 200
++
++
++def test_deleting_an_unknown_task_is_a_problem_document(client: TestClient) -> None:
++    response = client.delete("/tasks/no-such-id")
++
++    assert response.status_code == 404
++    assert response.json()["code"] == "task_not_found"
+diff --git a/tests/integration/test_task_repository_contract.py b/tests/integration/test_task_repository_contract.py
+index cf3d043..75a53f4 100644
+--- a/tests/integration/test_task_repository_contract.py
++++ b/tests/integration/test_task_repository_contract.py
+@@ -45,3 +45,14 @@ def test_tasks_are_counted_by_status(repository: TaskRepository) -> None:
+     repository.save(Task.new("Waiting"))
+     repository.save(Task.new("Started").move_to(Status.IN_PROGRESS))
+     assert repository.count_by_status(Status.IN_PROGRESS) == 1
++
++
++def test_a_deleted_task_can_no_longer_be_found(repository: TaskRepository) -> None:
++    task = Task.new("Write the paper")
++    repository.save(task)
++    repository.delete(task.id)
++    assert repository.find(task.id) is None
++
++
++def test_deleting_an_unknown_task_does_not_raise(repository: TaskRepository) -> None:
++    repository.delete("no-such-id")
+diff --git a/tests/support/in_memory_task_repository.py b/tests/support/in_memory_task_repository.py
+index fe6b718..5f000b8 100644
+--- a/tests/support/in_memory_task_repository.py
++++ b/tests/support/in_memory_task_repository.py
+@@ -18,3 +18,6 @@ class InMemoryTaskRepository:
+ 
+     def count_by_status(self, status: Status) -> int:
+         return sum(task.status is status for task in self._tasks.values())
++
++    def delete(self, task_id: str) -> None:
++        self._tasks.pop(task_id, None)
+diff --git a/tests/unit/test_task_service.py b/tests/unit/test_task_service.py
+index b3b90a5..064b681 100644
+--- a/tests/unit/test_task_service.py
++++ b/tests/unit/test_task_service.py
+@@ -2,8 +2,13 @@
+ 
+ import pytest
+ 
+-from taskboard.domain.errors import InvalidTransition, TaskNotFound, WipLimitExceeded
+-from taskboard.domain.events import TaskCompleted
++from taskboard.domain.errors import (
++    InvalidTransition,
++    TaskInProgress,
++    TaskNotFound,
++    WipLimitExceeded,
++)
++from taskboard.domain.events import TaskCompleted, TaskDeleted
+ from taskboard.domain.task import Status
+ from taskboard.events.bus import EventBus
+ from taskboard.services.task_service import TaskService
+@@ -16,9 +21,15 @@ def published() -> list[TaskCompleted]:
+ 
+ 
+ @pytest.fixture
+-def service(published: list[TaskCompleted]) -> TaskService:
++def deleted() -> list[TaskDeleted]:
++    return []
++
++
++@pytest.fixture
++def service(published: list[TaskCompleted], deleted: list[TaskDeleted]) -> TaskService:
+     events = EventBus()
+     events.subscribe(TaskCompleted, published.append)
++    events.subscribe(TaskDeleted, deleted.append)
+     return TaskService(InMemoryTaskRepository(), events, wip_limit=1)
+ 
+ 
+@@ -54,6 +65,29 @@ def test_an_unknown_task_is_reported(service: TaskService) -> None:
+         service.get_task("no-such-id")
+ 
+ 
++def test_deleting_a_task_removes_it_and_publishes_an_event(
++    service: TaskService, deleted: list[TaskDeleted]
++) -> None:
++    task = service.create_task("Write the paper")
++    service.delete_task(task.id)
++    with pytest.raises(TaskNotFound):
++        service.get_task(task.id)
++    assert deleted == [TaskDeleted(task.id, "Write the paper")]
++
++
++def test_a_task_in_progress_cannot_be_deleted(service: TaskService) -> None:
++    task = service.create_task("Write the paper")
++    service.move_task(task.id, Status.IN_PROGRESS)
++    with pytest.raises(TaskInProgress):
++        service.delete_task(task.id)
++    assert service.get_task(task.id).status is Status.IN_PROGRESS
++
++
++def test_deleting_an_unknown_task_is_reported(service: TaskService) -> None:
++    with pytest.raises(TaskNotFound):
++        service.delete_task("no-such-id")
++
++
+ def test_a_failing_handler_does_not_fail_the_use_case() -> None:
+     def explode(_: TaskCompleted) -> None:
+         raise RuntimeError("mail server is down")
