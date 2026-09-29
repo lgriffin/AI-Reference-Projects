@@ -1,0 +1,20 @@
+% Two forces acting on the domain, and the ladder standing between them and the domain.
+\begin{tikzpicture}[
+    font=\small,
+    box/.style={draw=#1, line width=0.9pt, fill=#1!7, rounded corners=3pt, align=center, inner sep=6pt},
+    arr/.style={-{Stealth[length=2.6mm]}, line width=0.9pt, #1},
+  ]
+  \node[box=jotblue, minimum width=3.2cm, minimum height=1.6cm] (domain)
+    {\textbf{The domain}\\[2pt]\footnotesize rules in one place,\\\footnotesize in its own words};
+  \node[box=missed, left=2.6cm of domain, text width=3.6cm] (sprawl)
+    {\textbf{Sprawl}\\[2pt]\footnotesize locally plausible changes\\\footnotesize spread one rule\\\footnotesize across many places};
+  \node[box=behaviour, right=2.6cm of domain, text width=3.6cm] (erosion)
+    {\textbf{Cognitive erosion}\\[2pt]\footnotesize the reviewer cannot read it all;\\\footnotesize the agent cannot remember};
+  \node[box=structure, below=1.1cm of domain, text width=8.2cm] (ladder)
+    {\textbf{Assertion Ladder}: move each rule out of memory and prose\\into the repository's own checks, as high as its risk warrants};
+  \draw[arr=missed] (sprawl) -- node[above, font=\footnotesize]{dilutes} (domain);
+  \draw[arr=behaviour] (erosion) -- node[above, font=\footnotesize]{hides} (domain);
+  \draw[arr=structure] (ladder) -- node[right, font=\footnotesize]{protects} (domain);
+  \draw[arr=structure, dashed] (ladder.west) -| node[pos=0.75, left, font=\footnotesize]{fails fast} (sprawl.south);
+  \draw[arr=structure, dashed] (ladder.east) -| node[pos=0.75, right, font=\footnotesize]{shows intent} (erosion.south);
+\end{tikzpicture}

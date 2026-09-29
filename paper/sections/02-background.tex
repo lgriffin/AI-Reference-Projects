@@ -1,0 +1,91 @@
+\section{Background}\label{sec:background}
+
+The Assertion Ladder draws on five bodies of work: the emergence of coding agents, architectural
+structure and its testing, behaviour and requirement specification, the psychology of learning,
+and lean production. This section introduces only what the later sections use.
+
+\subsection{Coding agents and the memoryless contributor}
+
+Code-generating models moved from completing a line \citep{chen2021codex} to resolving whole
+issues in real repositories \citep{jimenez2024swebench}. What made the second step possible was
+less the model than its harness: an agent that can list files, open them, edit them and run the
+tests behaves very differently from one that emits a single completion
+\citep{yang2024sweagent}. Tool vendors now converge on a convention for telling such an agent
+how a repository works: a Markdown file at the root, loaded at the start of every session
+\citep{agentsmd}. That file is the agent's whole inheritance from previous sessions.
+
+Three properties of this contributor matter for what follows. It is \emph{capable}: given a
+clear pattern it will reproduce it across layers and languages. It is \emph{memoryless}: nothing
+learned in one session survives to the next unless the repository records it. And it is
+\emph{fast}: its output can exceed what a person can review line by line, which moves the
+person's role from author to reviewer \citep{barke2023grounded} and makes the quality of what
+passes review depend on what the reviewer can see.
+
+\subsection{Structure and its enforcement}
+
+Layering is one of the oldest structuring ideas in software \citep{dijkstra1968the}; its
+rationale is information hiding, so that a decision likely to change is confined to one module
+\citep{parnas1972criteria}. The layered architecture of enterprise applications, with a
+presentation layer, a service layer, a data-access layer and a domain model, is catalogued as a
+pattern \citep{buschmann1996posa,fowler2002peaa}, and domain-driven design places the domain
+model at the centre of attention \citep{evans2003ddd}. Hexagonal and Clean Architecture invert
+the dependencies so that the domain depends on nothing and outer adapters depend on ports it
+owns \citep{cockburn2005hexagonal,martin2017clean}.
+
+Structure described only in prose decays. Architecture fitness functions make an
+architectural characteristic executable, so that a build can fail when it is violated
+\citep{ford2017evolutionary}; ArchUnit does this for Java dependencies by analysing bytecode in
+an ordinary unit test \citep{archunit}. Such rules are the structural core of our third rung.
+
+\subsection{Behaviour and requirements}
+
+Behaviour-driven development writes tests as examples of behaviour in the vocabulary of the
+domain, conventionally in the form \emph{given} a context, \emph{when} an event occurs,
+\emph{then} an outcome is expected \citep{north2006bdd}; specification by example treats such
+examples as the living specification of the system \citep{adzic2011sbe}.
+
+The Easy Approach to Requirements Syntax (EARS) constrains natural-language requirements to a
+small set of templates, each distinguished by a keyword \citep{mavin2009ears}:
+\emph{ubiquitous} requirements (``The system shall\ldots''), \emph{state-driven}
+(``While\ldots''), \emph{event-driven} (``When\ldots''), \emph{optional feature}
+(``Where\ldots''), \emph{unwanted behaviour} (``If\ldots, then\ldots'') and \emph{complex}
+combinations of these. EARS was designed to remove ambiguity for human readers. Section~\ref{sec:ladder}
+argues that its keywords do more work in a repository shared with agents: they classify a rule
+in a way that predicts where its code belongs.
+
+\subsection{Learning: worked examples, scaffolding and cognitive load}
+
+Cognitive load theory distinguishes the load a task imposes because of its intrinsic difficulty
+from load imposed by how the task is presented, and holds that working memory is small
+\citep{sweller1988cognitive}. One of its best-established findings is the worked-example
+effect: novices learn a procedure faster by studying a solved example than by solving the
+problem themselves \citep{sweller1985worked}. Scaffolding describes support that lets a learner
+do what they could not do alone, and that is withdrawn as competence grows \citep{wood1976scaffolding}.
+
+A coding agent is not a novice in the usual sense; it is highly competent in general and
+entirely ignorant of this repository in particular. The analogy we use is limited to that
+second property. The repository must teach the particular, every session, within a context
+window that is large but not unlimited.
+
+\subsection{Lean production and lean software}
+
+Lean production, derived from the Toyota Production System, treats anything that does not add
+value for the customer as waste, and builds quality into the process rather than inspecting it
+in at the end \citep{ohno1988tps,womack1996lean}. Four of its mechanisms recur in this paper.
+\emph{Jidoka} stops the line at the first defect so that it cannot propagate.
+\emph{Poka-yoke} designs a fixture or step so that a mistake cannot be made, or is detected at
+the moment it is made \citep{shingo1986zqc}. \emph{Standard work} records the current best method
+so that it can be followed and improved. \emph{Andon} gives every worker a way to stop and call
+for help. Lean software development maps these onto programming practices such as automated
+tests, continuous integration and small batches \citep{poppendieck2003lean}, and the
+build--measure--learn loop brings the scientific method to product decisions
+\citep{ries2011lean}.
+
+\subsection{Patterns}
+
+A pattern names a recurring problem in a context, the forces that make it hard, and a solution
+that balances them \citep{alexander1977pattern}. The form was brought to software design by the
+Gang of Four \citep{gamma1994design} and to architecture by the POSA series
+\citep{buschmann1996posa}. We use it for the Assertion Ladder because the ladder is not an
+algorithm or a tool but a way of resolving forces that every team sharing a repository with
+agents will meet.

@@ -139,6 +139,10 @@ between that claim and the code. Done items were verified locally in all three r
 - [ ] Re-run the pilot with more than one run per cell, against the current repository, and with
       the deletion task in EARS. This needs agent runs and cannot be done from the repository
       alone.
+- [x] Full draft in `paper/` (LaTeX, 20 pages, five illustrations); builds with `latexmk -pdf`
+- [ ] Swap the stand-in layout `paper/jotlocal.sty` for the official JOT template
+- [ ] Fill co-author surnames and affiliations, run a systematic related-work search, and check
+      every entry in `paper/references.bib` against its source
 
 ## 8. Open decisions
 
@@ -148,3 +152,4 @@ between that claim and the code. Done items were verified locally in all three r
 | A follow-up to the existing JOT submission, or a replacement | Follow-up that cites it, so data is not reported twice | |
 | Keep "Intent Harness" as a name | Retire it; use Assertion Ladder throughout | |
 | Include the two illustrative domains | Yes, clearly marked as illustrations | |
+| Paper title | "The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents" | Working title |

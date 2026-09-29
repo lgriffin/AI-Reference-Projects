@@ -1,0 +1,24 @@
+\section{Conclusion}\label{sec:conclusion}
+
+Coding agents make a domain's rules easier to break and harder to notice breaking. The
+Assertion Ladder answers by asking, for each rule, how strongly the repository asserts it: shown,
+told, checked, explained or prevented. Structure, behaviour and requirements turn out to be three
+loads on the same ladder, and the pattern of an EARS requirement suggests where its code belongs.
+Three receivers in three languages bind every rung in their own idiom; seeding fourteen canonical
+mistakes into each, their single verify command catches all 42, where it caught 30 of 36
+structural mistakes before the behavioural and requirement rungs and two new structural rules
+were added. The cost was about a screen of tests and a paragraph of prose per receiver.
+
+Lean production solved a version of this problem for workers who could not be expected to
+remember every specification, by building the specification into the work. The ladder does the
+same for a contributor who cannot remember at all.
+
+Three directions follow. The pilot should be repeated against the current receivers, with more
+runs per cell and the feature request written in EARS, to test whether stated requirements
+improve placement. The harness-erosion use cases should be raised from L2 to L3 by protecting
+the rule files themselves. And the reviewer's load, which we claim the ladder reduces by
+separating intent from code, should be measured.
+
+\paragraph{Availability} The receivers, the seeding script, the pilot's workspaces, audit and
+diffs, and this paper's sources are public \citep{taskboardrepo}. Each receiver can be read on
+its own, starting from its \repo{AGENTS.md}.

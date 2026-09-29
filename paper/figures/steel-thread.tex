@@ -1,0 +1,22 @@
+% One rule, the work-in-progress limit, through every kind of intent and every layer.
+\begin{tikzpicture}[
+    font=\footnotesize,
+    step/.style={draw=#1, line width=0.9pt, fill=#1!7, rounded corners=2pt, text width=3.05cm,
+                 minimum height=1.35cm, align=center, inner sep=4pt},
+    arr/.style={-{Stealth[length=2.3mm]}, line width=0.8pt, muted},
+  ]
+  \node[step=requirement] (req) {\textbf{Requirement}\\R-WIP-1, state-driven\\\texttt{REQUIREMENTS.md}};
+  \node[step=behaviour, right=0.45cm of req] (sc) {\textbf{Scenario}\\given a full board\ldots\\cites R-WIP-1};
+  \node[step=structure, right=0.45cm of sc] (svc) {\textbf{Service}\\guard in \texttt{move\_task}\\(needs other tasks)};
+  \node[step=structure, right=0.45cm of svc] (err) {\textbf{Domain error}\\\texttt{WipLimitExceeded}\\code, no HTTP};
+  \node[step=structure, below=0.9cm of err] (map) {\textbf{One translation}\\error $\to$ 409\\exhaustive map};
+  \node[step=structure, left=0.45cm of map] (cfg) {\textbf{Setting}\\\texttt{WIP\_LIMIT}\\read once, injected};
+  \node[step=muted, left=0.45cm of cfg, text width=6.55cm] (gate) {\textbf{Single gate}: compiler, architecture rules,\\requirement check, scenarios, contract, API tests};
+  \draw[arr] (req) -- (sc);
+  \draw[arr] (sc) -- (svc);
+  \draw[arr] (svc) -- (err);
+  \draw[arr] (err) -- (map);
+  \draw[arr] (svc.south) |- ($(cfg.north)+(0,0.3)$) -- (cfg.north);
+  \draw[arr] (map) -- (cfg);
+  \draw[arr] (cfg) -- (gate);
+\end{tikzpicture}
