@@ -7,6 +7,12 @@ Reference implementations accompanying the paper:
 >
 > Submitted to the *Journal of Object Technology* (JOT)
 
+## Paper plan
+
+The follow-up paper, *The Assertion Ladder*, is governed by [`paper-plan.md`](paper-plan.md):
+thesis, fixed vocabulary, section owners and rules of evidence. In it the three implementations
+are receivers of one capability.
+
 ## Purpose
 
 When a human and an AI coding agent work in the same repository, the agent starts every session
