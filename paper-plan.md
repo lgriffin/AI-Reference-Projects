@@ -9,7 +9,9 @@ first, then the paper.
 - Companion pages: [The Assertion Ladder](https://claude.ai/artifact/Wq6vNtRcqJxYN8K1dZjSet)
   (the abstracted capability) and [Intent Harness v1](https://claude.ai/artifact/Rf259Uv9cecAs8mPh5h3V6)
   (the worked example, with file references at commit `8c4a74a`)
-- Status: plan agreed by nobody yet; every section below marked *Proposed* is open to change
+- Guide: [`docs/assertion-ladder.md`](docs/assertion-ladder.md), the pattern and each receiver's
+  binding path, in the repository
+- Status: plan not yet agreed by all four authors; owners and open decisions are open to change
 
 ## 1. Thesis
 
@@ -77,7 +79,7 @@ Owners are a proposal to start from; reassign freely and record the change here.
 | 3 | The Assertion Ladder | The pattern in catalogue form (intent, context, forces, solution, consequences); the six rungs; the nine rung patterns; compression and fading | Figure 2: rung patterns | Leigh |
 | 4 | Three receivers | Taskboard, behaviourally identical in three stacks; the binding path of each receiver, rung by rung; what each gains; clean versus layered as a binding choice | Figure 3: binding-path table; Table: sizes from `evaluation/metrics.json` | Ray |
 | 5 | Use cases | The twelve use cases in six families, written stack-free; the WIP-limit steel thread; task deletion as the transfer case; two illustrative domains (ledger, dosing) | Figure 4: coverage grid | Ray |
-| 6 | Evaluation | Violation seeding (12 x 3), the agent pilot by tier, extended seeds for behaviour and requirements once built | Tables from `evaluation/results.json`, `runs.json`, `usage.json` | Colm |
+| 6 | Evaluation | Violation seeding before and after (36 structural seeds at `8c4a74a`; 42 seeds now), the agent pilot by tier | Tables from `evaluation/results.json`, `runs.json`, `usage.json` | Colm |
 | 7 | Discussion | Sanctity against ease of use; where each capability stops (V8, V10); EARS as a placement oracle; lean as the explanation | | Leigh, Colm |
 | 8 | Threats to validity | One run per pilot cell; one small domain; one model vendor; author-and-agent construction; text-matching rules in TypeScript | | Colm |
 | 9 | Conclusion | The capability, the evidence grade of each claim, what comes next | | Leigh |
@@ -102,7 +104,7 @@ Every claim carries one of four grades, and the prose matches the grade.
 
 | Grade | Wording allowed | Example |
 | --- | --- | --- |
-| Measured | "catches", "shows" | 30 of 36 seeded violations caught by the single gate |
+| Measured | "catches", "shows" | 42 of 42 seeded mistakes caught by the single gate (30 of 36 at `8c4a74a`) |
 | Demonstrated | "can", "is possible" | The compiler catches an unmapped error in Java and TypeScript |
 | Suggestive | "suggests", "is consistent with" | 2 of 6 departures without a manifest, 0 of 12 with one (one run per cell) |
 | Hypothesis | "we propose", "we expect" | The EARS pattern of a requirement predicts its layer |
@@ -117,20 +119,26 @@ Other rules:
 
 ## 7. Work before submission
 
-The paper claims one capability carrying three kinds of intent. Today only structure is fully
-built. These items close the gap, in order:
+The paper claims one capability carrying three kinds of intent. These items close the gap
+between that claim and the code. Done items were verified locally in all three receivers on
+29 September 2026.
 
-- [ ] Behaviour: rename the service-level tests as Given/When/Then scenarios in all three
-      receivers (no Gherkin runner)
-- [ ] Requirements: add `REQUIREMENTS.md` with the taskboard rules as EARS statements and ids
-- [ ] Closure Check: a test that every requirement id is cited by a scenario, and every
-      scenario cites one
-- [ ] Executable Rule for V8: side effects only in the events layer
-- [ ] Executable Rule for V10: no decisions on domain state in the api layer
-- [ ] Teaching Failure: failure messages that name the rule and the fix
-- [ ] Extend `seed_violations.py` with behaviour and requirement seeds; re-run
-- [ ] Re-run the pilot with more than one run per cell, and with the deletion task in EARS
-- [ ] Keep each manifest under 500 words after these changes
+- [x] Behaviour: unit and API tests are given / when / then scenarios citing requirement ids, in
+      all three receivers (no Gherkin runner)
+- [x] Requirements: `REQUIREMENTS.md` in each receiver, ten EARS rules with ids and a
+      pattern-to-layer table
+- [x] Closure Check: every requirement id is cited by a scenario, and every scenario cites one
+- [x] Executable Rule for V8: logging and notification only in the events layer
+- [x] Executable Rule for V10: routes make no decisions (Java: controllers construct no domain
+      errors)
+- [x] Teaching Failure: every architecture rule and the requirement check name the rule and the
+      fix
+- [x] Seeding extended with V13 and V14 and re-run: 42 of 42 caught
+      (`evaluation/results.json`; the first paper's run is kept in `results-8c4a74a.json`)
+- [x] Each manifest under 500 words (480 / 427 / 468)
+- [ ] Re-run the pilot with more than one run per cell, against the current repository, and with
+      the deletion task in EARS. This needs agent runs and cannot be done from the repository
+      alone.
 
 ## 8. Open decisions
 

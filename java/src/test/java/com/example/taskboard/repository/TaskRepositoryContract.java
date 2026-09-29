@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.taskboard.domain.Task;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /** Integration: one contract, run against every TaskRepository, so the test double stays honest. */
@@ -33,6 +34,7 @@ abstract class TaskRepositoryContract {
     }
 
     @Test
+    @DisplayName("R-LIST-1: tasks are listed in creation order")
     void tasksAreListedInCreationOrder() {
         List<String> titles = List.of("Write", "Review", "Publish"); // creation order differs from every sort order
         titles.forEach(title -> repository().save(Task.create(title)));

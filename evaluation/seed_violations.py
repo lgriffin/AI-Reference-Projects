@@ -1,6 +1,7 @@
 """Violation seeding: which of the repository's conventions are actually enforced?
 
-For each reference implementation, plant one canonical structural mistake at a time, run the
+For each reference implementation, plant one canonical mistake at a time (twelve structural,
+two that break the trace between REQUIREMENTS.md and the scenarios), run the
 repository's single verify command, record what (if anything) caught it, and restore the file.
 
     python evaluation/seed_violations.py            # all three implementations
@@ -23,7 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 WINDOWS = sys.platform == "win32"
 
 # What can catch a violation, strongest (earliest, cheapest feedback) first.
-COMPILER, ARCHITECTURE, BEHAVIOUR, NOTHING = "compiler", "architecture test", "behavioural test", "not caught"
+COMPILER, ARCHITECTURE, REQUIREMENT, BEHAVIOUR, NOTHING = (
+    "compiler", "architecture test", "requirement check", "behavioural test", "not caught"
+)
 
 VIOLATIONS = {
     "V1": "API bypasses the service and uses a repository",
@@ -38,7 +41,11 @@ VIOLATIONS = {
     "V10": "Business rule placed in the route",
     "V11": "Setting hard-coded in the service",
     "V12": "Framework type enters the domain",
+    "V13": "A requirement has no scenario",
+    "V14": "A scenario cites no requirement",
 }
+
+UNSCENARIOED = "| R-DEL-1  | Event-driven | When a delete is requested for a task, the board shall remove it. | services |\n"
 
 
 @dataclass(frozen=True)
@@ -97,6 +104,11 @@ def seeds_python() -> dict[str, list[Edit]]:
                      "from dataclasses import replace\n"),
                 Edit("src/taskboard/domain/task.py", "from taskboard.domain.errors import InvalidTransition\n",
                      "from pydantic.dataclasses import dataclass\n\nfrom taskboard.domain.errors import InvalidTransition\n")],
+        "V13": [Edit("REQUIREMENTS.md", "| R-ERR-1  |", UNSCENARIOED + "| R-ERR-1  |")],
+        "V14": [Edit("tests/unit/test_task_service.py", "def test_an_unknown_task_is_reported(",
+                     'def test_a_task_keeps_its_title(service: TaskService) -> None:\n'
+                     '    assert service.create_task("Write the paper").title == "Write the paper"\n\n\n'
+                     "def test_an_unknown_task_is_reported(")],
     }
 
 
@@ -142,6 +154,11 @@ def seeds_typescript() -> dict[str, list[Edit]]:
         "V11": [Edit(service, "    this.wipLimit = wipLimit;\n", "    this.wipLimit = 3;\n")],
         "V12": [Edit("src/domain/task.ts", 'import { InvalidTransition } from "./errors.ts";\n',
                      'import { z } from "zod";\nimport { InvalidTransition } from "./errors.ts";\n\nexport const StatusSchema = z.enum(["todo", "in_progress", "done"]);\n')],
+        "V13": [Edit("REQUIREMENTS.md", "| R-ERR-1  |", UNSCENARIOED + "| R-ERR-1  |")],
+        "V14": [Edit("tests/unit/task-service.test.ts", 'test("R-FIND-1',
+                     'test("a task keeps its title", async () => {\n'
+                     '  expect((await service.createTask("Write the paper")).title).toBe("Write the paper");\n});\n\n'
+                     'test("R-FIND-1')],
     }
 
 
@@ -192,6 +209,12 @@ def seeds_java() -> dict[str, list[Edit]]:
         "V12": [Edit(base + "domain/Task.java", "public record Task(String id, String title, Status status) {",
                      "@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)\n"
                      "public record Task(String id, String title, Status status) {")],
+        "V13": [Edit("REQUIREMENTS.md", "| R-ERR-1  |", UNSCENARIOED + "| R-ERR-1  |")],
+        "V14": [Edit("src/test/java/com/example/taskboard/service/TaskServiceTest.java",
+                     '    @Test\n    @DisplayName("R-FIND-1',
+                     "    @Test\n    void aTaskKeepsItsTitle() {\n"
+                     '        assertThat(service.createTask("Write the paper").title()).isEqualTo("Write the paper");\n'
+                     '    }\n\n    @Test\n    @DisplayName("R-FIND-1')],
     }
 
 
@@ -207,7 +230,7 @@ def verify_python(cwd: Path) -> tuple[str, list[str]]:
         failed = ["collection error"]
     if any("test_the_code_type_checks" in name for name in failed):
         return COMPILER, failed
-    return classify(failed, "tests/architecture"), failed
+    return classify(failed, "test_architecture.py", "test_requirements.py"), failed
 
 
 def verify_typescript(cwd: Path) -> tuple[str, list[str]]:
@@ -222,7 +245,7 @@ def verify_typescript(cwd: Path) -> tuple[str, list[str]]:
         f"{Path(suite['name']).relative_to(cwd).as_posix()}::{case['fullName']}"
         for suite in data["testResults"] for case in suite["assertionResults"] if case["status"] == "failed"
     ]
-    return classify(failed, "tests/architecture"), failed
+    return classify(failed, "architecture.test.ts", "requirements.test.ts"), failed
 
 
 def verify_java(cwd: Path) -> tuple[str, list[str]]:
@@ -234,13 +257,15 @@ def verify_java(cwd: Path) -> tuple[str, list[str]]:
         for case in ET.parse(report).getroot().iter("testcase"):
             if case.find("failure") is not None or case.find("error") is not None:
                 failed.append(f"{case.get('classname', '').rsplit('.', 1)[-1]}::{case.get('name')}")
-    return classify(failed, "ArchitectureTest"), failed
+    return classify(failed, "ArchitectureTest::", "RequirementsTest::"), failed
 
 
-def classify(failed: list[str], architecture_marker: str) -> str:
+def classify(failed: list[str], architecture_marker: str, requirement_marker: str) -> str:
     if not failed:
         return NOTHING
-    return ARCHITECTURE if any(architecture_marker in name for name in failed) else BEHAVIOUR
+    if any(architecture_marker in name for name in failed):
+        return ARCHITECTURE
+    return REQUIREMENT if any(requirement_marker in name for name in failed) else BEHAVIOUR
 
 
 IMPLEMENTATIONS = {

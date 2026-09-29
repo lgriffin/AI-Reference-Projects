@@ -15,6 +15,7 @@ import com.example.taskboard.domain.TaskCompleted;
 import com.example.taskboard.support.InMemoryTaskRepository;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /** Unit: business rules, exercised through the service with an in-memory repository. No Spring. */
@@ -25,11 +26,13 @@ class TaskServiceTest {
             new TaskService(new InMemoryTaskRepository(), published::add, new AppProperties(1));
 
     @Test
+    @DisplayName("R-FLOW-1: given no tasks, when a task is created, then it starts in todo")
     void aNewTaskStartsInTodo() {
         assertThat(service.createTask("Write the paper").status()).isEqualTo(TODO);
     }
 
     @Test
+    @DisplayName("R-DONE-1: given a task in progress, when it is completed, then TaskCompleted is published")
     void completingATaskPublishesAnEvent() {
         Task task = service.createTask("Write the paper");
         service.moveTask(task.id(), IN_PROGRESS);
@@ -38,12 +41,14 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("R-FLOW-2: given a task in todo, when it is moved to done, then the move is refused")
     void aTaskCannotSkipAStep() {
         Task task = service.createTask("Write the paper");
         assertThatThrownBy(() -> service.moveTask(task.id(), DONE)).isInstanceOf(InvalidTransition.class);
     }
 
     @Test
+    @DisplayName("R-WIP-1: given a full board, when another task is started, then it is refused and stays in todo")
     void theWipLimitIsEnforced() {
         Task first = service.createTask("First");
         Task second = service.createTask("Second");
@@ -53,6 +58,7 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("R-FIND-1: given no such task, when it is requested, then task_not_found is raised")
     void anUnknownTaskIsReported() {
         assertThatThrownBy(() -> service.getTask("no-such-id")).isInstanceOf(TaskNotFound.class);
     }

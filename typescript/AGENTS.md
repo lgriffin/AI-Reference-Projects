@@ -8,9 +8,9 @@ purpose: anything a test can check lives in `tests/architecture/`, not here.
 
     npm test
 
-One command runs the type checker (`tsc`, strict), the architecture rules, and the unit,
-integration and API tests. Work is finished when it passes. If an architecture test fails,
-change the code, not the test.
+One command runs the type checker (`tsc`, strict), the architecture rules, the requirement
+check, and the unit, integration and API tests. Work is finished when it passes. If an
+architecture test or the requirement check fails, change the code, not the test.
 
 Node runs the TypeScript sources directly; there is no build step. Imports therefore carry
 the `.ts` extension, type-only imports say `import type`, and `enum` and constructor
@@ -40,20 +40,28 @@ Tests mirror the layers: `tests/unit` (services, in-memory repository), `tests/i
 - Only `config.ts` reads the environment. Every setting appears in `.env.example`.
 - The API returns domain objects until the wire format has to differ from the domain.
 
+## Requirements
+
+Every rule of the board is one EARS sentence with an id in `REQUIREMENTS.md`; its pattern names
+the layer that implements it. Every unit and API test is a scenario: its title opens with
+the ids it covers, then given / when / then. `tests/architecture/requirements.test.ts` fails
+when a rule has no scenario or a scenario cites no rule.
+
 ## Adding a feature
 
 Copy the `moveTask` slice, top to bottom:
 
-1. Domain rule or error in `domain/`.
-2. Repository method: the interface, the SQLite implementation, the in-memory double, and a
+1. The rule, as an EARS sentence, in `REQUIREMENTS.md`.
+2. Domain rule or error in `domain/`.
+3. Repository method: the interface, the SQLite implementation, the in-memory double, and a
    case in `tests/integration/task-repository.contract.test.ts`.
-3. Service method, with a unit test.
-4. Route, with an API test.
-5. A new error needs a member of `ErrorCode`; the compiler then demands its HTTP status.
-6. Run `npm test`.
+4. Service method, with a unit test.
+5. Route, with an API test.
+6. A new error needs a member of `ErrorCode`; the compiler then demands its HTTP status.
+7. Run `npm test`.
 
 ## Ask a human first
 
 - Adding or upgrading a dependency.
-- Changing `tests/architecture/` or this file.
+- Changing `tests/architecture/`, `REQUIREMENTS.md` rules already stated, or this file.
 - Changing the database schema, or the shape of an existing endpoint.

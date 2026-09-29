@@ -35,6 +35,7 @@ def test_saving_again_updates_in_place(repository: TaskRepository) -> None:
 
 
 def test_tasks_are_listed_in_creation_order(repository: TaskRepository) -> None:
+    """R-LIST-1: tasks come back in the order they were saved."""
     titles = ["Write", "Review", "Publish"]  # creation order differs from every sort order
     for title in titles:
         repository.save(Task.new(title))

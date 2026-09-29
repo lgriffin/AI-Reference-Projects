@@ -31,7 +31,7 @@ describe.each(implementations)("TaskRepository (%s)", (_, create) => {
     expect((await repository.findAll()).map((t) => t.status)).toEqual(["in_progress"]);
   });
 
-  test("tasks are listed in creation order", async () => {
+  test("R-LIST-1: tasks are listed in creation order", async () => {
     const repository = create();
     const titles = ["Write", "Review", "Publish"]; // creation order differs from every sort order
     for (const title of titles) await repository.save(newTask(title));
