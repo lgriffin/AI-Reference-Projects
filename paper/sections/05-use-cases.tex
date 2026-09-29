@@ -1,0 +1,106 @@
+\section{Use cases}\label{sec:usecases}
+
+The receivers show the pattern bound in code. This section states, independently of any
+language, the situations in which a domain is at risk once agents contribute, so that the
+pattern can be applied to domains other than task boards. Each use case names a situation, the
+threat, the invariant at stake and the teaching move that answers it. Table~\ref{tab:usecases}
+lists twelve in six families and Figure~\ref{fig:coverage} places each on the ladder, both in the
+receivers as first published and as they stand after the work described here.
+
+\begin{table}[t]
+  \centering\small
+  \caption{Twelve use cases in six families. The last two columns give the rung at which the
+  receivers asserted the invariant at commit \texttt{8c4a74a} and now.}
+  \label{tab:usecases}
+  \begin{tabularx}{\linewidth}{@{}l X X c c@{}}
+    \toprule
+    & Situation & Invariant at stake & Then & Now \\
+    \midrule
+    \multicolumn{5}{@{}l}{\textit{Placement: sprawl spreads one rule across many places}} \\
+    UC1 & A memoryless agent adds a feature & every part lands in the layer that owns it & L3 & L4 \\
+    UC2 & A side effect is added to a use case & use cases publish facts; reactions subscribe & L2 & L4 \\
+    UC3 & A business rule drifts to the edge & routes translate; they never decide & L0 & L4 \\
+    \multicolumn{5}{@{}l}{\textit{Contamination: convenience pulls infrastructure into the core}} \\
+    UC4 & A framework type enters the domain & the domain imports only the standard library & L3 & L4 \\
+    UC5 & An outside capability leaks into a service & each capability has one owning layer & L3 & L4 \\
+    \multicolumn{5}{@{}l}{\textit{Contract integrity: the promises the domain makes}} \\
+    UC6 & A new failure mode is introduced & every error has one public translation & L5 & L5 \\
+    UC7 & A test double lies & every double passes the real contract & L3 & L3 \\
+    \multicolumn{5}{@{}l}{\textit{Harness erosion: the protections themselves wear down}} \\
+    UC8 & The agent edits a rule to go green & rules change only with a person's decision & L2 & L2 \\
+    UC9 & A dependency is added & new dependencies need a person & L2 & L2 \\
+    \multicolumn{5}{@{}l}{\textit{Cognitive load: what people and agents can hold in mind}} \\
+    UC10 & A reviewer faces a large AI diff & intent is reviewable apart from code & L1 & L3 \\
+    UC11 & An agent starts cold & the declaration stays small & L3 & L3 \\
+    \multicolumn{5}{@{}l}{\textit{Transfer: taking the approach to a new domain}} \\
+    UC12 & A new domain is embedded & each invariant is placed on the ladder deliberately & L1 & L1 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \input{figures/coverage}
+  \caption{Where each use case sits on the ladder in the receivers, at commit \texttt{8c4a74a}
+  (hollow) and now (filled). UC6 is at L5 in Java and TypeScript and at L3 in Python.}
+  \label{fig:coverage}
+\end{figure}
+
+\subsection{Placement}
+
+Placement failures are the signature of sprawl. In \textbf{UC1} an agent with no prior session
+implements a feature end to end; the risk is not that the feature fails but that each layer gets
+a plausible and inconsistent piece of it. The answer is a worked slice to copy, followed by
+architecture rules to pass. \textbf{UC2} and \textbf{UC3} are subtler because the mistake
+preserves behaviour. A notification called inline in a service, instead of published as an
+event, produces the same log line; a work-in-progress check copied into a route produces the
+same refusal. No behavioural test can tell the difference, and at commit \texttt{8c4a74a}
+nothing in any receiver did. They were closed by two \pattern{Executable Rule}s, that only the
+events layer may log or notify and that routes make no decisions, each with a
+\pattern{Teaching Failure} naming where the code should go.
+
+\subsection{Contamination}
+
+In \textbf{UC4} a framework annotation looks convenient on a domain object; in \textbf{UC5} a
+service needs a setting or a quick query. Both are answered by capability confinement
+(Section~\ref{sec:receivers}), and both were already checked before this work; they gained
+explained failures.
+
+\subsection{Contract integrity}
+
+\textbf{UC6}, a new failure mode, is the one use case the receivers answer at L5 in two of three
+languages: the new error does not compile until it has a status. \textbf{UC7} is the test double
+that lies, answered by an \pattern{Honest Double}. It has a history: in the first seeding run the
+contract created tasks titled First, Second and Third, whose alphabetical order equals their
+creation order, so a double that sorted by title could not be caught. Changing the titles to
+Write, Review and Publish fixed it. The episode is a small instance of kaizen, and a reminder that
+a check is only as good as its fixture.
+
+\subsection{Harness erosion}
+
+\textbf{UC8} and \textbf{UC9} concern the ladder itself. An agent whose build is red has an easy
+way to make it green: relax the rule. No agent in our pilot did so, but only the manifest forbade
+it (L2). Raising UC8 to L3 is a matter of repository settings rather than tests, for example by
+requiring a named person's review for any change to the rule files. Dependencies (UC9) are
+similar, and can be checked by pinning the dependency list in a test.
+
+\subsection{Cognitive load}
+
+\textbf{UC10} is the reviewer's problem. When a change adds a feature, the parts a person most
+needs to judge are the new rule and the examples that illustrate it, not the plumbing. Keeping
+requirements in their own file, with scenarios that cite them and a check that keeps the two in
+step, puts the intent of a change in a small, separate diff. We claim this lowers the reviewer's
+load; we have not yet measured it. \textbf{UC11} is the agent's problem: every session starts
+cold, and guidance that grows to compensate ends up unread. Fading keeps the manifest under 500
+words even after two new kinds of intent were added.
+
+\subsection{Transfer}
+
+\textbf{UC12} asks whether the pattern survives a move to a domain that is not a task board. Two
+illustrations, not implemented, suggest how. In a double-entry ledger, the invariant that debits
+equal credits can be stated in EARS as an unwanted behaviour, shown in a posting slice, checked by
+a property test, and prevented by a transaction type that can only be built from balanced legs.
+In medication dosing, the invariant that a dose may not exceed a weight-based maximum without a
+clinician's override can be checked by boundary scenarios and prevented, in part, by types that
+distinguish milligrams from milligrams per kilogram. In both, the question the ladder asks is the
+same: how high must this rule climb, given what it costs to get it wrong?

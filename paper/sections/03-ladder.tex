@@ -1,0 +1,195 @@
+\section{The Assertion Ladder}\label{sec:ladder}
+
+This section states the pattern, describes each rung, names the smaller patterns that realise
+the rungs, and shows that structure, behaviour and requirements are three loads carried by the
+same ladder rather than three separate techniques.
+
+\subsection{The pattern}
+
+\begin{description}[leftmargin=2.2cm,style=nextline]
+  \item[Name] Assertion Ladder (also: Graduated Assertion).
+  \item[Intent] Keep a technical domain intact when coding agents contribute, by asserting each
+    domain rule at the weakest level that still covers its risk.
+  \item[Context] A repository shared by people and coding agents that start every session with
+    no memory. Changes arrive faster than anyone can review them closely.
+  \item[Problem] How do a domain's rules survive contributors who cannot remember them and
+    reviewers who cannot read everything?
+  \item[Forces] See Figure~\ref{fig:forces}.
+    \begin{itemize}
+      \item A rule nobody wrote down is lost at the next session.
+      \item Written guidance grows until nobody reads it, and competes with everything else in
+        an agent's context.
+      \item Every executable check costs effort to write, time in the build, and maintenance
+        when the domain changes.
+      \item The strongest assertions, those made by the type system, depend on the language.
+      \item Too much constraint makes the repository hard to change. Ease of use is a force, not
+        an afterthought.
+      \item A check that an agent can edit is a check that an agent can weaken.
+    \end{itemize}
+  \item[Solution] For each domain rule, choose a rung. Climb until the rule's risk is covered,
+    then stop. When a rule reaches a checked rung, remove it from the prose so that the
+    declaration stays short. Run every check behind one command, and put the checks themselves
+    behind a human boundary.
+  \item[Consequences] Feedback arrives early and names the fix; the manifest stays short;
+    intent can be reviewed separately from code. In exchange there are more tests to maintain,
+    the top rung differs between languages, and a rule that climbs further than its risk
+    warrants makes change expensive.
+\end{description}
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/forces}}
+  \caption{Two forces act on a domain once agents contribute. Sprawl spreads a rule across
+  places; cognitive erosion hides the spread from both reviewer and agent. The ladder answers
+  both by moving rules out of memory and prose into the repository's own checks.}
+  \label{fig:forces}
+\end{figure}
+
+\subsection{The rungs}
+
+\paragraph{\rung{L0 Implied}} The rule exists only in someone's head or in habit. The agent
+experiences nothing, and guesses. The guess is usually plausible, which is what makes L0
+dangerous: nothing about the result looks wrong. In lean terms this is tacit knowledge; in
+teaching terms it is the hidden curriculum.
+
+\paragraph{\rung{L1 Shown}} One complete example embodies the rule: a vertical slice from the
+domain to the endpoint, small enough to read whole. Agents, like novices, copy structure before
+they understand it \citep{sweller1985worked}, so the slice is the cheapest effective assertion
+there is. Its weakness is that the learner may copy the wrong detail, or generalise from an
+accident of the example.
+
+\paragraph{\rung{L2 Told}} A short declaration states the rule, in a file the agent's tooling
+loads at the start of every session \citep{agentsmd}. Prose can say what code cannot: what needs
+a person's decision, which of two acceptable choices the team prefers, why a rule exists. Its
+weakness is that it can be forgotten, misread, or crowded out; and it grows.
+
+\paragraph{\rung{L3 Checked}} An executable rule fails the build when the rule is broken. This
+is the rung of architecture tests, contract tests and behavioural scenarios. The agent
+experiences a red suite and must work out why. In lean terms it is inspection at the station
+rather than at the end of the line.
+
+\paragraph{\rung{L4 Explained}} The check's failure names the rule, the offender and the fix. A
+bare assertion failure tells the agent \emph{that} it is wrong; an explained failure tells it
+\emph{what to do instead}, which is the difference between summative and formative feedback. It
+costs a sentence per rule.
+
+\paragraph{\rung{L5 Prevented}} The wrong form does not compile. A sealed hierarchy with an
+exhaustive switch, or a map keyed by a closed union type, makes an unmapped error impossible to
+write. This is poka-yoke in the strict sense: the fixture admits the part only one way. It is
+also the rung that depends most on the language.
+
+\subsection{Nine rung patterns}
+
+Each rung is realised by one or more smaller patterns, listed in Table~\ref{tab:rung-patterns}.
+Two are not tied to a rung: \pattern{Single Gate}, which runs every check behind one command so
+that ``finished'' has one meaning, and \pattern{Human Boundary}, which lists the few changes an
+agent may not make alone, including changes to the checks themselves.
+
+\begin{table}[t]
+  \centering\small
+  \caption{The rung patterns. Each answers one recurring problem.}
+  \label{tab:rung-patterns}
+  \begin{tabularx}{\linewidth}{@{}l l X X@{}}
+    \toprule
+    Rung & Pattern & Problem & Solution \\
+    \midrule
+    L1 & \pattern{Worked Slice} & How does a newcomer learn the shape of a feature? & One complete vertical slice, small enough to read whole. \\
+    L2 & \pattern{Short Manifest} & How is what cannot be tested passed on? & One file of a few hundred words, loaded every session. \\
+    L3 & \pattern{Executable Rule} & How is a structural rule kept when nobody remembers it? & A test that fails when the rule is broken. \\
+    L3 & \pattern{Closure Check} & How do two lists stay in step? & Assert that every X has a Y. \\
+    L3 & \pattern{Honest Double} & How do fast tests stay truthful? & One contract, run against the real implementation and its stand-in. \\
+    L4 & \pattern{Teaching Failure} & How does a red build lead to the right fix? & The failure names the rule, the offender and the remedy. \\
+    L5 & \pattern{Unrepresentable Mistake} & How is a mistake stopped before any test runs? & Types that make the wrong form fail to compile. \\
+    all & \pattern{Single Gate} & When is work finished? & One command runs every rung; green means done. \\
+    all & \pattern{Human Boundary} & Who may change the ladder itself? & A short list of changes that need a person first. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\pattern{Closure Check} deserves a note because it recurs more than any other. An
+\emph{every X has a Y} assertion keeps two lists in step without either list knowing about the
+other: every domain error has an HTTP status; every repository implementation passes the same
+contract; every requirement has a scenario and every scenario cites a requirement. It is the
+cheapest way to make a growing set safe to extend, which is exactly what an agent does.
+
+\subsection{Three kinds of intent, one ladder}
+
+Architecture tests, behaviour-driven development and structured requirements are usually
+presented as separate practices with separate literatures. In a repository shared with agents
+they turn out to be the same move applied to three kinds of intent
+(Table~\ref{tab:intents}). \emph{Structure} says where code may live and what it may touch.
+\emph{Behaviour} says what the system does, in the domain's own words. \emph{Requirements} say
+why, once, in a form that can be traced. Each is declared, exemplified and enforced, and each
+has its own closure check.
+
+\begin{table}[t]
+  \centering\small
+  \caption{The same three carriers hold three kinds of intent. Text colour follows the intent
+  throughout the paper.}
+  \label{tab:intents}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright}p{2.6cm} X X X@{}}
+    \toprule
+    Intent & Declared (L2) & Exemplified (L1) & Enforced (L3--L5) \\
+    \midrule
+    \textcolor{structure}{\textbf{Structure}}: where code may live &
+      a placement table in the manifest &
+      the move-task slice, domain to route &
+      architecture rules; exhaustive error mapping \\
+    \textcolor{behaviour}{\textbf{Behaviour}}: what the system does &
+      one convention line: scenarios cite ids and read given / when / then &
+      the work-in-progress scenario &
+      the scenarios, and the repository contract \\
+    \textcolor{requirement}{\textbf{Requirements}}: why &
+      \repo{REQUIREMENTS.md}, one EARS sentence per rule &
+      ten taskboard rules with ids &
+      the requirement closure check \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{EARS as a placement oracle}
+
+The most useful property of EARS in this setting was not one it was designed for. Its keywords
+classify a rule, and the class predicts where the rule's code belongs (Table~\ref{tab:ears}).
+An \emph{unwanted behaviour} about one entity (``If a requested move is not allowed from the
+task's status, then\ldots'') is a guard on that entity that raises a domain error. A
+\emph{state-driven} rule that spans many entities (``While the work-in-progress limit is
+reached\ldots'') needs a collaborator and belongs in a service. An \emph{event-driven} rule whose
+response is to tell someone (``When a task moves to done, the board shall announce\ldots'')
+is a domain event published by the service with the effect in a handler. An \emph{optional
+feature} (``Where a limit is configured\ldots'') is a field on the one settings object. A
+\emph{ubiquitous} rule (``The board shall answer every refused request with a problem
+document'') is a cross-cutting invariant: one place, guarded by a check.
+
+\begin{table}[t]
+  \centering\small
+  \caption{From EARS pattern to layer, with the taskboard rule that exercises each row.}
+  \label{tab:ears}
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    EARS pattern & Implement as & Taskboard rule \\
+    \midrule
+    Unwanted, one entity & a guard on the entity raising a domain error & R-FLOW-2: an invalid move is refused \\
+    State-driven, many entities & a service method with a collaborator & R-WIP-1: the work-in-progress limit \\
+    Event-driven, tells someone & a domain event; the effect in a handler & R-DONE-1: completion is announced \\
+    Optional feature & a field on the settings object & the configurable limit \\
+    Ubiquitous & one place, guarded by a closure or architecture check & R-ERR-1: every refusal is a problem document \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The mapping matters because the commonest placement mistake an agent makes is to put a correct
+rule in the wrong place, and a behavioural test cannot see that mistake (Section~\ref{sec:evaluation}).
+A requirement written in EARS carries its placement with it. We present the mapping as a
+hypothesis supported by the ten taskboard rules and by one pilot run, not as a law.
+
+\subsection{Compression and fading}
+
+The solution says to climb only as far as a rule's risk warrants, and to remove a rule from the
+prose once a check covers it. Both clauses are about ease of use, the force most easily
+forgotten. A manifest that repeats what the tests enforce is waste in the lean sense: it costs
+reading time every session and adds nothing the gate does not already guarantee. Instructional
+design calls the same move \emph{fading}: scaffolding is withdrawn as the learner no longer needs
+it \citep{wood1976scaffolding}. In the receivers the manifest says so of itself: ``anything a
+test can check lives in the tests, not here.'' Section~\ref{sec:evaluation} reports what the
+added rungs cost in words.

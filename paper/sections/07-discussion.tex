@@ -1,0 +1,76 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Lean explains the ladder}
+
+Table~\ref{tab:lean} maps each lean mechanism to the place it appears in the receivers. The
+mapping is not decoration. Lean production faced the problem this paper faces: a line staffed by
+workers who could not be expected to remember every specification, producing faster than anyone
+could inspect, where a defect that travelled downstream cost far more to fix than one caught at
+its source \citep{ohno1988tps,shingo1986zqc}. Its answer was to build the specification into the
+work itself: fixtures that admit a part only one way, a line that stops at the first defect, a
+written standard at every station, and a cord that any worker may pull. The Assertion Ladder is
+that answer applied to a repository and a memoryless contributor.
+
+\begin{table}[t]
+  \centering\small
+  \caption{Lean mechanisms and where they appear in the receivers.}
+  \label{tab:lean}
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    Lean mechanism & In the receivers & Evidence \\
+    \midrule
+    Eliminate waste & no DI container, no ORM, one entity; no prose for what a test checks & 637 / 729 / 957 $\to$ 283 / 223 / 242 lines \\
+    Poka-yoke & exhaustive error mapping that will not compile when a case is missing & V6 caught by the compiler in Java and TypeScript \\
+    Jidoka & one verify command; ``change the code, not the test'' & no pilot run modified a rule (18 / 18) \\
+    Standard work & the worked slice and the feature recipe & every pilot run followed the slice's layering \\
+    Andon & ``ask a human first'' for dependencies, rules, schema & declared (L2); not yet enforced \\
+    Kaizen & the V9 fixture corrected after the first seeding run & V9 caught in all three receivers \\
+    Build--measure--learn & seeding and the pilot measure; the misses drive the next rules & 30 / 36 $\to$ 42 / 42 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Lean also explains the force most easily forgotten, ease of use. Waste in lean is anything the
+customer would not pay for, and a paragraph of prose that repeats what a test enforces is waste
+for every contributor who reads it every session. Fading is how the ladder removes it. The same
+reasoning warns against climbing too far: a rule enforced by a type-level encoding far more
+elaborate than its risk warrants is over-processing, another of lean's wastes.
+
+\subsection{Domain sanctity against ease of use}
+
+A repository can be made arbitrarily hard to damage by making it arbitrarily hard to change.
+The ladder resists this in two ways. Each rule climbs only as far as its risk warrants, so the
+cost of a rung is paid only where it buys something. And the ladder is compressed from below as
+it grows from above: when the receivers gained a requirement file, a scenario convention and
+four new rules, their manifests grew by one paragraph each and stayed under 500 words. The
+evidence that ease of use survived is modest but concrete: in the pilot, agents given the full
+rule set finished in 151 seconds on average against 121 for the exemplar alone, and used about
+6\% more tokens, for a condition in which none departed from the conventions.
+
+\subsection{Where each kind of intent stops}
+
+Each kind of intent sees some mistakes and is blind to others, which is why the three are
+complementary rather than redundant. Behaviour cannot see placement: V8 and V10 pass every
+scenario because what the system does is unchanged. Structure cannot see meaning: an
+architecture rule will not notice that a task may now skip a step. Requirements cannot execute:
+without the closure check that ties them to scenarios, they decay into prose, the failure the
+manifest's own design avoids. The ladder's contribution is to put all three on the same scale,
+so that a team can ask of any rule, in any of the three, how strongly it is asserted.
+
+\subsection{Threats to validity}
+
+\paragraph{Construct} Seeded mistakes are canonical, not observed; real agents may make
+mistakes the fourteen do not represent. The TypeScript architecture rules match source text, not
+syntax, and could be evaded by code written to avoid them.
+
+\paragraph{Internal} The authors built the receivers, the seeds and the rules together with an
+AI coding agent, in the collaborative mode the paper studies. Rules were added after the misses
+they close were known; the second seeding run therefore shows that the gap can be closed, not
+that the rules generalise to unseen mistakes.
+
+\paragraph{External} One small domain, three mainstream stacks and two models from one vendor
+limit generality. The pilot ran one agent per cell and has not yet been repeated against the
+current receivers.
+
+\paragraph{Conclusion} Seeding results are deterministic and reproducible from the repository.
+Pilot results are suggestive only.

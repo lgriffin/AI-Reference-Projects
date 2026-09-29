@@ -1,0 +1,37 @@
+\section{Related work}\label{sec:related}
+
+\paragraph{Architecture conformance} Checking code against an intended architecture has a long
+history; architecture fitness functions \citep{ford2017evolutionary} and tools such as ArchUnit
+\citep{archunit} bring it into the ordinary test suite. The Assertion Ladder places such checks
+at one rung among six and adds what they lack on their own: a view of when a rule should be
+checked rather than shown or told, and a requirement that the check teach.
+
+\paragraph{Specification by example and structured requirements} BDD \citep{north2006bdd} and
+specification by example \citep{adzic2011sbe} make behaviour executable; EARS makes requirements
+unambiguous \citep{mavin2009ears}. We combine them with a closure check that keeps requirements
+and scenarios in step, and we observe a use for EARS it was not designed for: predicting
+placement.
+
+\paragraph{Architecture styles} Layered, hexagonal and Clean architectures
+\citep{buschmann1996posa,fowler2002peaa,cockburn2005hexagonal,martin2017clean,evans2003ddd}
+protect the domain by structure. The receivers show that, for a domain this size, capability
+confinement rules give a layered codebase much of the same protection with less ceremony.
+
+\paragraph{Coding agents} Benchmarks and agent harnesses \citep{chen2021codex,jimenez2024swebench,yang2024sweagent}
+measure whether an agent can complete a task. Studies of programmers using code generators
+\citep{vaithilingam2022expectation,barke2023grounded} and of the security of generated code
+\citep{pearce2022asleep,perry2023insecure} show what passes review. Instruction files for agents
+\citep{agentsmd} are the L2 rung in practice. Our concern is different: not whether one change
+is correct, but whether the domain survives many correct-looking changes.
+
+\paragraph{Learning and lean} The pedagogical framing borrows from cognitive load theory and the
+worked-example effect \citep{sweller1988cognitive,sweller1985worked} and from scaffolding
+\citep{wood1976scaffolding}; the lean framing from the Toyota Production System and its software
+descendants \citep{ohno1988tps,shingo1986zqc,womack1996lean,poppendieck2003lean,ries2011lean}.
+
+\paragraph{Our earlier work} The repository standard of exemplified, declared and enforced
+conventions \citep{griffin2026convention} is the structural special case of the ladder. This
+paper extends it to behaviour and requirements, grades assertion by strength, and reports the
+second seeding run.
+
+\todo{Related work needs a systematic search before submission; the entries above are a starting set.}

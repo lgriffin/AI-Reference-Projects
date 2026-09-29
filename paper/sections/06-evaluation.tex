@@ -1,0 +1,122 @@
+\section{Evaluation}\label{sec:evaluation}
+
+We ask three questions. \textbf{RQ1}: which mistakes does each rung catch, and which does it
+miss? \textbf{RQ2}: what do the added rungs cost in size and reading? \textbf{RQ3}: do the
+declared and enforced rungs change what coding agents do? Every number below can be regenerated
+from the repository's \repo{evaluation/} directory \citep{taskboardrepo}.
+
+\subsection{RQ1: violation seeding}
+
+A seeding script plants one canonical mistake at a time in a receiver, runs its single verify
+command, records the earliest mechanism that objects, and restores the file. It refuses to start
+unless the receiver is green, and checks that it is green again at the end. The mechanisms, in
+order of how early they give feedback, are the compiler, an architecture rule, the requirement
+check, a behavioural test, and nothing. Table~\ref{tab:violations} lists the fourteen mistakes:
+twelve structural, and two that break the trace between requirements and scenarios.
+
+\begin{table}[t]
+  \centering\small
+  \caption{The fourteen seeded mistakes, and the mechanism that caught each in Java / Python /
+  TypeScript now. C compiler, A architecture rule, R requirement check, B behavioural test.}
+  \label{tab:violations}
+  \begin{tabularx}{\linewidth}{@{}l X c@{}}
+    \toprule
+    & Mistake & J / P / T \\
+    \midrule
+    V1 & The API bypasses the service and uses a repository & A / A / A \\
+    V2 & A service signals failure with an HTTP concept & A / A / B \\
+    V3 & A service issues SQL & A / A / A \\
+    V4 & A component constructs its own collaborator & A / A / A \\
+    V5 & A service reads the environment & A / A / A \\
+    V6 & A new domain error has no HTTP status & C / A / C \\
+    V7 & A route catches a domain error and answers ad hoc & B / A / A \\
+    V8 & A side effect is inlined in the service & A / A / A \\
+    V9 & The test double drifts from the real repository & B / B / B \\
+    V10 & A business rule is placed in the route & A / A / A \\
+    V11 & A setting is hard-coded in the service & B / B / B \\
+    V12 & A framework type enters the domain & A / A / A \\
+    V13 & A requirement has no scenario & R / R / R \\
+    V14 & A scenario cites no requirement & R / R / R \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Figure~\ref{fig:seeding} compares the receivers at commit \texttt{8c4a74a}, before the work
+described here, with the receivers now. Before, the single gate caught 30 of 36 structural
+mistakes. The six misses were the same two mistakes in every language: V8, a side effect inlined
+in the service, and V10, a business rule placed in the route. That the gap was identical across
+three languages and three enforcement styles is itself a result: it belonged to the capability,
+not to any receiver. Both mistakes preserve behaviour, so no behavioural test could have caught
+them; only a structural rule could. After two such rules were added, and the requirement check
+with its two seeds, the gate catches all 42 mistakes. The new routes rule also moved V7 from a
+behavioural test to an architecture rule in Python and TypeScript, which is earlier feedback for
+the same mistake. Application code did not change between the two runs; only tests, manifests
+and requirement files did.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/seeding}
+  \caption{Seeded mistakes by the earliest mechanism that caught them, per receiver, at commit
+  \texttt{8c4a74a} (12 structural seeds) and now (14 seeds).}
+  \label{fig:seeding}
+\end{figure}
+
+\subsection{RQ2: cost}
+
+Table~\ref{tab:size} reports size. Application code is unchanged. Test code grew by between 31
+and 89 lines per receiver, and each manifest by between 80 and 83 words, remaining under the 500
+words the plan allows. The added rungs therefore cost about one screen of test code and one
+paragraph of prose per receiver, most of it the requirement check and the ids on existing tests.
+
+\begin{table}[t]
+  \centering\small
+  \caption{Size of the receivers at commit \texttt{8c4a74a} and now (\repo{evaluation/metrics*.json}).}
+  \label{tab:size}
+  \begin{tabular}{@{}l rr rr rr@{}}
+    \toprule
+    & \multicolumn{2}{c}{Application lines} & \multicolumn{2}{c}{Test lines} & \multicolumn{2}{c}{Manifest words} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-7}
+    Receiver & then & now & then & now & then & now \\
+    \midrule
+    Java       & 283 & 283 & 287 & 376 & 397 & 480 \\
+    Python     & 223 & 223 & 193 & 254 & 347 & 427 \\
+    TypeScript & 242 & 242 & 193 & 224 & 388 & 468 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{RQ3: a pilot with coding agents}
+
+Eighteen coding agents, each starting with no memory, implemented the same feature request, task
+deletion, in copies of the receivers at commit \texttt{8c4a74a}. Each copy offered one, two or
+three of the carriers: the exemplar only (L1), the exemplar and the manifest (L1--L2), or the
+repository as published (L1--L3). The design crossed three languages, three conditions and two
+models, with one run per cell. A hidden acceptance test of four cases, never shown to an agent,
+judged the result, and a scripted audit fixed in advance of inspection recorded where each agent
+placed each part of the change.
+
+\begin{table}[t]
+  \centering\small
+  \caption{Pilot results by condition (six runs each; \repo{evaluation/agent\_experiment/}).}
+  \label{tab:pilot}
+  \begin{tabular}{@{}l c c c c@{}}
+    \toprule
+    Condition & Acceptance passed & Departures from convention & Mean tokens & Mean seconds \\
+    \midrule
+    Exemplar (L1)            & 6 / 6 & 2 & 61\,650 & 121 \\
+    + Manifest (L1--L2)      & 6 / 6 & 0 & 61\,990 & 132 \\
+    + Enforced (L1--L3)      & 6 / 6 & 0 & 65\,696 & 151 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+All eighteen runs delivered a passing suite and passed every acceptance case
+(Table~\ref{tab:pilot}). Two departed from the conventions, both by the smaller model in the
+exemplar-only condition. One, in Java, logged the deletion inside the service instead of
+publishing an event: the V8 mistake, which no rule caught at the time. The deletion request's
+last clause, ``whenever a task is deleted the team must be told'', is an event-driven requirement
+in EARS terms, and the mapping in Table~\ref{tab:ears} places it in an event handler. The other,
+in Python, did not add the new operation to the in-memory double, which only the type checker in
+the full rule set notices. With one run per cell these results are suggestive, not significant.
+The pilot has not yet been repeated against the receivers as they stand now, with the deletion
+request written in EARS; that is the next experiment.

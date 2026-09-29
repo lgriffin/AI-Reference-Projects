@@ -1,0 +1,93 @@
+\section{Introduction}\label{sec:intro}
+
+A new kind of contributor has joined software teams. Coding agents, language models given a
+shell, a file system and a test runner, now read a repository, plan a change, edit many files
+and run the tests before handing the result to a person
+\citep{chen2021codex,jimenez2024swebench,yang2024sweagent}. They are fast and broadly competent.
+They are also, in one respect, the most difficult colleague a team has ever had: every session
+starts with no memory of the last one. Whatever the agent learned about the domain yesterday,
+about why the work-in-progress limit is checked in the service rather than the route, or why the
+domain objects never import the web framework, is gone this morning.
+
+The only thing a person and an agent reliably share is the repository. Whatever the repository
+does not say, and does not enforce, the agent will reinvent, usually plausibly and often
+differently each time. People have the opposite problem. They remember the domain, but they
+cannot read every line an agent writes; studies of programmers working with code-generating
+tools describe a shift from writing to reviewing, with the attendant risk that review becomes
+skimming \citep{vaithilingam2022expectation,barke2023grounded}. Security studies show what
+can pass unnoticed \citep{pearce2022asleep,perry2023insecure}.
+
+We name the two resulting forces. \emph{Sprawl} is what happens when a large volume of locally
+plausible changes spreads one domain rule across many places: a check is copied into a route
+because it was nearby, a notification is called inline because that was quicker than publishing
+an event, a framework annotation is placed on a domain object because it was convenient. Each
+change is defensible; together they dissolve the domain. \emph{Cognitive erosion} is what
+happens when neither party can hold enough of the domain in mind to notice: the reviewer checks
+syntax because the intent is not visible in the diff, and the agent re-derives conventions from
+scratch every session. Lehman observed long ago that a system's structure decays under change
+unless work is done to preserve it \citep{lehman1980laws}. Agents do not change that law; they
+change its rate.
+
+\paragraph{The need for constraints} A common response is to write more guidance: longer
+prompts, longer contributor guides, longer instruction files for agents
+\citep{agentsmd}. Guidance helps, but it has two failure modes. It is read at the start of a
+session and then competes with everything else in the agent's context, and it grows until
+nobody, person or agent, reads it at all. Our earlier work proposed a repository standard in
+which conventions are carried three ways at once: exemplified by one small vertical slice,
+declared in a manifest of a few hundred words, and enforced by architecture rules written as
+tests \citep{griffin2026convention}. This paper generalises that idea. It asks not only
+\emph{whether} a rule is written down, but \emph{how strongly} it is asserted, and it extends
+the question from structure to behaviour and requirements.
+
+\paragraph{The Assertion Ladder} Our central claim is pedagogical. A coding agent is a capable
+learner with no memory; the repository is its teacher. Teachers do not assert everything the
+same way. They show a worked example, they tell a rule, they set an exercise that marks the
+answer, they give feedback that explains the mistake, and occasionally they arrange the task
+so that the wrong answer is simply not available. The \emph{Assertion Ladder}
+(Figure~\ref{fig:ladder}) gives each of these moves a rung, from \rung{L0 Implied} to
+\rung{L5 Prevented}, and asks the designer of a repository to place every domain rule on a rung
+deliberately: high enough that the learner cannot miss it, and no higher than the rule's risk
+justifies, because every assertion also costs something to write, to maintain and to read.
+
+\paragraph{Lean as the explanation} The ladder is not new engineering so much as old
+engineering applied to a new worker. Lean production made quality a property of the process
+rather than of inspection: it stopped the line at the first defect (\emph{jidoka}), designed
+fixtures so that a part could only be fitted one way (\emph{poka-yoke}), wrote down the one best
+current method (\emph{standard work}) and gave every worker a cord to pull when something was
+wrong (\emph{andon}) \citep{ohno1988tps,shingo1986zqc,womack1996lean}. Lean software development
+carried these ideas into programming \citep{poppendieck2003lean}. Each rung of the ladder
+corresponds to one of them, and Section~\ref{sec:discussion} argues that lean explains why the
+ladder works rather than merely decorating it.
+
+\paragraph{Three receivers} The pattern is illustrated with one application, \emph{taskboard},
+a small Kanban service with a work-in-progress limit, implemented three times with identical
+behaviour: in Java with Spring Boot, in Python with FastAPI, and in TypeScript with Fastify
+\citep{taskboardrepo}. We present the three implementations as \emph{receivers} of the pattern
+rather than as its source. Each binds every rung in its own idiom, and the paper works backwards
+from what each receiver gains to the single capability they share. A reader interested in one
+language can read that receiver alone; its manifest, requirements and tests are written to be
+understood without the other two.
+
+\paragraph{Contributions} This paper makes four contributions.
+\begin{enumerate}
+  \item The Assertion Ladder, a pattern in the classic form \citep{alexander1977pattern,gamma1994design}
+    with six rungs and nine rung patterns, for embedding a technical domain in a repository
+    shared with coding agents (Section~\ref{sec:ladder}).
+  \item A unification of three kinds of intent, structure, behaviour and requirements, as three
+    loads carried by the same ladder, and the observation that the pattern of an EARS
+    requirement \citep{mavin2009ears} predicts the layer that should implement it
+    (Sections~\ref{sec:ladder} and~\ref{sec:receivers}).
+  \item Three receivers with identical behaviour and their binding paths, showing which rungs
+    each language can reach and what it uses where it cannot (Section~\ref{sec:receivers}).
+  \item An evaluation by violation seeding before and after the behavioural and requirement
+    rungs were added, and a pilot with eighteen coding agents (Section~\ref{sec:evaluation}).
+\end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/ladder}}
+  \caption{The Assertion Ladder. Each rung is a teaching move and a lean mechanism. Rules climb
+  only as far as their risk warrants; as a rule reaches a checked rung, it is removed from the
+  prose below it.}
+  \label{fig:ladder}
+\end{figure}

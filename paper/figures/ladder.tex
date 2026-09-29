@@ -1,0 +1,24 @@
+% The Assertion Ladder: six rungs, each with its teaching move and its lean counterpart.
+\begin{tikzpicture}[
+    font=\small,
+    rung/.style={draw=#1, line width=0.9pt, fill=#1!8, rounded corners=2pt,
+                 minimum width=5.9cm, minimum height=0.78cm, anchor=west, align=left},
+    note/.style={anchor=west, align=left, text width=4.6cm, font=\footnotesize},
+  ]
+  \def\gap{0.95}
+  \foreach \i/\name/\teach/\lean/\col in {
+      0/{L0 Implied}/{hidden curriculum}/{tacit knowledge}/muted,
+      1/{L1 Shown}/{worked example}/{standard work (a model part)}/structure,
+      2/{L2 Told}/{direct instruction}/{standard work (the written sheet)}/requirement,
+      3/{L3 Checked}/{assessment}/{inspection at the station}/behaviour,
+      4/{L4 Explained}/{formative feedback}/{andon with a reason}/reqc,
+      5/{L5 Prevented}/{constraint}/{poka-yoke}/structure} {
+    \node[rung=\col] (r\i) at (0, \i*\gap) {\textbf{\name}\quad\textcolor{muted}{\footnotesize\teach}};
+    \node[note] at (6.2, \i*\gap) {\textcolor{muted}{lean:} \lean};
+  }
+  % the rails of the ladder
+  \draw[line width=1.6pt, jotblue] (-0.25,-0.5) -- (-0.25, 5*\gap+0.5);
+  % arrows
+  \draw[-{Stealth[length=3mm]}, line width=1pt, jotblue] (-0.8,-0.3) -- node[rotate=90, above, font=\footnotesize] {earlier, more certain feedback} (-0.8, 5*\gap+0.3);
+  \draw[-{Stealth[length=3mm]}, line width=1pt, muted] (11.1, 5*\gap+0.3) -- node[rotate=-90, above, font=\footnotesize] {cheaper to build and maintain} (11.1,-0.3);
+\end{tikzpicture}

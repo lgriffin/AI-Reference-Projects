@@ -1,0 +1,152 @@
+\section{Three receivers}\label{sec:receivers}
+
+A pattern is only as credible as its known uses. This section presents three: one application,
+\emph{taskboard}, implemented three times with identical behaviour. We call them
+\emph{receivers} because they do not define the Assertion Ladder; they take it on, each in the
+idiom of its language, and each gains something from it. The paper works backwards from those
+gains to the capability they share.
+
+\subsection{The application}
+
+Taskboard is a Kanban API with one entity. A task moves from \emph{todo} to \emph{in progress}
+to \emph{done}, and may move back from \emph{in progress} to \emph{todo}. No more than a
+configured number of tasks may be in progress at once. When a task is completed the team is
+told. Every refused request is answered with an RFC~9457 problem document carrying a stable
+error code. The application is deliberately small: 283 lines of application code in Java, 223
+in Python and 242 in TypeScript, down from 637, 729 and 957 in a first iteration that used
+dependency-injection containers, object-relational mappers and a second entity
+\citep{griffin2026convention}. Small enough to read whole is a property the ladder depends on:
+the \pattern{Worked Slice} only works if the slice can be read in one sitting.
+
+Each receiver is organised in the same six layers: \repo{api}, \repo{services},
+\repo{repositories}, \repo{domain}, and the side layers \repo{events} and \repo{config}, with one
+composition root. Imports point only downwards, the domain imports nothing but the language's
+standard library, and each outside capability (HTTP, SQL, the environment, logging) belongs to
+exactly one layer.
+
+\subsection{A steel thread through all three kinds of intent}
+
+Figure~\ref{fig:thread} follows one rule, the work-in-progress limit, from its requirement to
+the gate. The requirement is written once in EARS:
+
+\begin{quote}\small
+\textbf{R-WIP-1} (state-driven). While \texttt{WIP\_LIMIT} tasks are in progress, when another
+task is moved to \texttt{in\_progress}, the board shall refuse with
+\texttt{wip\_limit\_exceeded} and leave the task where it was.
+\end{quote}
+
+\noindent Its pattern predicts a service method, because the rule needs to count other tasks.
+The scenario that covers it cites its id and reads as given / when / then
+(Listing~\ref{lst:scenario}). The domain error it raises carries a code and no HTTP; one handler
+maps it to a status, and a closure check refuses a new error without one. The limit arrives
+through a constructor from the one settings object. Every step is checked by the same command.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/steel-thread}
+  \caption{The work-in-progress limit as a steel thread. Colours mark the kind of intent each
+  step carries; every step is checked by the single gate.}
+  \label{fig:thread}
+\end{figure}
+
+\begin{lstlisting}[language=Python,caption={A scenario in the Python receiver. The docstring cites the requirement and reads given / when / then; the requirement check fails if either is missing.},label=lst:scenario]
+def test_the_wip_limit_is_enforced(service: TaskService) -> None:
+    """R-WIP-1: given a full board, when another task is started,
+    then it is refused and stays in todo."""
+    first, second = service.create_task("First"), service.create_task("Second")
+    service.move_task(first.id, Status.IN_PROGRESS)
+    with pytest.raises(WipLimitExceeded):
+        service.move_task(second.id, Status.IN_PROGRESS)
+    assert service.get_task(second.id).status is Status.TODO
+\end{lstlisting}
+
+\subsection{Binding paths}
+
+Table~\ref{tab:binding} shows how each receiver binds every rung pattern. Reading a row shows
+one pattern bound three ways; reading a column shows one receiver's complete path.
+
+\begin{table}[t]
+  \centering\small
+  \caption{Binding paths of the three receivers.}
+  \label{tab:binding}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.1cm} X X X@{}}
+    \toprule
+    Rung pattern & Java (Spring Boot) & Python (FastAPI) & TypeScript (Fastify) \\
+    \midrule
+    \pattern{Worked Slice} & \repo{moveTask}, service to controller & \repo{move\_task}, service to route & \repo{moveTask}, service to route \\
+    \pattern{Short Manifest} & \repo{AGENTS.md}, 480 words & \repo{AGENTS.md}, 427 words & \repo{AGENTS.md}, 468 words \\
+    \pattern{Executable Rule} & ArchUnit over bytecode, 8 rules & AST walk, 7 rules incl.\ strict type check & source text, 5 rules \\
+    \pattern{Closure Check} & errors by the compiler; requirements by \repo{RequirementsTest} & errors and requirements by tests & errors by the compiler; requirements by a test \\
+    \pattern{Honest Double} & contract run on JDBC and in-memory & contract run on SQLite and in-memory & contract run on SQLite and in-memory \\
+    \pattern{Teaching Failure} & \repo{because(\ldots)} on every rule & a message on every assertion & a message on every assertion \\
+    \pattern{Unrepresentable Mistake} & sealed \repo{DomainException}, exhaustive \repo{switch} & not available; bound at L3 & \repo{Record<ErrorCode, number>} \\
+    \pattern{Single Gate} & \repo{mvn verify} & \repo{pytest} & \repo{npm test} \\
+    \pattern{Human Boundary} & \multicolumn{3}{>{\raggedright\arraybackslash}p{\dimexpr\linewidth-3.8cm\relax}}{the same three items in each manifest: dependencies; the rules and manifest; schema and endpoint shape} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Java} The Java receiver reaches the top of the ladder most often. Its domain errors
+form a sealed hierarchy, and the handler that maps them to HTTP uses a \texttt{switch} with no
+default branch, so a new error does not compile until it has a status. Its architecture rules
+are ArchUnit rules over bytecode, the most precise of the three enforcement styles, and each
+carries a \texttt{because} clause that ArchUnit prints on failure (Listing~\ref{lst:archunit}).
+Its requirement check uses ArchUnit to import the test classes themselves and asserts that every
+scenario's \texttt{@DisplayName} opens with a requirement id.
+
+\begin{lstlisting}[language=Java,caption={An executable rule with a teaching failure in the Java receiver. It closes a gap that no behavioural test can see (Section~\ref{sec:evaluation}).},label=lst:archunit]
+@ArchTest
+static final ArchRule onlyEventHandlersHaveSideEffects = noClasses()
+    .that().resideOutsideOfPackage("..events..")
+    .should().dependOnClassesThat().resideInAnyPackage(
+        "org.slf4j..", "java.util.logging..", "org.apache.commons.logging..")
+    .because("side effects (logs, mail, audit) listen for a domain "
+           + "event; publish one instead");
+\end{lstlisting}
+
+\paragraph{Python} Python cannot make an unmapped error unrepresentable, so the Python receiver
+binds that rule one rung lower: a \pattern{Closure Check} asserts that every subclass of
+\texttt{DomainError} has an entry in the status map. It compensates elsewhere. Its architecture
+rules walk the syntax tree, which lets them express rules the other receivers cannot, such as
+``a route contains no \texttt{if}, loop, comprehension, \texttt{raise} or \texttt{try}''. And the
+strict type checker runs inside the same gate, so type errors are reported as failures of the
+single command rather than of a separate tool.
+
+\paragraph{TypeScript} The TypeScript receiver reaches L5 through the type system: the status
+map is a \texttt{Record} keyed by a closed union of error codes, so a missing entry is a
+compile error (Listing~\ref{lst:record}). Its architecture rules are the cheapest of the three,
+regular expressions over source text, and the least precise; they are adequate for a codebase
+this small and would need a parser for a larger one.
+
+\begin{lstlisting}[caption={Unrepresentable Mistake in the TypeScript receiver.},label=lst:record]
+// Record<ErrorCode, number> is exhaustive: a new error code
+// will not compile until it has a status.
+const STATUS_BY_CODE: Record<ErrorCode, number> = {
+  task_not_found: 404,
+  invalid_transition: 409,
+  wip_limit_exceeded: 409,
+};
+\end{lstlisting}
+
+\subsection{Layered, not Clean, and what that costs}
+
+All three receivers are layered rather than hexagonal or Clean. The persistence interface lives
+beside its implementation in the repositories layer rather than as a port owned by the core, so
+dependency inversion does not stop a service from reaching SQL. Capability confinement does:
+a rule that only the repositories layer may use the database driver, only the api layer the web
+framework, only the config layer the environment, and only the events layer logging. We read
+this as a finding about the ladder rather than about architecture styles. A handful of
+\pattern{Executable Rule}s recovers most of the domain protection Clean Architecture provides,
+without the ports, adapters and interactors an agent would otherwise have to learn and
+reproduce in every feature. The trade is ceremony against rules; the ladder lets a team make it
+explicitly.
+
+\subsection{What each receiver gains}
+
+Working backwards from the receivers, each gains the same four things. The domain stays in one
+place, which the seeding results in Section~\ref{sec:evaluation} measure directly. A new feature
+has a recipe: state the rule in EARS, let its pattern choose the layer, copy the slice, run the
+gate. Failures say what to do. And the manifest a new contributor reads is under 500 words,
+because everything checkable lives in the checks. The receivers differ only in which rung
+carries which rule, and those differences are themselves instructive: the same rule set,
+bound by different languages, lands on different rungs.

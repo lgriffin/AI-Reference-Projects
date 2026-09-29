@@ -1,0 +1,36 @@
+\section{Reading a receiver}\label{app:repository}
+
+Each receiver is self-contained. A reader interested in one language can start from its
+directory and read in this order.
+
+\begin{enumerate}
+  \item \repo{AGENTS.md}: the manifest. Verify command, placement table, conventions,
+    requirement convention, feature recipe, and what needs a person first.
+  \item \repo{REQUIREMENTS.md}: the ten rules in EARS, with ids and the pattern-to-layer table.
+  \item The worked slice: the domain entity, the service's move-task method, the repository
+    interface and its implementation, and the route or controller.
+  \item The scenarios: unit tests over the service with an in-memory repository, and API tests
+    through the real composition root. Each cites the requirements it covers.
+  \item The rules: the architecture tests and the requirement check.
+\end{enumerate}
+
+\begin{table}[!ht]
+  \centering\small
+  \caption{Where to find each part in each receiver.}
+  \begin{tabularx}{\linewidth}{@{}l X X X@{}}
+    \toprule
+    Part & \repo{java/} & \repo{python/} & \repo{typescript/} \\
+    \midrule
+    Verify & \repo{mvn verify} & \repo{pytest} & \repo{npm test} \\
+    Architecture rules & \repo{ArchitectureTest.java} & \repo{test\_architecture.py}$^{*}$ & \repo{architecture.test.ts}$^{*}$ \\
+    Requirement check & \repo{RequirementsTest.java} & \repo{test\_requirements.py}$^{*}$ & \repo{requirements.test.ts}$^{*}$ \\
+    Scenarios & \repo{service/}, \repo{api/}, \repo{events/} tests & \repo{tests/unit}, \repo{tests/api} & \repo{tests/unit}, \repo{tests/api} \\
+    Honest double & \repo{TaskRepository\-Contract.java} & \repo{tests/integration/} & \repo{tests/integration/} \\
+    \bottomrule
+  \end{tabularx}\\[0.3em]
+  {\footnotesize $^{*}$ under \repo{tests/architecture/}.}
+\end{table}
+
+The evaluation scripts are in \repo{evaluation/}: \repo{measure.py} for size,
+\repo{seed\_violations.py} for seeding, and \repo{agent\_experiment/} for the pilot. The first
+paper's results are kept alongside the current ones as \repo{*-8c4a74a.json}.
