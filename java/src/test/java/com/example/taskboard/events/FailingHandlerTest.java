@@ -6,6 +6,7 @@ import com.example.taskboard.domain.Status;
 import com.example.taskboard.domain.Task;
 import com.example.taskboard.domain.TaskCompleted;
 import com.example.taskboard.service.TaskService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ class FailingHandlerTest {
     private TaskService service;
 
     @Test
+    @DisplayName("R-DONE-2: given a failing announcer, when a task is completed, then it is still done")
     void aFailingHandlerDoesNotFailTheUseCase() {
         Task task = service.createTask("Write the paper");
         service.moveTask(task.id(), Status.IN_PROGRESS);

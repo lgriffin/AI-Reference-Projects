@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ class TaskApiTest {
     private MockMvc http;
 
     @Test
+    @DisplayName("R-MOVE-1, R-DONE-1: given a new task, when it is started and completed, then it is listed as done and announced")
     void aTaskMovesAcrossTheBoard(CapturedOutput log) throws Exception {
         String taskId = create("Write the paper");
         move(taskId, "in_progress");
@@ -44,6 +46,7 @@ class TaskApiTest {
     }
 
     @Test
+    @DisplayName("R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code")
     void everyFailureIsAProblemDocument() throws Exception {
         String started = create("Started");
         String waiting = create("Waiting");

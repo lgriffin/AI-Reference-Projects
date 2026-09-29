@@ -8,9 +8,9 @@ anything a test can check lives in `tests/architecture/`, not here.
 
     pytest
 
-One command runs the type checker (`mypy --strict`), the architecture rules, and the unit,
-integration and API tests. Work is finished when it passes. If an architecture test fails,
-change the code, not the test.
+One command runs the type checker (`mypy --strict`), the architecture rules, the requirement
+check, and the unit, integration and API tests. Work is finished when it passes. If an
+architecture test or the requirement check fails, change the code, not the test.
 
 ## Where things go
 
@@ -36,20 +36,28 @@ Tests mirror the layers: `tests/unit` (services, in-memory repository), `tests/i
 - Only `config.py` reads the environment. Every setting appears in `.env.example`.
 - The API returns domain objects until the wire format has to differ from the domain.
 
+## Requirements
+
+Every rule of the board is one EARS sentence with an id in `REQUIREMENTS.md`; its pattern names
+the layer that implements it. Every unit and API test is a scenario: its docstring opens
+with the ids it covers, then given / when / then. `tests/architecture/test_requirements.py`
+fails when a rule has no scenario or a scenario cites no rule.
+
 ## Adding a feature
 
 Copy the `move_task` slice, top to bottom:
 
-1. Domain rule or error in `domain/`.
-2. Repository method: the protocol, the SQLite implementation, the in-memory double, and a
+1. The rule, as an EARS sentence, in `REQUIREMENTS.md`.
+2. Domain rule or error in `domain/`.
+3. Repository method: the protocol, the SQLite implementation, the in-memory double, and a
    case in `tests/integration/test_task_repository_contract.py`.
-3. Service method, with a unit test.
-4. Route, with an API test.
-5. A new error needs an entry in `STATUS_BY_ERROR`.
-6. Run `pytest`.
+4. Service method, with a unit test.
+5. Route, with an API test.
+6. A new error needs an entry in `STATUS_BY_ERROR`.
+7. Run `pytest`.
 
 ## Ask a human first
 
 - Adding or upgrading a dependency.
-- Changing `tests/architecture/` or this file.
+- Changing `tests/architecture/`, `REQUIREMENTS.md` rules already stated, or this file.
 - Changing the database schema, or the shape of an existing endpoint.

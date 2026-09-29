@@ -8,9 +8,9 @@ anything a test can check lives in `ArchitectureTest`, not here.
 
     mvn verify
 
-One command compiles the code and runs the architecture rules (ArchUnit) and the unit,
-integration and API tests. Work is finished when it passes. If an architecture test fails,
-change the code, not the test.
+One command compiles the code and runs the architecture rules (ArchUnit), the requirement
+check, and the unit, integration and API tests. Work is finished when it passes. If an
+architecture test or the requirement check fails, change the code, not the test.
 
 ## Where things go
 
@@ -42,21 +42,29 @@ constructor. Tests mirror the packages: `service` (plain JUnit, in-memory reposi
 - The API returns domain records until the wire format has to differ from the domain.
 - Classes are package-private unless another package needs them.
 
+## Requirements
+
+Every rule of the board is one EARS sentence with an id in `REQUIREMENTS.md`; its pattern names
+the layer that implements it. Every unit, API and event test is a scenario: its `@DisplayName`
+opens with the ids it covers, then given / when / then. `RequirementsTest` fails when a rule has
+no scenario or a scenario cites no rule.
+
 ## Adding a feature
 
 Copy the `moveTask` slice, top to bottom:
 
-1. Domain rule or exception in `domain`.
-2. Repository method: the interface, `JdbcTaskRepository`, `InMemoryTaskRepository`, and a
+1. The rule, as an EARS sentence, in `REQUIREMENTS.md`.
+2. Domain rule or exception in `domain`.
+3. Repository method: the interface, `JdbcTaskRepository`, `InMemoryTaskRepository`, and a
    case in `TaskRepositoryContract`.
-3. Service method, with a unit test.
-4. Controller method, with an API test.
-5. A new exception is a nested class of the sealed `DomainException`; the compiler then
+4. Service method, with a unit test.
+5. Controller method, with an API test.
+6. A new exception is a nested class of the sealed `DomainException`; the compiler then
    demands its HTTP status in `ApiExceptionHandler`.
-6. Run `mvn verify`.
+7. Run `mvn verify`.
 
 ## Ask a human first
 
 - Adding or upgrading a dependency.
-- Changing `ArchitectureTest` or this file.
+- Changing `ArchitectureTest`, `RequirementsTest`, a rule already in `REQUIREMENTS.md`, or this file.
 - Changing `schema.sql`, or the shape of an existing endpoint.

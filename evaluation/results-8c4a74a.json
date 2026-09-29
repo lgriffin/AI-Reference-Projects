@@ -39,17 +39,14 @@
       ]
     },
     "V7": {
-      "caught_by": "architecture test",
+      "caught_by": "behavioural test",
       "evidence": [
-        "tests/api/test_task_api.py::test_every_failure_is_a_problem_document",
-        "tests/architecture/test_architecture.py::test_routes_decide_nothing[api/task_routes.py]"
+        "tests/api/test_task_api.py::test_every_failure_is_a_problem_document"
       ]
     },
     "V8": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "tests/architecture/test_architecture.py::test_ambient_capabilities_stay_in_their_layer[services/task_service.py]"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V9": {
       "caught_by": "behavioural test",
@@ -58,10 +55,8 @@
       ]
     },
     "V10": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "tests/architecture/test_architecture.py::test_routes_decide_nothing[api/task_routes.py]"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V11": {
       "caught_by": "behavioural test",
@@ -75,18 +70,6 @@
       "evidence": [
         "tests/architecture/test_architecture.py::test_the_domain_is_free_of_frameworks"
       ]
-    },
-    "V13": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "tests/architecture/test_requirements.py::test_every_requirement_has_a_scenario_and_every_citation_is_a_requirement"
-      ]
-    },
-    "V14": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "tests/architecture/test_requirements.py::test_every_scenario_cites_a_requirement[unit/test_task_service.py]"
-      ]
     }
   },
   "typescript": {
@@ -99,8 +82,8 @@
     "V2": {
       "caught_by": "behavioural test",
       "evidence": [
-        "tests/api/task-api.test.ts::R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code",
-        "tests/unit/task-service.test.ts::R-FIND-1: given no such task, when it is requested, then task_not_found is raised"
+        "tests/api/task-api.test.ts::every failure is a problem document",
+        "tests/unit/task-service.test.ts::an unknown task is reported"
       ]
     },
     "V3": {
@@ -128,53 +111,36 @@
       ]
     },
     "V7": {
-      "caught_by": "architecture test",
+      "caught_by": "behavioural test",
       "evidence": [
-        "tests/api/task-api.test.ts::R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code",
-        "tests/architecture/architecture.test.ts::'api/task-routes.ts' decides nothing"
+        "tests/api/task-api.test.ts::every failure is a problem document"
       ]
     },
     "V8": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "tests/architecture/architecture.test.ts::'services/task-service.ts' leaves ambient capabilities to the layer that owns them"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V9": {
       "caught_by": "behavioural test",
       "evidence": [
-        "tests/integration/task-repository.contract.test.ts::TaskRepository (in memory) R-LIST-1: tasks are listed in creation order"
+        "tests/integration/task-repository.contract.test.ts::TaskRepository (in memory) tasks are listed in creation order"
       ]
     },
     "V10": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "tests/architecture/architecture.test.ts::'api/task-routes.ts' decides nothing"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V11": {
       "caught_by": "behavioural test",
       "evidence": [
-        "tests/api/task-api.test.ts::R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code",
-        "tests/unit/task-service.test.ts::R-WIP-1: given a full board, when another task is started, then it is refused and stays in todo"
+        "tests/api/task-api.test.ts::every failure is a problem document",
+        "tests/unit/task-service.test.ts::the WIP limit is enforced"
       ]
     },
     "V12": {
       "caught_by": "architecture test",
       "evidence": [
         "tests/architecture/architecture.test.ts::the domain is free of frameworks"
-      ]
-    },
-    "V13": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "tests/architecture/requirements.test.ts::every requirement has a scenario, and every citation is a requirement"
-      ]
-    },
-    "V14": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "tests/architecture/requirements.test.ts::'unit/task-service.test.ts': every scenario cites a requirement"
       ]
     }
   },
@@ -188,9 +154,9 @@
     "V2": {
       "caught_by": "architecture test",
       "evidence": [
-        "TaskServiceTest::anUnknownTaskIsReported",
+        "TaskApiTest::everyFailureIsAProblemDocument",
         "ArchitectureTest::onlyTheApiSpeaksHttp",
-        "TaskApiTest::everyFailureIsAProblemDocument"
+        "TaskServiceTest::anUnknownTaskIsReported"
       ]
     },
     "V3": {
@@ -214,8 +180,8 @@
     "V6": {
       "caught_by": "compiler",
       "evidence": [
-        "/home/claude/AI-Reference-Projects/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values",
-        "/home/claude/AI-Reference-Projects/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values"
+        "/D:/Academic/paper2-ai-patterns-JOT/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values",
+        "/D:/Academic/paper2-ai-patterns-JOT/java/src/main/java/com/example/taskboard/api/ApiExceptionHandler.java:[21,29] the switch expression does not cover all possible input values"
       ]
     },
     "V7": {
@@ -225,10 +191,8 @@
       ]
     },
     "V8": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "ArchitectureTest::onlyEventHandlersHaveSideEffects"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V9": {
       "caught_by": "behavioural test",
@@ -237,34 +201,20 @@
       ]
     },
     "V10": {
-      "caught_by": "architecture test",
-      "evidence": [
-        "ArchitectureTest::controllersDecideNothing"
-      ]
+      "caught_by": "not caught",
+      "evidence": []
     },
     "V11": {
       "caught_by": "behavioural test",
       "evidence": [
-        "TaskServiceTest::theWipLimitIsEnforced",
-        "TaskApiTest::everyFailureIsAProblemDocument"
+        "TaskApiTest::everyFailureIsAProblemDocument",
+        "TaskServiceTest::theWipLimitIsEnforced"
       ]
     },
     "V12": {
       "caught_by": "architecture test",
       "evidence": [
         "ArchitectureTest::theDomainIsFreeOfFrameworks"
-      ]
-    },
-    "V13": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "RequirementsTest::everyRequirementHasAScenarioAndEveryCitationIsARequirement"
-      ]
-    },
-    "V14": {
-      "caught_by": "requirement check",
-      "evidence": [
-        "RequirementsTest::everyScenarioCitesARequirement"
       ]
     }
   }

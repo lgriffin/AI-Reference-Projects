@@ -20,7 +20,7 @@ function move(taskId: string, status: string) {
   return app.inject({ method: "POST", url: `/tasks/${taskId}/status`, payload: { status } });
 }
 
-test("a task moves across the board", async () => {
+test("R-MOVE-1, R-DONE-1: given a new task, when it is started and completed, then it is listed as done and announced", async () => {
   const announced = vi.spyOn(console, "info").mockImplementation(() => {});
   const taskId = await create("Write the paper");
   await move(taskId, "in_progress");
@@ -32,7 +32,7 @@ test("a task moves across the board", async () => {
   expect(announced).toHaveBeenCalledWith(expect.stringContaining("Task completed: Write the paper"));
 });
 
-test("every failure is a problem document", async () => {
+test("R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code", async () => {
   const started = await create("Started");
   const waiting = await create("Waiting");
   await move(started, "in_progress");

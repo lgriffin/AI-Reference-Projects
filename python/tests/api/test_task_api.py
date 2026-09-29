@@ -29,6 +29,7 @@ def move(client: TestClient, task_id: str, status: str) -> Response:
 def test_a_task_moves_across_the_board(
     client: TestClient, caplog: pytest.LogCaptureFixture
 ) -> None:
+    """R-MOVE-1, R-DONE-1: given a new task, when it is started and completed, then it is listed as done and announced."""
     caplog.set_level("INFO")
     task_id = create(client, "Write the paper")
     move(client, task_id, "in_progress")
@@ -41,6 +42,7 @@ def test_a_task_moves_across_the_board(
 
 
 def test_every_failure_is_a_problem_document(client: TestClient) -> None:
+    """R-ERR-1, R-VAL-1: given each kind of refused request, when it is sent, then a problem document carries its code."""
     started, waiting = create(client, "Started"), create(client, "Waiting")
     move(client, started, "in_progress")
 
