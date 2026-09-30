@@ -23,10 +23,13 @@ reliably share, and changes arrive faster than people can review them closely. U
 repository itself teaches and enforces its domain, the rules spread and erode.
 
 We meet this from two sides of the same city. At South East Technological University (SETU),
-Colm and Eamonn lead the Higher Diploma in Computing, where students now learn to program
-alongside agents and lecturers need codebases that teach a domain to both. At Red Hat in Waterford,
-Leigh, Paul and Ray work on software that agents also change, and see hiring move towards graduates
-who can work safely in such repositories. Darrin brings lean enterprise practice from SETU. The
+Colm and Eamonn lead the software programme, the online
+[Higher Diploma in Science in Computer Science](https://www.setu.ie/courses/higher-diploma-in-computer-science-2-years-online), where students now learn to program
+alongside agents and lecturers need codebases that teach a domain to both. Darrin leads the
+[Master of Business Studies in Lean Enterprise Excellence](https://www.setu.ie/courses/master-of-business-in-lean-enterprise-excellence), where lean practice is taught to
+people who improve real organisations. At Red Hat in Waterford, Leigh, Paul and Ray work on
+software that agents also change, and see hiring move towards graduates who can work safely in such
+repositories. The
 question is the same for a student, a new hire and an agent: how does a repository make its domain
 rules impossible to miss and hard to break, without burying everyone in prose?
 
