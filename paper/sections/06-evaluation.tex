@@ -57,9 +57,9 @@ twelve structural, and two that break the trace between requirements and scenari
 Figure~\ref{fig:seeding} compares the receivers at commit \texttt{8c4a74a}, before the work
 described here, with the receivers now. Before, the single gate caught 30 of 36 structural
 mistakes. The six misses were the same two mistakes in every language: V8, a side effect inlined
-in the service, and V10, a business rule placed in the route. That the gap was identical across
-three languages and three enforcement styles is itself a result: it belonged to the capability,
-not to any receiver. Both mistakes preserve behaviour, so no behavioural test could have caught
+in the service, and V10, a business rule placed in the route. The same two mistakes got through
+in three languages, past three different styles of enforcement, which told us the gap was in the
+pattern and not in any one receiver. Both mistakes preserve behaviour, so no behavioural test could have caught
 them; only a structural rule could. After two such rules were added, and the requirement check
 with its two seeds, the gate catches all 42 mistakes. The new routes rule also moved V7 from a
 behavioural test to an architecture rule in Python and TypeScript, which is earlier feedback for

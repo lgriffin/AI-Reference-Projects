@@ -2,7 +2,7 @@
 
 A new kind of contributor has joined software teams. Coding agents, language models given a
 shell, a file system and a test runner, now read a repository, plan a change, edit many files
-and run the tests before handing the result to a person
+and run the tests before a person sees the result
 \citep{chen2021codex,jimenez2024swebench,yang2024sweagent}. They are fast and broadly competent.
 They are also, in one respect, the most difficult colleague a team has ever had: every session
 starts with no memory of the last one. Whatever the agent learned about the domain yesterday,
@@ -12,23 +12,23 @@ domain objects never import the web framework, is gone this morning.
 The only thing a person and an agent reliably share is the repository. Whatever the repository
 does not say, and does not enforce, the agent will reinvent, usually plausibly and often
 differently each time. People have the opposite problem. They remember the domain, but they
-cannot read every line an agent writes; studies of programmers working with code-generating
-tools describe a shift from writing to reviewing, with the attendant risk that review becomes
-skimming \citep{vaithilingam2022expectation,barke2023grounded}. Security studies show what
-can pass unnoticed \citep{pearce2022asleep,perry2023insecure}.
+cannot read every line an agent writes. Studies of programmers working with code-generating
+tools describe a shift from writing to reviewing, and reviewing under that volume slides
+towards skimming \citep{vaithilingam2022expectation,barke2023grounded}. Security studies show
+what can pass unnoticed \citep{pearce2022asleep,perry2023insecure}.
 
-We name the two resulting forces. \emph{Sprawl} is what happens when a large volume of locally
-plausible changes spreads one domain rule across many places: a check is copied into a route
-because it was nearby, a notification is called inline because that was quicker than publishing
-an event, a framework annotation is placed on a domain object because it was convenient. Each
-change is defensible; together they dissolve the domain. \emph{Cognitive erosion} is what
-happens when neither party can hold enough of the domain in mind to notice: the reviewer checks
-syntax because the intent is not visible in the diff, and the agent re-derives conventions from
-scratch every session. Lehman observed long ago that a system's structure decays under change
-unless work is done to preserve it \citep{lehman1980laws}. Agents do not change that law; they
-change its rate.
+We give the two resulting forces names. \emph{Sprawl} is what happens when a large volume of
+locally plausible changes spreads one domain rule across many places. A check is copied into a
+route because it was nearby. A notification is called inline because that was quicker than
+publishing an event. A framework annotation lands on a domain object because it was convenient.
+Every one of those changes would pass review on its own. Taken together they leave the domain
+in pieces. \emph{Cognitive erosion} is what happens when neither party can hold enough of the
+domain in mind to notice: the reviewer checks syntax because the intent is not visible in the
+diff, and the agent re-derives conventions from scratch every session. Lehman observed long ago
+that a system's structure decays under change unless work is done to preserve it
+\citep{lehman1980laws}. Agents have not repealed that law. They have made it run faster.
 
-\paragraph{Where we meet the problem} This paper comes from a collaboration between a
+\paragraph{Where we meet the problem} This paper comes out of a collaboration between a
 university and an industrial engineering site in the same city, and we meet the problem from
 both sides. At South East Technological University (SETU), students on the online Higher
 Diploma in Science in Computer Science\footnote{\url{https://www.setu.ie/courses/higher-diploma-in-computer-science-2-years-online}} now learn to
@@ -37,73 +37,74 @@ SETU's Master of Business Studies in Lean Enterprise
 Excellence\footnote{\url{https://www.setu.ie/courses/master-of-business-in-lean-enterprise-excellence}} teaches the lean practice this
 paper draws on. SETU delivers course material through Tutors, an open-source learning
 platform whose production TypeScript codebase coding agents were already changing
-\citep{tutorsmonorepo}. At Red Hat, the same agents contribute to engineering work, and hiring is
-moving towards graduates who can work safely in repositories that agents also change. The
+\citep{tutorsmonorepo}. At Red Hat, the same agents contribute to engineering work, and hiring
+is moving towards graduates who can work safely in repositories that agents also change. The
 question is the same for a student, a new hire and an agent: how does a repository make its
 domain rules impossible to miss and hard to break, without burying everyone in prose?
 
-\paragraph{The need for constraints} A common response is to write more guidance: longer
+\paragraph{The need for constraints} The common response is to write more guidance: longer
 prompts, longer contributor guides, longer instruction files for agents
-\citep{agentsmd}. Guidance helps, but it has two failure modes. It is read at the start of a
-session and then competes with everything else in the agent's context, and it grows until
-nobody, person or agent, reads it at all. A first step beyond guidance is a repository in which
-conventions are carried three ways at once: exemplified by one small vertical slice, declared in
-a manifest of a few hundred words, and enforced by architecture rules written as tests. The
-receivers in this paper began from exactly that arrangement. This paper generalises it. It asks not only
-\emph{whether} a rule is written down, but \emph{how strongly} it is asserted, and it extends
-the question from structure to behaviour and requirements.
+\citep{agentsmd}. Guidance helps, but we have watched it fail in two ways. It is read at the
+start of a session and then competes with everything else in the agent's context, and it grows
+until nobody, person or agent, reads it at all. Our own first step beyond guidance was a
+repository in which conventions are carried three ways at once: exemplified by one small
+vertical slice, declared in a manifest of a few hundred words, and enforced by architecture
+rules written as tests. The receivers in this paper began from that arrangement. This paper
+generalises it. It asks not only \emph{whether} a rule is written down but \emph{how strongly}
+it is asserted, and it extends the question from structure to behaviour and requirements.
 
-\paragraph{The Assertion Ladder} Our central claim is pedagogical. A coding agent is a capable
-learner with no memory; the repository is its teacher. Teachers do not assert everything the
-same way. They show a worked example, they tell a rule, they set an exercise that marks the
-answer, they give feedback that explains the mistake, and occasionally they arrange the task
-so that the wrong answer is simply not available. The \emph{Assertion Ladder}
+\paragraph{The Assertion Ladder} Our central claim is a teaching one. A coding agent is a
+capable learner with no memory, and the repository is its teacher. Teachers do not assert
+everything the same way. They show a worked example, they tell a rule, they set an exercise that
+marks the answer, they give feedback that explains the mistake, and now and then they arrange
+the task so that the wrong answer is simply not available. The \emph{Assertion Ladder}
 (Figure~\ref{fig:ladder}) gives each of these moves a rung, from \rung{L0 Implied} to
-\rung{L5 Prevented}, and asks the designer of a repository to place every domain rule on a rung
-deliberately: high enough that the learner cannot miss it, and no higher than the rule's risk
-justifies, because every assertion also costs something to write, to maintain and to read.
+\rung{L5 Prevented}, and asks whoever designs a repository to place every domain rule on a rung
+on purpose: high enough that the learner cannot miss it, and no higher than the rule's risk
+justifies, because every assertion costs something to write, to maintain and to read.
 
-\paragraph{Lean as the explanation} The ladder is not new engineering so much as old
-engineering applied to a new worker. Lean thinking starts from \emph{value}, what the customer and
-here also the domain need, and treats everything that does not serve it as waste
+\paragraph{Lean as the explanation} None of this is new engineering. It is old engineering
+applied to a new worker. Lean thinking starts from \emph{value}, what the customer and, here,
+the domain need, and treats everything that does not serve it as waste
 \citep{womack1996lean,poppendieck2006implementing}. For work that repeats, its central tool is
-\emph{standard work}: the current best method, followed by everyone who does the job and improved
-by the team that owns it \citep{liker2004toyota}. It reads a process as a \emph{value stream} and
-asks where along it a defect is found and how much waiting and rework that costs
+\emph{standard work}: the current best method, followed by everyone who does the job and
+improved by the team that owns it \citep{liker2004toyota}. It reads a process as a \emph{value
+stream} and asks where along it a defect is found and what the waiting and rework cost
 \citep{rother1999learning}. And it answers each problem with \emph{root cause analysis}, asking
-why until the answer is something the process can change \citep{ohno1988tps}. Read this way, the
-rungs are standard work for a contributor who cannot remember it: shown in a worked slice, told in
-a short manifest, and then built into the work as checks that stop the build, explain the stop,
-or make the mistake impossible to write. Section~\ref{sec:discussion} argues that lean explains
-why the ladder works rather than merely decorating it.
+why until the answer is something the process can change \citep{ohno1988tps}. Read this way,
+the rungs are standard work for a contributor who cannot remember it: shown in a worked slice,
+told in a short manifest, and then built into the work as checks that stop the build, explain
+the stop, or make the mistake impossible to write. Section~\ref{sec:discussion} makes the case
+that lean explains why the ladder works, rather than decorating it.
 
 \paragraph{Critical gaps} Software engineering already has most of the parts. Architecture
 conformance checking, specification by example, structured requirements and instruction files
-for agents all exist, and Section~\ref{sec:related} reviews them. What it lacks is a standard way
-to combine them. We identify five gaps in current practice that call for standardisation:
-there is no shared vocabulary for how strongly a rule is asserted (\ref{gap:vocabulary});
-instruction files for agents are unvalidated prose with no link to enforcement
-(\ref{gap:prose}); conformance tools say nothing about which rules to check rather than
-document, or that a failure should name its fix (\ref{gap:selection}); agent-facing
-repositories have no executable closure between requirements and the scenarios that test them
-(\ref{gap:closure}); and there is no benchmark of whether a repository's own harness catches the
-mistakes that matter, as opposed to whether an agent can complete a task (\ref{gap:benchmark}).
-Each gap is small; together they mean that every team sharing a repository with agents invents
-its own answer, and most answer only with more prose.
+for agents all exist, and Section~\ref{sec:related} reviews them. What it lacks is a standard
+way to combine them. We identify five gaps in current practice that call for standardisation.
+There is no shared vocabulary for how strongly a rule is asserted (\ref{gap:vocabulary}).
+Instruction files for agents are unvalidated prose with no link to enforcement
+(\ref{gap:prose}). Conformance tools say nothing about which rules to check rather than
+document, or about a failure naming its fix (\ref{gap:selection}). Agent-facing repositories
+have no executable closure between requirements and the scenarios that test them
+(\ref{gap:closure}). And there is no benchmark of whether a repository's own harness catches
+the mistakes that matter, as opposed to whether an agent can complete a task
+(\ref{gap:benchmark}). None of these gaps is large on its own. Their combined effect is that
+every team sharing a repository with agents invents its own answer, and most answer with more
+prose.
 
-\paragraph{Two known uses} The pattern is shown in two settings. The first is greenfield:
+\paragraph{Two known uses} We show the pattern in two settings. The first is greenfield:
 one application, \emph{taskboard}, a small Kanban service with a work-in-progress limit, built
-with the ladder from the start. We walk through its TypeScript implementation and show that Java
-and Python implementations with identical behaviour bind every rung equivalently
-\citep{taskboardrepo}. We call these implementations \emph{receivers} of the pattern rather than
-its source, and work backwards from what each gains to the single capability they share. The
-second is a retrofit: \emph{Tutors}, an open-source TypeScript learning platform in production,
-to which the rungs were added after the fact while coding agents were already contributing, and
-from which the release checks were then extracted into a reusable, product-independent harness
-\citep{tutorsmonorepo,tutorsreleaseharness}. Together they show the ladder being established
-where none existed and being adopted where a codebase already had history.
+with the ladder from the start. We walk through its TypeScript implementation and show that
+Java and Python implementations with identical behaviour bind every rung equivalently
+\citep{taskboardrepo}. We call these implementations \emph{receivers} of the pattern rather
+than its source, and work backwards from what each gains to the single capability they share.
+The second is a retrofit: \emph{Tutors}, an open-source TypeScript learning platform in
+production, to which the rungs were added after the fact while coding agents were already
+contributing, and from which the release checks were then extracted into a reusable,
+product-independent harness \citep{tutorsmonorepo,tutorsreleaseharness}. One shows the ladder
+built where nothing existed. The other shows it fitted to a codebase with years of history.
 
-\paragraph{Contributions} This paper makes five contributions, each aimed at one or more of
+\paragraph{Contributions} The paper makes five contributions, each aimed at one or more of
 the gaps.
 \begin{enumerate}
   \item The Assertion Ladder, a pattern in the classic form \citep{alexander1977pattern,gamma1994design}

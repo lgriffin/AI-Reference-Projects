@@ -32,23 +32,23 @@
 \begin{abstract}
 Coding agents now contribute to repositories alongside people. They write quickly, they start
 every session with no memory of the last one, and their changes arrive faster than a person can
-review them closely. Two forces follow: \emph{sprawl}, in which locally plausible changes spread
-one domain rule across many places, and \emph{cognitive erosion}, in which neither the reviewer
-nor the agent can hold enough of the domain in mind to notice. Current practice answers with
-architecture checks, executable specifications and instruction files for agents, but it has no
-standard way to combine them: no shared vocabulary for how strongly a rule is asserted, no link
-from agent instructions to enforcement, no closure between requirements and scenarios, and no
-benchmark of whether a repository's own harness catches the mistakes that matter. We propose the
-\emph{Assertion Ladder}, a pattern whose six rungs run from a rule that is merely implied,
-through one that is shown, told, checked and explained, to one that cannot be written wrongly at
-all, realised by nine smaller patterns. Read through lean thinking, the ladder is standard work,
-with its tests built in, for a contributor who cannot remember. We show it in two settings. A
-greenfield service, presented in TypeScript with equivalent Java and Python implementations,
-binds every rung; seeding fourteen canonical mistakes into each implementation, its single verify
-command catches all 42, where before the requirement and behavioural rungs it caught 30 of 36.
-A production TypeScript platform, Tutors, shows the ladder retrofitted while agents were already
-contributing, and its release checks extracted into a reusable harness. The repositories are
-public.
+review them closely. Two forces follow. \emph{Sprawl} is a large volume of locally plausible
+changes spreading one domain rule across many places. \emph{Cognitive erosion} is neither the
+reviewer nor the agent holding enough of the domain in mind to notice. Current practice answers
+with architecture checks, executable specifications and instruction files for agents, but it has
+no standard way to combine them. There is no shared vocabulary for how strongly a rule is
+asserted, no link from agent instructions to enforcement, no closure between requirements and
+scenarios, and no benchmark of whether a repository's own harness catches the mistakes that
+matter. We propose the \emph{Assertion Ladder}, a pattern whose six rungs run from a rule that is
+merely implied, through one that is shown, told, checked and explained, to one that cannot be
+written wrongly at all, realised by nine smaller patterns. Read through lean thinking, the ladder
+is standard work, with its tests built in, for a contributor who cannot remember it. We show it
+in two settings. A greenfield service, presented in TypeScript with equivalent Java and Python
+implementations, binds every rung; seeding fourteen canonical mistakes into each implementation,
+its single verify command catches all 42, where before the requirement and behavioural rungs it
+caught 30 of 36. A production TypeScript platform, Tutors, shows the ladder retrofitted while
+agents were already contributing, and its release checks extracted into a reusable harness. The
+repositories are public.
 \end{abstract}
 
 \acknowledgment{This paper is a collaboration between South East Technological University (SETU) and Red Hat in Waterford, Ireland.}
