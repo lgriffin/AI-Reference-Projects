@@ -1,16 +1,15 @@
 # AI Reference Projects
 
-Reference implementations accompanying the paper:
+Reference implementations accompanying the paper in preparation for the *Journal of Object
+Technology* (JOT):
 
-> **Convention over Configuration for Coding Agents: A Repository Standard of Default
-> Architectural Patterns for Human-AI Software Development**
->
-> Submitted to the *Journal of Object Technology* (JOT)
+> **The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories
+> Shared with Coding Agents**
 
-and a follow-up in preparation, *The Assertion Ladder*, governed by [`paper-plan.md`](paper-plan.md)
+The paper's sources and current build are in [`paper/`](paper/) ([PDF](paper/assertion-ladder.pdf)); it is governed by [`paper-plan.md`](paper-plan.md)
 (thesis, fixed vocabulary, section owners, rules of evidence). The pattern itself, and how each
 implementation binds it, is described in [`docs/assertion-ladder.md`](docs/assertion-ladder.md).
-The first paper's numbers were produced at commit `8c4a74a`; later commits add the requirement
+The first iteration's numbers were produced at commit `8c4a74a`; later commits add the requirement
 capability described below.
 
 ## Purpose
