@@ -135,12 +135,12 @@ between that claim and the code. Done items were verified locally in all three r
 - [x] Teaching Failure: every architecture rule and the requirement check name the rule and the
       fix
 - [x] Seeding extended with V13 and V14 and re-run: 42 of 42 caught
-      (`evaluation/results.json`; the first paper's run is kept in `results-8c4a74a.json`)
+      (`evaluation/results.json`; the first iteration's run is kept in `results-8c4a74a.json`)
 - [x] Each manifest under 500 words (480 / 427 / 468)
 - [ ] Re-run the pilot with more than one run per cell, against the current repository, and with
       the deletion task in EARS. This needs agent runs and cannot be done from the repository
       alone.
-- [x] Full draft in `paper/` (JOT two-column, 26 pages, seven illustrations); builds with `latexmk -pdf`
+- [x] Full draft in `paper/` (JOT two-column, 27 pages, seven illustrations); builds with `latexmk -pdf`
 - [x] Authors and affiliations: Leigh Griffin, Paul Power, Ray Carroll (Red Hat); Colm Dunphy, Darrin Taylor and Eamonn de Leastar (SETU)
 - [x] Related work: seven themes and gaps G1–G5; new references verified against DOI, publisher or arXiv (source URL above each bib entry)
 - [x] Official JOT class (`paper/jot.cls` v2.6) in place of the stand-in layout
@@ -153,7 +153,7 @@ between that claim and the code. Done items were verified locally in all three r
 | Decision | Recommendation | Decided |
 | --- | --- | --- |
 | Gherkin files or scenario-named tests | Scenario-named tests: no new dependency | |
-| A follow-up to the existing JOT submission, or a replacement | Follow-up that cites it, so data is not reported twice | |
+| Relation to other papers | A standalone new paper; the `8c4a74a` run and the pilot are this work's own first iteration | Decided (Leigh, 2026-09-30) |
 | Keep "Intent Harness" as a name | Retire it; use Assertion Ladder throughout | |
 | Include the two illustrative domains | Yes, clearly marked as illustrations | |
 | Paper title | "The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents" | Working title |

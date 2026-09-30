@@ -21,7 +21,7 @@ implementation is green, and asserts that it is green again when it finishes. Th
 violations (twelve structural, V13 and V14 in the trace between `REQUIREMENTS.md` and the
 scenarios) and their per-language patches are defined at the top of the script.
 
-The first paper reports the repository at commit `8c4a74a`. Its size and seeding results are kept
+The first iteration of the repository is commit `8c4a74a`, the paper's baseline. Its size and seeding results are kept
 as `metrics-8c4a74a.json` and `results-8c4a74a.json`; `metrics.json` and `results.json` describe
 the current repository. The pilot agent experiment was run against `8c4a74a` and has not been
 repeated since.
@@ -37,7 +37,7 @@ reports the episode.
 
 ## A note on the second run
 
-The first paper's run left two violations uncaught in every language: V8, *a side effect inlined
+The first iteration's run left two violations uncaught in every language: V8, *a side effect inlined
 in the service*, and V10, *a business rule placed in the route*. Both preserve behaviour, so no
 behavioural test can see them. The Assertion Ladder work (29 September 2026) added two structural
 rules: logging and notification belong to the events layer, and routes make no decisions (in
