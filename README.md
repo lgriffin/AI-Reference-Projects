@@ -116,7 +116,21 @@ two or all three carriers, with the scripted audit and every agent's diff.
 
 ## How this was built
 
-We built the implementations, the evaluation and the paper's tooling working with AI coding agents,
-in the collaborative mode the paper examines, and we say so in the paper's threats to validity. The
-first iteration (preserved in this repository's history) used DI containers, ORMs and two entities;
-a forensic review of it motivated the smaller, invariant-first iteration found here.
+This repository is co-authored with Claude. Everything in it, the three receivers, their
+manifests and rules, the evaluation scripts and the paper's sources, came out of an agentic
+interchange: we set the intent, Claude drafted the templates, we reviewed and corrected them,
+and the repository's own checks decided when a change was done. That is the collaborative mode
+the paper examines, and the paper says so in its threats to validity.
+
+We have left the git history as it is on purpose. The commits, their trailers and the pull
+requests show who did what and in what order, and that record is part of the evidence. The
+first iteration, preserved in that history, used DI containers, ORMs and two entities; a
+forensic review of it, also done with Claude, motivated the smaller, invariant-first iteration
+found here.
+
+The point of working this way is that the repository can keep evolving. The capabilities are
+coordinated rather than owned by one side: people decide what counts as a rule and how high it
+climbs, the agent carries the rule into every receiver and keeps the templates in step, and the
+single gate in each receiver checks the result. A new rung pattern, a new receiver in another
+language, or a new rule in the requirements file can be added the same way, by anyone, with
+the same checks deciding whether it landed.
