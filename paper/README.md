@@ -2,6 +2,10 @@
 
 LaTeX sources for the JOT submission. `../paper-plan.md` governs what the paper argues and who owns each section.
 
+## Read the current draft
+
+[`assertion-ladder.pdf`](assertion-ladder.pdf) is the latest build, committed so it can be opened on GitHub without a TeX install. Rebuild and copy `main.pdf` over it when the sources change.
+
 ## Build
 
 ```sh
@@ -28,4 +32,4 @@ This needs a TeX Live install with `tikz`, `pgfplots`, `listings`, `booktabs`, `
 
 ## Still owed
 
-Search for `\todo` in the sources: author bios and contact emails. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.
+Search for `\todo` in the sources. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.
