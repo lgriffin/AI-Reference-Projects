@@ -145,7 +145,7 @@ between that claim and the code. Done items were verified locally in all three r
 - [x] Related work: seven themes and gaps G1–G5; new references verified against DOI, publisher or arXiv (source URL above each bib entry)
 - [x] Official JOT class (`paper/jot.cls` v2.6) in place of the stand-in layout
 - [x] Tutors retrofit case study (Eamonn de Leastar) and the TypeScript-first worked example
-- [ ] Short bios and contact emails for all six authors (`\shortbio` in `paper/main.tex`)
+- [x] Short bios, contact emails and the SETU and Red Hat Waterford collaboration acknowledgment
 - [ ] Tutors authors to confirm every figure quoted from the Tutors repositories
 
 ## 8. Open decisions
