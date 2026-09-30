@@ -1,6 +1,6 @@
 \section{Related work}\label{sec:related}
 
-The Assertion Ladder draws on six bodies of work that rarely cite one another: architecture
+The Assertion Ladder draws on six bodies of work that seldom cite one another: architecture
 conformance, behaviour and requirement specification, studies of coding agents, constraints on
 generated code, the psychology of learning, and the pattern form. Lean production is treated in
 Section~\ref{sec:discussion}. This section reviews each body of work and says how the ladder builds
@@ -35,9 +35,8 @@ The receivers use this tradition directly: the \pattern{Executable Rule} at L3 i
 conformance check. The ladder adds two things the tradition does not address. It asks which
 rules deserve a check at all, since a check has a cost and some rules are better shown or told.
 It also asks that a failing check teach the fix, which matters when the reader of the failure
-is an agent that will act on it immediately. What is missing is a principle for choosing which
-rules to check and which to document, and a requirement that a failing check explain itself
-(G3).
+is an agent that will act on it immediately. The gap is a principle for choosing which rules to
+check and which to document, and a requirement that a failing check explain itself (G3).
 
 \subsection{Specification by example, BDD and requirements}
 
@@ -65,9 +64,9 @@ The receivers take the scenario form but not the Gherkin runner. Scenarios are o
 named in given, when and then, that cite a requirement id. The ladder then adds what the
 literature treats as an open maintenance problem: a \pattern{Closure Check} that fails the build
 when a requirement has no scenario or a scenario cites no requirement. It also uses the EARS
-keyword as a hint about placement, a use its designers did not intend. What is missing is an
-executable closure between requirements and scenarios in repositories that agents edit, so that
-traceability is checked on every change rather than audited occasionally (G4).
+keyword as a hint about placement, a use its designers did not intend. The gap is an executable
+closure between requirements and scenarios in repositories that agents edit, so that
+traceability is checked on every change rather than audited now and then (G4).
 
 \subsection{Coding agents, their harnesses and their context files}
 
@@ -108,14 +107,14 @@ generated tests shows that models can write useful unit tests
 of architecture-aware generation \citep{schmid2025archllm}.
 
 The ladder places a context file at L2, one rung among six, and treats its growth as a cost.
-The mixed evidence on context files is what the ladder predicts. Prose that repeats what a test
+The mixed evidence on context files is what we would expect. Prose that repeats what a test
 enforces adds cost without adding protection, and prose that states what no test enforces is
 easily ignored. The receivers keep the manifest short by removing a rule from it once a check
-covers it. What is missing is a link between the instruction file and the checks, so that each
-told rule is either enforced or deliberately left to judgement (G2). A second gap follows from
-the benchmarks. SWE-bench and its successors measure agents against fixed repositories. What is
-missing is a measure of the repository, one that asks whether its harness catches a known set
-of canonical mistakes whoever makes them (G5). Violation seeding (Section~\ref{sec:evaluation})
+covers it. The gap is a link between the instruction file and the checks, so that each told
+rule is either enforced or deliberately left to judgement (G2). A second gap follows from the
+benchmarks. SWE-bench and its successors measure agents against fixed repositories. Nobody yet
+measures the repository, asking whether its harness catches a known set of canonical mistakes
+whoever makes them (G5). Violation seeding (Section~\ref{sec:evaluation})
 is a first form of such a measure.
 
 \subsection{Guardrails and constraints on generated code}
@@ -137,9 +136,9 @@ feedback loops are L3 and L4 applied at the harness. The ladder places the same 
 the repository, where they survive a change of model, vendor or harness and bind people as well
 as agents. The two approaches are complementary. A repository whose rules are executable gives a
 feedback loop something to run, and a type-level assertion gives constrained decoding something
-to enforce. What is missing is a shared vocabulary for how strongly a rule is asserted, so that
-a team can say which of its rules are shown, told, checked, explained or prevented, whatever
-tools do the asserting (G1).
+to enforce. What the field lacks is a shared vocabulary for how strongly a rule is asserted, so
+that a team can say which of its rules are shown, told, checked, explained or prevented,
+whatever tools do the asserting (G1).
 
 \subsection{Pedagogy and cognitive load in software engineering}
 
@@ -165,8 +164,8 @@ novice in the particular repository, so the ladder gives it direct instruction a
 examples for the particular (L1, L2) and fades the prose once a check exists, as the expertise
 reversal effect would advise. \pattern{Teaching Failure} is formative feedback written into
 the checks. The reviewer's load is reduced by moving rules out of the diff and into the gate.
-What is missing, again, is a shared scale on which these teaching moves are named and graded,
-so that repository design can draw on instructional design deliberately (G1).
+The same gap appears again: a shared scale on which these teaching moves are named and graded,
+so that repository design can draw on instructional design on purpose (G1).
 
 \subsection{Patterns and pattern languages}
 

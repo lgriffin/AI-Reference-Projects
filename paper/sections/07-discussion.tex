@@ -5,9 +5,9 @@
 Lean thinking faced a version of the problem this paper faces: work done quickly by many hands,
 more of it than anyone could inspect, where a defect that travelled downstream cost far more to
 fix than one caught where it was made \citep{ohno1988tps,womack1996lean}. Its answer was to build
-the specification into the work itself. This section argues that the Assertion Ladder is that
-answer applied to a repository and a memoryless contributor, through four lean ideas: value,
-standard work, the value stream and root cause analysis. Table~\ref{tab:lean} maps each to the
+the specification into the work itself. We read the Assertion Ladder as that answer applied to
+a repository and a memoryless contributor, and this section makes the case through four lean
+ideas: value, standard work, the value stream and root cause analysis. Table~\ref{tab:lean} maps each to the
 receivers and to the evidence, and the section closes with the places where the analogy stops.
 
 \begin{table*}[t]
@@ -47,7 +47,7 @@ it. The receivers show both halves: application code fell from 637, 729 and 957 
 and 242 when containers, mappers and a second entity were removed, and the manifests stayed under
 500 words while two new kinds of intent were added.
 
-\paragraph{Standard work} Standard work is the centre of the mapping. The worked slice and the
+\paragraph{Standard work} Standard work is where the mapping is tightest. The worked slice and the
 feature recipe of Section~\ref{sec:receivers} (state the rule in EARS, let its pattern choose the
 layer, copy the slice, run the gate) specify the content of a change, its sequence and its
 expected outcome, which is how Spear and Bowen describe Toyota's work \citep{spear1999decoding}.
@@ -62,7 +62,7 @@ rules or the manifest change. That division is deliberate, and we return to it b
 \paragraph{The value stream} Figure~\ref{fig:valuestream} draws the value stream of one change:
 written by an agent, verified by the single gate, reviewed by a person, merged and released. Each
 rung decides where along that stream a broken rule is found. At L0 only a reviewer who reads
-closely can see it, and cognitive erosion is precisely the loss of that reading. At L1 and L2 the
+closely can see it, and cognitive erosion is the loss of that reading. At L1 and L2 the
 standard makes the mistake less likely but finds nothing. At L3 and L4 the gate finds it before
 any person has spent time on the change, and at L5 it cannot be written. The seeding results show
 the shift. At commit \texttt{8c4a74a}, V8 and V10 passed the gate in all three receivers and would
@@ -112,8 +112,8 @@ which shows where the problem is and why; the \pattern{Human Boundary} is the an
 right and the duty to stop and ask a person before changing a dependency, a rule or a schema. The
 \pattern{Unrepresentable Mistake} is \emph{poka-yoke} of the preventive kind.
 
-\paragraph{Where the analogy stops} The mapping is close but not exact, and the differences are
-instructive. First, an agent does not learn across shifts. A factory worker is taught the
+\paragraph{Where the analogy stops} The mapping is close but not exact, and the places where it
+breaks tell us something. First, an agent does not learn across shifts. A factory worker is taught the
 standard, practises it and in time no longer needs the sheet; an agent is taught afresh every
 session. The cost of showing and telling is therefore paid every time, which is the strongest
 reason to move a rule from prose into a check, where following it costs no reading. For the same
@@ -138,7 +138,7 @@ to its design.
 
 A repository can be made arbitrarily hard to damage by making it arbitrarily hard to change.
 The ladder resists this in two ways. Each rule climbs only as far as its risk warrants, so the
-cost of a rung is paid only where it buys something; in lean terms, this guards against
+cost of a rung is paid only where it buys something. Lean would call the alternative
 over-processing. And the ladder is compressed from below as
 it grows from above: when the receivers gained a requirement file, a scenario convention and
 four new rules, their manifests grew by one paragraph each and stayed under 500 words, so the

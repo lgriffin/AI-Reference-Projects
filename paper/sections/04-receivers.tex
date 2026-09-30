@@ -108,10 +108,10 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
 };
 \end{lstlisting}
 
-Its architecture rules are the cheapest of the three receivers' styles, regular expressions
-over source text, and the least precise. They are adequate for a codebase this small and would
-need a parser for a larger one; Section~\ref{sec:tutors} shows what a production TypeScript
-codebase used instead.
+Its architecture rules are the cheapest of the three styles, regular expressions over source
+text, and the least precise. They are enough for a codebase this small. A larger one would need
+a parser, and Section~\ref{sec:tutors} shows what a production TypeScript codebase used
+instead.
 
 \subsection{Equivalence in Java and Python}
 
@@ -179,8 +179,8 @@ framework, only the config layer the environment, and only the events layer logg
 this as a finding about the ladder rather than about architecture styles. A handful of
 \pattern{Executable Rule}s recovers most of the domain protection Clean Architecture provides,
 without the ports, adapters and interactors an agent would otherwise have to learn and
-reproduce in every feature. The trade is ceremony against rules; the ladder lets a team make it
-explicitly.
+reproduce in every feature. The trade is ceremony against rules, and the ladder lets a team make
+it in the open.
 
 \subsection{What each receiver gains}
 
@@ -189,5 +189,5 @@ place, which the seeding results in Section~\ref{sec:evaluation} measure directl
 has a recipe: state the rule in EARS, let its pattern choose the layer, copy the slice, run the
 gate. Failures say what to do. And the manifest a new contributor reads is under 500 words,
 because everything checkable lives in the checks. The receivers differ only in which rung
-carries which rule, and those differences are themselves instructive: the same rule set,
-bound by different languages, lands on different rungs.
+carries which rule, and the differences are worth reading: the same rule set, bound by three
+languages, lands on three different sets of rungs.

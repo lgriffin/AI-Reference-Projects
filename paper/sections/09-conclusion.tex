@@ -1,38 +1,39 @@
 \section{Conclusion}\label{sec:conclusion}
 
 Coding agents make a domain's rules easier to break and harder to notice breaking. The
-Assertion Ladder answers by asking, for each rule, how strongly the repository asserts it: shown,
-told, checked, explained or prevented. Structure, behaviour and requirements turn out to be three
-loads on the same ladder, and the pattern of an EARS requirement suggests where its code belongs.
-A greenfield receiver in TypeScript, with equivalent receivers in Java and Python, binds every
-rung in its language's idiom; seeding fourteen canonical mistakes into each, the single verify
-command catches all 42, where it caught 30 of 36 structural mistakes before the behavioural and
-requirement rungs and two new structural rules were added. The cost was about a screen of tests
-and a paragraph of prose per receiver. The Tutors retrofit shows the same rungs established in a
-production codebase that agents were already changing, reaching the checked and explained rungs
-wherever a check could be written, adding ratchets so that legacy violations could only shrink,
-and extracting its release checks into a harness that the change under review cannot weaken.
+Assertion Ladder answers by asking one question of every rule: how strongly does the repository
+assert it? Shown, told, checked, explained or prevented. Structure, behaviour and requirements
+are three loads on the same ladder, and the pattern of an EARS requirement suggests where its
+code belongs. A greenfield receiver in TypeScript, with equivalent receivers in Java and Python,
+binds every rung in its language's idiom. Seeding fourteen canonical mistakes into each, the
+single verify command catches all 42, where it caught 30 of 36 structural mistakes before the
+behavioural and requirement rungs and two new structural rules were added. The cost was about a
+screen of tests and a paragraph of prose per receiver. The Tutors retrofit shows the same rungs
+established in a production codebase that agents were already changing. It reached the checked
+and explained rungs wherever a check could be written, added ratchets so that legacy violations
+could only shrink, and moved its release checks into a harness that the change under review
+cannot weaken.
 
-We therefore propose the ladder as a standard for repositories shared with coding agents, in
-answer to the five gaps of Section~\ref{sec:related}: a shared vocabulary of rungs; instruction
+We propose the ladder as a standard for repositories shared with coding agents, one answer to
+each of the five gaps in Section~\ref{sec:related}: a shared vocabulary of rungs; instruction
 files that state only what is not yet checked; checks chosen by risk and written to teach;
 requirements closed against scenarios; and violation seeding as a benchmark of the repository
-itself rather than of the agent that works in it.
+rather than of the agent that works in it.
 
-Lean thinking explains why this works. It counts as value only what the customer, and here the
-domain, needs, and treats the rest as waste. It makes the best current method standard work that
-everyone follows and the team improves, it asks where along the value stream a defect is found,
-and it answers each miss by asking why until the process can change. The ladder is standard work,
-with its tests built in, for a contributor who cannot remember it; each rung it climbs moves
-detection further upstream; and the two seeding runs are one turn of lean's improvement cycle,
-from a miss to its root cause to a countermeasure that was measured again.
+Lean is why we think it works. Lean counts as value only what the customer, and here the
+domain, needs, and calls the rest waste. It makes the best current method standard work that
+everyone follows and the team improves. It asks where along the value stream a defect is found,
+and it answers each miss by asking why until the process can change. The ladder is standard
+work, with its tests built in, for a contributor who cannot remember it. Each rung a rule climbs
+moves detection further upstream. The two seeding runs are one turn of the improvement cycle,
+from a miss to its root cause to a countermeasure that was then measured again.
 
-Four directions follow. The pilot should be repeated against the current receivers, with more
+Four things come next. The pilot should be repeated against the current receivers, with more
 runs per cell and the feature request written in EARS, to test whether stated requirements
 improve placement. The harness-erosion use cases should be raised from L2 to L3 by protecting
-the rule files themselves. The extracted release harness should be adopted by a second product,
-to test how much of it is generic. And the reviewer's load, which we claim the ladder reduces by
-separating intent from code, should be measured.
+the rule files themselves. The release harness should be adopted by a second product, to find
+out how much of it is generic. And the reviewer's load, which we claim the ladder reduces by
+separating intent from code, should be measured rather than asserted.
 
 \paragraph{Availability} The receivers, the seeding script, the pilot's workspaces, audit and
 diffs, and this paper's sources are public \citep{taskboardrepo}, as are Tutors and its release

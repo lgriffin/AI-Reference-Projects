@@ -32,7 +32,7 @@ domain protected while agents change it.
 \subsection{The retrofit, rung by rung}
 
 Table~\ref{tab:tutors-binding} maps each rung pattern to the artefact that binds it in Tutors.
-The order in which they arrived is itself informative. The first moves, in early August, were
+The order in which they arrived says something about what each one costs. The first moves, in early August, were
 to replace call-sequence mocks with real implementations and a data-driven stand-in carrying 27
 validation tests of its own (commit \texttt{786f1fe}), and to clear 138 type errors
 (\texttt{95064ea}). These are the cheapest rungs: they make existing tests honest before new
@@ -121,7 +121,8 @@ allowed to stop the line.
 \subsection{What a retrofit adds: ratchets and self-tests}
 
 A greenfield receiver can make a rule true everywhere on the day it is written. A retrofit
-cannot, and Tutors' answer is the most transferable thing it adds. Nine baseline files list what
+cannot. Tutors' answer to that is the part of the retrofit we would most like other teams to
+copy. Nine baseline files list what
 is known to be wrong when a check is introduced. The check fails on any violation not in the
 baseline and on any baseline entry that no longer occurs, so the list can only shrink
 (\path{scripts/checks/lib/ratchet.ts}). The nine held 169 entries on 21 September and 167 on
@@ -163,8 +164,8 @@ that matches nothing is reported as stale.
   \label{fig:tutors-harness}
 \end{figure*}
 
-Why a separate repository? The reason given is ours in Section~\ref{sec:ladder}: a check that an
-agent can edit is a check that an agent can weaken. The harness ``consumes the monorepo's
+Why a separate repository? The reason the harness gives is the one we gave in
+Section~\ref{sec:ladder}: a check that an agent can edit is a check that an agent can weaken. The harness ``consumes the monorepo's
 published images \ldots\ and knows nothing about their source, so it can compare any two tags
 \ldots\ and cannot be quietly weakened by the PR it is judging'' (\emph{harness} \repo{README.md};
 decision 1 in \path{docs/architecture/06-decisions.md}). The receivers bind the
@@ -186,7 +187,7 @@ made reusable at the level of its contract, and not yet as a tool demonstrated o
 product.
 
 \paragraph{Lean, named in the code} The harness is explicit about its lean vocabulary, and each
-term points to a mechanism, as our plan requires (\emph{harness} \repo{docs/lean.md};
+term points to a mechanism rather than sitting in a glossary (\emph{harness} \repo{docs/lean.md};
 \repo{release/SOP.md}). \emph{Jidoka}: the Gate stops the line, and an advisory confidence score
 may never override it (``a FAIL is a FAIL at RCS 99''). \emph{Standard work}: a twelve-step
 release SOP with an owner, an input and a done-when per step, in which steps 2 to 7 run as one

@@ -49,35 +49,35 @@ same ladder rather than three separate techniques.
 
 \paragraph{\rung{L0 Implied}} The rule exists only in someone's head or in habit. The agent
 experiences nothing, and guesses. The guess is usually plausible, which is what makes L0
-dangerous: nothing about the result looks wrong. In lean terms this is tacit knowledge with no
-standard: there is nothing to follow and nothing to improve, and every session pays the waste of
-relearning. In teaching terms it is the hidden curriculum.
+dangerous: nothing about the result looks wrong. Lean would call this tacit knowledge with no
+standard: nothing to follow, nothing to improve, and the cost of relearning paid every session.
+A teacher would call it the hidden curriculum.
 
 \paragraph{\rung{L1 Shown}} One complete example embodies the rule: a vertical slice from the
 domain to the endpoint, small enough to read whole. Agents, like novices, copy structure before
 they understand it \citep{sweller1985worked}, so the slice is the cheapest effective assertion
-there is. In lean terms the slice is standard work shown rather than written: the team's current
+there is. To a lean eye the slice is standard work shown rather than written: the team's current
 best way to add a feature, in a form a contributor can copy. Its weakness is that the learner may
 copy the wrong detail, or generalise from an accident of the example.
 
 \paragraph{\rung{L2 Told}} A short declaration states the rule, in a file the agent's tooling
 loads at the start of every session \citep{agentsmd}. Prose can say what code cannot: what needs
-a person's decision, which of two acceptable choices the team prefers, why a rule exists. In lean
-terms it is the written half of standard work. Its weakness is that it can be forgotten, misread,
-or crowded out; and it grows.
+a person's decision, which of two acceptable choices the team prefers, why a rule exists. It is
+the written half of standard work. Its weakness is that it can be forgotten, misread or crowded
+out, and that it grows.
 
 \paragraph{\rung{L3 Checked}} An executable rule fails the build when the rule is broken. This
 is the rung of architecture tests, contract tests and behavioural scenarios. The agent
-experiences a red suite and must work out why. In lean terms it is the built-in test that
+experiences a red suite and must work out why. This is the built-in test that
 Spear and Bowen found attached to Toyota's standard work \citep{spear1999decoding}: the defect is
 found where it is made, by the contributor who made it, before the change moves on to a reviewer,
 rather than by a separate inspection further down the stream.
 
 \paragraph{\rung{L4 Explained}} The check's failure names the rule, the offender and the fix. A
 bare assertion failure tells the agent \emph{that} it is wrong; an explained failure tells it
-\emph{what to do instead}, which is the difference between summative and formative feedback. In
-lean terms a bare failure is a stop; an explained failure is a stop that, like an andon signal,
-shows where the problem is and why, and names the countermeasure. It costs a sentence per rule.
+\emph{what to do instead}, which is the difference between summative and formative feedback. A
+bare failure is a stop. An explained failure is a stop that, like an andon signal, shows where
+the problem is and why, and names the countermeasure. It costs a sentence per rule.
 
 \paragraph{\rung{L5 Prevented}} The wrong form does not compile. A sealed hierarchy with an
 exhaustive switch, or a map keyed by a closed union type, makes an unmapped error impossible to
@@ -121,17 +121,19 @@ agent may not make alone, including changes to the checks themselves.
   \end{tabularx}
 \end{table*}
 
-\pattern{Closure Check} deserves a note because it recurs more than any other. An
+\pattern{Closure Check} recurs more than any other pattern, so it is worth a paragraph of its
+own. An
 \emph{every X has a Y} assertion keeps two lists in step without either list knowing about the
 other: every domain error has an HTTP status; every repository implementation passes the same
 contract; every requirement has a scenario and every scenario cites a requirement. It is the
-cheapest way to make a growing set safe to extend, which is exactly what an agent does.
+cheapest way we know to make a growing set safe to extend, and extending sets is most of what an
+agent does all day.
 
 \subsection{Three kinds of intent, one ladder}
 
 Architecture tests, behaviour-driven development and structured requirements are usually
 presented as separate practices with separate literatures. In a repository shared with agents
-they turn out to be the same move applied to three kinds of intent
+they are the same move applied to three kinds of intent
 (Table~\ref{tab:intents}). \emph{Structure} says where code may live and what it may touch.
 \emph{Behaviour} says what the system does, in the domain's own words. \emph{Requirements} say
 why, once, in a form that can be traced. Each is declared, exemplified and enforced, and each
@@ -207,8 +209,8 @@ hypothesis supported by the ten taskboard rules and by one pilot run, not as a l
 \subsection{Compression and fading}
 
 The solution says to climb only as far as a rule's risk warrants, and to remove a rule from the
-prose once a check covers it. Both clauses are about ease of use, the force most easily
-forgotten. A manifest that repeats what the tests enforce is waste in the lean sense: it costs
+prose once a check covers it. Both clauses are about ease of use, which is the force teams
+forget first. A manifest that repeats what the tests enforce is waste in the lean sense: it costs
 reading time every session and adds nothing the gate does not already guarantee. Standard work
 is meant to change as the team learns, and here it changes by subtraction as well as addition:
 once a rule is built into a check, the written standard no longer needs to carry it. Instructional
