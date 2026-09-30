@@ -1,10 +1,12 @@
-# The Assertion Ladder (paper draft)
+# The Assertion Ladder (paper)
 
 LaTeX sources for the JOT submission. `../paper-plan.md` governs what the paper argues and who owns each section.
 
-## Read the current draft
+**The versions here are releases.** The working draft is written and edited internally by the authors; the sources and PDF in this directory are the final versions of each release, published openly with the code and data the paper reports on. Please raise corrections as issues rather than expecting edits here to reach the working draft.
 
-[`assertion-ladder.pdf`](assertion-ladder.pdf) is the latest build, committed so it can be opened on GitHub without a TeX install. Rebuild and copy `main.pdf` over it when the sources change.
+## Read it
+
+[`assertion-ladder.pdf`](assertion-ladder.pdf) is the released build, committed so it can be opened on GitHub without a TeX install.
 
 ## Build
 
