@@ -1,51 +1,84 @@
-\documentclass[11pt]{article}
-\usepackage{jotlocal}
-\usepackage[numbers,sort&compress]{natbib}
+\documentclass[lineno]{jot}
+% Official JOT class (jot.cls v2.6). Remove the 'lineno' option only for the camera-ready version.
+\usepackage{assertionladder}
 
-\jottitle{The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents}
+\jotdetails{
+    volume=vv,
+    number=nn,
+    articleno=aa,
+    year=yyyy,
+    license=ccby
+}
 
-\jotauthors{Leigh Griffin$^{1}$ \and Paul Power$^{1}$ \and Ray Carroll$^{1}$ \and Colm Dunphy$^{2}$\\[0.3em]
-\small$^{1}$Red Hat\qquad $^{2}$South East Technological University (SETU)}
+\articletype{regular}
 
-\jotabstract{Coding agents now contribute to repositories alongside people. They write quickly,
-they start every session with no memory of the last one, and their changes arrive faster than a
-person can review them closely. Two forces follow: \emph{sprawl}, in which locally plausible
-changes spread one domain rule across many places, and \emph{cognitive erosion}, in which
-neither the reviewer nor the agent can hold enough of the domain in mind to notice. We argue that
-a repository protects its domain to the extent that each domain rule is asserted at the right
-pedagogical level, and we name the resulting pattern the \emph{Assertion Ladder}. Its six rungs
-run from a rule that is merely implied, through one that is shown, told, checked and explained,
-to one that cannot be written wrongly at all. Nine smaller patterns realise the rungs. Read
-through lean thinking, the ladder is error-proofing and standard work for a contributor who
-cannot remember. We present three receivers of the pattern, one small Kanban service implemented
-identically in Java, Python and TypeScript, and show how each binds every rung in its own idiom.
-Seeding fourteen canonical mistakes into each receiver, the single verify command catches all 42;
-before the requirement and behavioural rungs were added, it caught 30 of 36 structural mistakes
-and missed the same two in every language. A pilot with eighteen coding agents suggests that the
-declared and enforced rungs reduce convention drift. The repository is public, and each receiver
-can be read on its own.}
+\title{The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents}
 
-\jotkeywords{coding agents; software architecture; architecture testing; behaviour-driven
-development; EARS; lean software development; design patterns; human--AI collaboration}
+\author[$\ast$]{Leigh Griffin}
+\author[$\ast$]{Paul Power}
+\author[$\ast$]{Ray Carroll}
+\author[$\dagger$]{Colm Dunphy}
+\author[$\dagger$]{Darrin Taylor}
+\author[$\dagger$]{Eamonn de Leastar}
+
+\affil[$\ast$]{Red Hat, Ireland}
+\affil[$\dagger$]{South East Technological University, Ireland}
+
+\keywords{Coding agents, Software architecture, Architecture testing, Behaviour-driven development, EARS, Lean software development, Design patterns, Human--AI collaboration.}
+
+\runningtitle{The Assertion Ladder}
+\runningauthor{Griffin \textit{et al.}}
+
+\begin{abstract}
+Coding agents now contribute to repositories alongside people. They write quickly, they start
+every session with no memory of the last one, and their changes arrive faster than a person can
+review them closely. Two forces follow: \emph{sprawl}, in which locally plausible changes spread
+one domain rule across many places, and \emph{cognitive erosion}, in which neither the reviewer
+nor the agent can hold enough of the domain in mind to notice. Current practice answers with
+architecture checks, executable specifications and instruction files for agents, but it has no
+standard way to combine them: no shared vocabulary for how strongly a rule is asserted, no link
+from agent instructions to enforcement, no closure between requirements and scenarios, and no
+benchmark of whether a repository's own harness catches the mistakes that matter. We propose the
+\emph{Assertion Ladder}, a pattern whose six rungs run from a rule that is merely implied,
+through one that is shown, told, checked and explained, to one that cannot be written wrongly at
+all, realised by nine smaller patterns. Read through lean thinking, the ladder is standard work,
+with its tests built in, for a contributor who cannot remember. We show it in two settings. A
+greenfield service, presented in TypeScript with equivalent Java and Python implementations,
+binds every rung; seeding fourteen canonical mistakes into each implementation, its single verify
+command catches all 42, where before the requirement and behavioural rungs it caught 30 of 36.
+A production TypeScript platform, Tutors, shows the ladder retrofitted while agents were already
+contributing, and its release checks extracted into a reusable harness. The repositories are
+public.
+\end{abstract}
 
 \begin{document}
-\jotmaketitle
+\maketitle
+\urlstyle{rm}
 
 \input{sections/01-introduction}
 \input{sections/02-background}
 \input{sections/03-ladder}
 \input{sections/04-receivers}
+\input{sections/06a-tutors}
 \input{sections/05-use-cases}
 \input{sections/06-evaluation}
 \input{sections/07-discussion}
 \input{sections/08-related}
 \input{sections/09-conclusion}
 
-\bibliographystyle{plainnat}
+
 \bibliography{references}
 
-\clearpage
 \appendix
 \input{sections/appendix-repository}
+
+\clearpage
+\section*{About the authors}
+\shortbio{Leigh Griffin}{is with Red Hat. \todo{short bio and contact email}}
+\shortbio{Paul Power}{is with Red Hat. \todo{short bio and contact email}}
+\shortbio{Ray Carroll}{is with Red Hat. \todo{short bio and contact email}}
+\shortbio{Colm Dunphy}{is with South East Technological University. \todo{short bio and contact email}}
+\shortbio{Darrin Taylor}{is with South East Technological University. \todo{short bio and contact email}}
+\shortbio{Eamonn de Leastar}{is with South East Technological University. \todo{short bio and contact email}}
 
 \end{document}

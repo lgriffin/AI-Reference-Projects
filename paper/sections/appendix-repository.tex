@@ -14,22 +14,26 @@ directory and read in this order.
   \item The rules: the architecture tests and the requirement check.
 \end{enumerate}
 
-\begin{table}[!ht]
+\begin{table*}[t]
   \centering\small
   \caption{Where to find each part in each receiver.}
-  \begin{tabularx}{\linewidth}{@{}l X X X@{}}
-    \toprule
-    Part & \repo{java/} & \repo{python/} & \repo{typescript/} \\
-    \midrule
+  \begin{tabularx}{\linewidth}{l|X|X|X}
+    \hline
+    \textbf{Part} & \textbf{\repo{java/}} & \textbf{\repo{python/}} & \textbf{\repo{typescript/}} \\
+    \hline\hline
     Verify & \repo{mvn verify} & \repo{pytest} & \repo{npm test} \\
+    \hline
     Architecture rules & \repo{ArchitectureTest.java} & \repo{test\_architecture.py}$^{*}$ & \repo{architecture.test.ts}$^{*}$ \\
+    \hline
     Requirement check & \repo{RequirementsTest.java} & \repo{test\_requirements.py}$^{*}$ & \repo{requirements.test.ts}$^{*}$ \\
+    \hline
     Scenarios & \repo{service/}, \repo{api/}, \repo{events/} tests & \repo{tests/unit}, \repo{tests/api} & \repo{tests/unit}, \repo{tests/api} \\
+    \hline
     Honest double & \repo{TaskRepository\-Contract.java} & \repo{tests/integration/} & \repo{tests/integration/} \\
-    \bottomrule
+    \hline
   \end{tabularx}\\[0.3em]
   {\footnotesize $^{*}$ under \repo{tests/architecture/}.}
-\end{table}
+\end{table*}
 
 The evaluation scripts are in \repo{evaluation/}: \repo{measure.py} for size,
 \repo{seed\_violations.py} for seeding, and \repo{agent\_experiment/} for the pilot. The first

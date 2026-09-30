@@ -1,0 +1,244 @@
+\section{Retrofitting a production codebase: Tutors}\label{sec:tutors}
+
+The receivers of Section~\ref{sec:receivers} were built with the ladder in mind. This section asks
+whether the ladder can be climbed by a codebase that was not: an open-source teaching platform in
+production, with years of history and few tests, into which coding agents were already
+contributing. It reports what was retrofitted, in what order, what it reached and what it could
+not, and how its release gate was extracted into a separate, reusable repository. Every figure
+below is read from the two public repositories, the monorepo at commit \texttt{865d02f}
+\citep{tutorsmonorepo} and the release harness at version 1.15.0, commit \texttt{c324525}
+\citep{tutorsreleaseharness}. Where a figure is our own count rather than one the repositories
+record, we say so.
+
+\subsection{Context}
+
+Tutors is a course reader and learning platform. Lecturers write courses in Markdown; a
+generator turns a course folder into one \repo{tutors.json}; four SvelteKit applications
+(\repo{reader}, \repo{catalogue}, \repo{live} and \repo{time}) render it, track presence and
+report learning time. The stack is TypeScript, Svelte~5 and SvelteKit, six Deno packages
+published to JSR, pnpm workspaces and Supabase (\repo{README.md}, \repo{ARCHITECTURE.md}). The
+monorepo holds the four applications and 24 packages. By our count, product code in
+\repo{apps/} and \repo{packages/} is about 24,500 lines of TypeScript and Svelte, excluding
+tests, fixtures, declaration files and a vendored PDF worker; test code is about 33,500 lines.
+
+The monorepo was founded on 27 July 2026 by consolidating several repositories; the
+original reader repository has history from 2022 (\path{guides/evolution/tutors-revolution.md}). On 1 June 2026 it had no tests, no CI workflow and no Dockerfile, and
+the whole ecosystem had 27 tests (\path{guides/testing/journey.md}). Coding agents took part in
+the retrofit throughout: by our count of git trailers, 329 of the monorepo's 483 non-merge
+commits, and all 144 of the harness's, were authored or co-authored by an agent. The
+retrofit is therefore a second known use of the paper's setting, not a laboratory one: a
+domain protected while agents change it.
+
+\subsection{The retrofit, rung by rung}
+
+Table~\ref{tab:tutors-binding} maps each rung pattern to the artefact that binds it in Tutors.
+The order in which they arrived is itself informative. The first moves, in early August, were
+to replace call-sequence mocks with real implementations and a data-driven stand-in carrying 27
+validation tests of its own (commit \texttt{786f1fe}), and to clear 138 type errors
+(\texttt{95064ea}). These are the cheapest rungs: they make existing tests honest before new
+ones are added. Structure came next. On 16 September a ``testing runway'' added architecture
+rules, suite-health lints and completeness checks as tiers A to O, and one aggregate CI job,
+\repo{ci-success}, as the required status (\texttt{c57b9eb}, \texttt{3bf806b}). Requirements
+came last. Feature files had existed since August, but on 17 September all 24 were found to be
+documentation only; binding them to product code (\texttt{adffc55}) found bugs in search, sort
+and logging (\path{guides/evolution/tutors-revolution.md}, ``Spec-first''). EARS \texttt{Rule:}
+blocks with permanent ids and an audit followed on 21 September, and on 26 September coverage and
+mutation floors.
+
+\begin{table*}[t]
+  \centering\small
+  \caption{The rung patterns as bound in Tutors, with the reach of each. Paths are in the monorepo
+  unless marked \emph{harness}.}
+  \label{tab:tutors-binding}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.7cm}|X|>{\raggedright\arraybackslash}p{4.1cm}}
+    \hline
+    \textbf{Rung pattern} & \textbf{Tutors artefact} & \textbf{Reach} \\
+    \hline\hline
+    \pattern{Worked Slice} (L1) & \path{docs/COURSE-PAGE-WALKTHROUGH.md}: one URL followed through every file to the rendered cards & a slice in prose, not a small runnable exemplar \\
+    \hline
+    \pattern{Short Manifest} (L2) & \repo{CONTRIBUTING.md} (2,043 words), \repo{ARCHITECTURE.md}; the \repo{ears-gherkin-dev} agent skill (962 words) & no \repo{AGENTS.md} or \repo{CLAUDE.md}; the skill loads on demand, not every session \\
+    \hline
+    \pattern{Executable Rule} (L3) & \repo{.dependency-cruiser.cjs}: ten rules (six layer rules, no app-to-app, no relative cross-workspace import, primitives off data packages, no cross-package cycle); knip; manifest parity & new code at L3; three older violations held in \repo{known-violations.txt} \\
+    \hline
+    \pattern{Closure Check} (L3) & EARS audit, \path{scripts/checks/ears-audit.ts}: every Rule has a scenario, no scenario outside a Rule, every Rule bound, every UI scenario has a Playwright test and the reverse; every claim cites a Rule that exists & 95 Rules, 193 scenarios in 34 feature files (our count); audit required in \repo{ci-success} since 23 Sep \\
+    \hline
+    \pattern{Honest Double} (L3) & \repo{MockSupabaseClient} with its own tests; \emph{harness}: a second, in-memory backend behind each seam, driving the same collector & data-driven, not one contract run on both sides \\
+    \hline
+    \pattern{Teaching Failure} (L4) & a \repo{comment} on every dependency rule; ratchet messages (``Fix them rather than adding them to \ldots''); an audit code table with the fix per code & L4 wherever a check exists \\
+    \hline
+    \pattern{Unrepresentable Mistake} (L5) & strict TypeScript and blocking \repo{svelte-check}; Zod validation of the environment & weak: \repo{loTypes} is typed \repo{string[]}, so \repo{LoType} is \repo{string} \\
+    \hline
+    \pattern{Single Gate} & locally \repo{pnpm lint}, \repo{pnpm test}, \repo{pnpm check}; in CI one required job over eleven; at release, the harness Gate & three commands, then one status \\
+    \hline
+    \pattern{Human Boundary} & CODEOWNERS on \repo{release/claims.yaml} and \repo{release/SOP.md}; \emph{harness}: CODEOWNERS on masks, mutants, \repo{gate.ts} and the contract; a broad claim needs a named person & declared; review not yet practised \\
+    \hline
+  \end{tabularx}
+\end{table*}
+
+\paragraph{Structure} The architecture rules state Tutors' layering (foundation, core, feature,
+three UI layers, apps) as one list in \repo{.dependency-cruiser.cjs}, from which one rule per
+layer is generated. Each rule carries a \repo{comment} that says why and what to do instead, and
+each has a negative fixture under \path{tests/architecture/fixtures/}, a small workspace that
+breaks it on purpose. The test asserts that every fixture is caught, that no clean file is
+flagged, and that the live repository adds no violation beyond a baseline
+(\path{tests/architecture/dependency-rules.test.ts}). Tutors is layered, like the receivers, and
+enforces the layering by the same move: an \pattern{Executable Rule} rather than ports and
+adapters.
+
+\paragraph{Behaviour and requirements} Behaviour and requirements are carried together. A
+requirement is the title of a Gherkin \texttt{Rule:}, written in EARS \citep{mavin2009ears} with
+exactly one ``shall'', a named system and a permanent id (\repo{@rule-0110}); its scenarios are the
+proof, bound to product code by \repo{vitest-cucumber}. Listing~\ref{lst:tutors-rule} shows one.
+The audit is a \pattern{Closure Check} in both directions, and names each failure with a code and
+its fix (\path{.claude/skills/ears-gherkin-dev/references/audit-codes.md}). It reaches past the
+repository: a release claim cites a Rule id, and \repo{pnpm check:release-claims} fails when no
+feature defines it (\path{guides/testing/EARS-METHODOLOGY.md}). A requirement is thus traced from
+its sentence to its scenario, its changelog line and the observable difference it licenses.
+Unlike the receivers, Tutors files Rules by persona rather than by layer, so it does not use the
+EARS pattern as a placement oracle (Table~\ref{tab:ears}).
+
+\begin{lstlisting}[caption={An EARS Rule in Tutors, from the test-quality ratchets feature file. The audit checks its form and tag; its scenarios check its truth. Steps are wrapped for width.},label=lst:tutors-rule]
+@rule-0111 @ears-unwanted
+Rule: If total or per-package test coverage falls below
+  its recorded floor, then tutors shall fail the coverage
+  check and name the scope and metric.
+  Scenario: A package below its floor fails the check
+    Given recorded coverage floors where
+      "packages/jsr/model/src/**" holds statements at 83 percent
+    When the measured statement coverage of
+      "packages/jsr/model/src" is 82.9 percent
+    Then the coverage check shall report "below-floor:
+      packages/jsr/model/src/** statements 82.9% < floor 83%"
+\end{lstlisting}
+
+\paragraph{Climbing in steps} Two rules show the ladder being climbed deliberately rather than
+all at once. Type checks ran with \repo{continue-on-error} until the type errors were cleared, and
+became blocking on 18 September (\texttt{1bea114}). The EARS audit was added as a non-blocking
+job on 21 September (\texttt{6de1236}) and joined the required \repo{ci-success} job on
+23 September (\texttt{4600835}). In both cases the rule was declared and measured before it was
+allowed to stop the line.
+
+\subsection{What a retrofit adds: ratchets and self-tests}
+
+A greenfield receiver can make a rule true everywhere on the day it is written. A retrofit
+cannot, and Tutors' answer is the most transferable thing it adds. Nine baseline files list what
+is known to be wrong when a check is introduced. The check fails on any violation not in the
+baseline and on any baseline entry that no longer occurs, so the list can only shrink
+(\path{scripts/checks/lib/ratchet.ts}). The nine held 169 entries on 21 September and 167 on
+28 September (\repo{journey.md}). Coverage and mutation floors ratchet the other way: each is the
+measured value rounded down, and a floor two or more points below the measurement fails as stale
+(\path{tests/suite-health/coverage-floors.json}, \path{tests/mutation/mutation-floors.json}).
+A ratchet lets a rule sit at L3 for new code on the day it arrives while old code is paid down
+from a ledger. The receivers never needed this, and a codebase with history cannot do without it.
+
+The second addition answers the paper's own evaluation method. Section~\ref{sec:evaluation}
+seeded mistakes from outside the receivers to show the checks can fail. Tutors keeps that
+evidence inside the repository. ``No tier without a negative fixture'' is a stated rule
+(\repo{journey.md}). Mutation testing covers twelve targeted modules, breaking below 90\% with
+a measured score of 93.6\%, and a nightly run over every library module, whose first baseline
+scored 58.5\% over 95 modules (\path{guides/testing/MUTATION-TESTING.md}). The harness applies
+the same rule to itself: a new engine does not merge without an A/A test, a planted change it
+catches and a change it must not flag (\emph{harness} \path{docs/user-guide/09-extending.md}).
+
+\subsection{Abstraction: the release harness}
+
+The last rung Tutors added sits outside the monorepo (Figure~\ref{fig:tutors-harness}). Its
+precursor was an in-repository check that the generator's output matched production's, byte for
+byte (\path{tests/release/RELEASE-TESTING.md}). The release harness generalises that check to
+everything a user can observe. It runs a candidate's images beside production's, drives the same
+scripted journeys through both, captures nineteen kinds of artefact (DOM, screenshots, network,
+console, headers, accessibility, focus order, timing, metrics, logs, persisted writes, SBOM,
+vulnerabilities, container posture and others), masks known noise, and fails unless every
+difference is covered by a claim (\emph{harness} \repo{README.md}). A claim names an artefact, a
+scope and the Rule or changelog entry that justifies it (\repo{release/claims.yaml}). This is a
+\pattern{Closure Check} over the release: every observable difference has a claim, and a claim
+that matches nothing is reported as stale.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{0.92\linewidth}{!}{\input{figures/tutors-harness}}
+  \caption{Tutors keeps structure, behaviour and requirement checks in the monorepo and ratchets
+  their debt. The judge of a release is a separate repository that reads only signed images, the
+  claims and the Rule ids, and whose 5 Whys feed countermeasures back into both.}
+  \label{fig:tutors-harness}
+\end{figure*}
+
+Why a separate repository? The reason given is ours in Section~\ref{sec:ladder}: a check that an
+agent can edit is a check that an agent can weaken. The harness ``consumes the monorepo's
+published images \ldots\ and knows nothing about their source, so it can compare any two tags
+\ldots\ and cannot be quietly weakened by the PR it is judging'' (\emph{harness} \repo{README.md};
+decision 1 in \path{docs/architecture/06-decisions.md}). The receivers bind the
+\pattern{Human Boundary} at L2, as a line in the manifest. Extraction binds part of it
+structurally: the gate's code, its masks and its mutants live where the change under review
+cannot reach them, behind their own CODEOWNERS. The harness also holds itself to the discipline
+it imposes. It may fail a release only after a clean production-against-production run less than
+seven days old, and it must catch ten planted regressions, each attributed to the expected
+artefact, weekly and on any change to an engine (\emph{harness} \repo{mutants/mutants.yaml},
+\repo{src/gate.ts}).
+
+What is generic is the contract, not the stack. The integration contract is versioned and
+``is what \path{tutors-sdk/tutors-mono-repo} (or anything else) may build against''; a test fails
+when document and code drift (\emph{harness} \repo{docs/contract.md}). An adopter supplies signed
+images, a claims file and optionally a \repo{rules.json} of Rule ids, and triggers the harness by
+dispatch (\emph{harness} \path{docs/monorepo/README.md}). The four application names, the
+journeys and the fixture stubs are still Tutors'. We therefore read the harness as the paradigm
+made reusable at the level of its contract, and not yet as a tool demonstrated on a second
+product.
+
+\paragraph{Lean, named in the code} The harness is explicit about its lean vocabulary, and each
+term points to a mechanism, as our plan requires (\emph{harness} \repo{docs/lean.md};
+\repo{release/SOP.md}). \emph{Jidoka}: the Gate stops the line, and an advisory confidence score
+may never override it (``a FAIL is a FAIL at RCS 99''). \emph{Standard work}: a twelve-step
+release SOP with an owner, an input and a done-when per step, in which steps 2 to 7 run as one
+command that stops before step 8, the one step that must stay human. \emph{Gemba}: a reviewer's glance of
+at most seven ranked places, each marked verified, disputed or escalated. \emph{Kaizen} and root
+cause analysis: \repo{harness why} opens a 5 Whys whose first answer is the harness's own trace,
+rejects ``human error'' as an answer, and requires one of seven countermeasure kinds, a new
+mutant being preferred. \emph{Value stream}: \repo{harness a3} draws an A3 whose current condition
+is a value stream map of a change from merge to production. Compression is written in as well:
+``six journeys in three sets, not a hundred; ten mutants, not thirty. \ldots\ Add a journey only
+when a real regression escaped that a journey would have caught'' (\emph{harness}
+\repo{README.md}, ``Where to stop'').
+
+\subsection{What the retrofit shows}
+
+Three results are measured by the repositories themselves. First, the ladder can be climbed on a
+production codebase in weeks: from 27 tests on 1 June to 2,140 declared tests, 184 bound scenarios
+under 89 EARS Rules and 51 CI jobs on 28 September (\repo{journey.md}). Second, the release rung
+finds what the lower rungs miss. The harness found four production bugs that no test had,
+including an authentication page that answered 500 and a first visit that was never recorded
+(\repo{journey.md}, ``Judge every release against production''). Third, it applies to a real
+change the same root-cause discipline Section~\ref{sec:discussion} applies to the seeding misses:
+three 5 Whys are open in the register, each ending in a countermeasure to the system rather than
+to a person (\emph{harness} \repo{kaizen/README.md}).
+
+Two results are demonstrated rather than measured. The three kinds of intent survive translation
+to a codebase the ladder did not shape, and a requirement id can carry intent from a sentence
+through a scenario to a release decision. And the retrofit adds two things the receivers lack
+and a greenfield project would benefit from: ratchets for legacy debt, and self-tests that keep
+the seeding evidence inside the repository.
+
+We narrow the example to TypeScript because Tutors is written in it. The mechanisms have
+counterparts in the other receivers' stacks: the dependency rules correspond to ArchUnit and to
+the Python receiver's syntax-tree rules, and mutation tools exist for the JVM and for Python.
+The harness judges images and claims, not source, so we expect a Java or Python service to adopt
+it through the same contract; that is a hypothesis, not yet tried.
+
+\subsection{Limits}
+
+The retrofit does not reach every rung, and its own documents say so. There is no short
+manifest loaded every session; the nearest are a 2,043-word contributing guide and one agent
+skill loaded on demand. L5 is weak where the domain is richest: the learning-object type that
+the whole model turns on resolves to \repo{string}
+(\path{packages/jsr/model/src/types/type-utils.ts}). The global coverage floor was 58\% of
+statements against a 90\% target on 28 September, and tier F, authorisation, is planned but not built
+(\repo{journey.md}). The \pattern{Human Boundary} is declared but not yet practised: none of the
+55 pull requests merged since release 16.2.2 had an approving review, and ``the CI gate, the
+ratchets and the harness stand in for review; they do not replace it'' (\repo{journey.md}). The
+release-confidence tooling is built, but its evidence gates need real releases: the scoreboard
+is empty (\emph{harness} \path{scoreboard/releases.jsonl}), no 5 Whys is yet closed, and the daily
+forecast of main against production was FAIL with 892 unclaimed differences on 28 September,
+most of them an intended image change that nobody had claimed
+(\path{guides/evolution/tutors-revolution.md}). Finally, Tutors is one codebase, the retrofit was
+carried out largely by two of this paper's authors working with agents, and it was not designed as an
+experiment. We report it as a known use of the pattern, not as a test of it.

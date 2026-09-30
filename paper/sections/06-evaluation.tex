@@ -14,32 +14,45 @@ order of how early they give feedback, are the compiler, an architecture rule, t
 check, a behavioural test, and nothing. Table~\ref{tab:violations} lists the fourteen mistakes:
 twelve structural, and two that break the trace between requirements and scenarios.
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering\small
   \caption{The fourteen seeded mistakes, and the mechanism that caught each in Java / Python /
   TypeScript now. C compiler, A architecture rule, R requirement check, B behavioural test.}
   \label{tab:violations}
-  \begin{tabularx}{\linewidth}{@{}l X c@{}}
-    \toprule
-    & Mistake & J / P / T \\
-    \midrule
+  \begin{tabularx}{\linewidth}{l|X|c}
+    \hline
+    & \textbf{Mistake} & \textbf{J / P / T} \\
+    \hline\hline
     V1 & The API bypasses the service and uses a repository & A / A / A \\
+    \hline
     V2 & A service signals failure with an HTTP concept & A / A / B \\
+    \hline
     V3 & A service issues SQL & A / A / A \\
+    \hline
     V4 & A component constructs its own collaborator & A / A / A \\
+    \hline
     V5 & A service reads the environment & A / A / A \\
+    \hline
     V6 & A new domain error has no HTTP status & C / A / C \\
+    \hline
     V7 & A route catches a domain error and answers ad hoc & B / A / A \\
+    \hline
     V8 & A side effect is inlined in the service & A / A / A \\
+    \hline
     V9 & The test double drifts from the real repository & B / B / B \\
+    \hline
     V10 & A business rule is placed in the route & A / A / A \\
+    \hline
     V11 & A setting is hard-coded in the service & B / B / B \\
+    \hline
     V12 & A framework type enters the domain & A / A / A \\
+    \hline
     V13 & A requirement has no scenario & R / R / R \\
+    \hline
     V14 & A scenario cites no requirement & R / R / R \\
-    \bottomrule
+    \hline
   \end{tabularx}
-\end{table}
+\end{table*}
 
 Figure~\ref{fig:seeding} compares the receivers at commit \texttt{8c4a74a}, before the work
 described here, with the receivers now. Before, the single gate caught 30 of 36 structural
@@ -53,13 +66,13 @@ behavioural test to an architecture rule in Python and TypeScript, which is earl
 the same mistake. Application code did not change between the two runs; only tests, manifests
 and requirement files did.
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
   \input{figures/seeding}
   \caption{Seeded mistakes by the earliest mechanism that caught them, per receiver, at commit
   \texttt{8c4a74a} (12 structural seeds) and now (14 seeds).}
   \label{fig:seeding}
-\end{figure}
+\end{figure*}
 
 \subsection{RQ2: cost}
 
@@ -68,22 +81,24 @@ and 89 lines per receiver, and each manifest by between 80 and 83 words, remaini
 words the plan allows. The added rungs therefore cost about one screen of test code and one
 paragraph of prose per receiver, most of it the requirement check and the ids on existing tests.
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering\small
   \caption{Size of the receivers at commit \texttt{8c4a74a} and now (\repo{evaluation/metrics*.json}).}
   \label{tab:size}
-  \begin{tabular}{@{}l rr rr rr@{}}
-    \toprule
-    & \multicolumn{2}{c}{Application lines} & \multicolumn{2}{c}{Test lines} & \multicolumn{2}{c}{Manifest words} \\
-    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-7}
-    Receiver & then & now & then & now & then & now \\
-    \midrule
+  \begin{tabular}{l|r|r|r|r|r|r}
+    \hline
+    \multicolumn{1}{l|}{} & \multicolumn{2}{c|}{\textbf{Application lines}} & \multicolumn{2}{c|}{\textbf{Test lines}} & \multicolumn{2}{c}{\textbf{Manifest words}} \\
+    \cline{2-3}\cline{4-5}\cline{6-7}
+    \textbf{Receiver} & \textbf{then} & \textbf{now} & \textbf{then} & \textbf{now} & \textbf{then} & \textbf{now} \\
+    \hline\hline
     Java       & 283 & 283 & 287 & 376 & 397 & 480 \\
+    \hline
     Python     & 223 & 223 & 193 & 254 & 347 & 427 \\
+    \hline
     TypeScript & 242 & 242 & 193 & 224 & 388 & 468 \\
-    \bottomrule
+    \hline
   \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{RQ3: a pilot with coding agents}
 
@@ -95,20 +110,22 @@ models, with one run per cell. A hidden acceptance test of four cases, never sho
 judged the result, and a scripted audit fixed in advance of inspection recorded where each agent
 placed each part of the change.
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering\small
   \caption{Pilot results by condition (six runs each; \repo{evaluation/agent\_experiment/}).}
   \label{tab:pilot}
-  \begin{tabular}{@{}l c c c c@{}}
-    \toprule
-    Condition & Acceptance passed & Departures from convention & Mean tokens & Mean seconds \\
-    \midrule
+  \begin{tabular}{l|c|c|c|c}
+    \hline
+    \textbf{Condition} & \textbf{Acceptance passed} & \textbf{Departures from convention} & \textbf{Mean tokens} & \textbf{Mean seconds} \\
+    \hline\hline
     Exemplar (L1)            & 6 / 6 & 2 & 61\,650 & 121 \\
+    \hline
     + Manifest (L1--L2)      & 6 / 6 & 0 & 61\,990 & 132 \\
+    \hline
     + Enforced (L1--L3)      & 6 / 6 & 0 & 65\,696 & 151 \\
-    \bottomrule
+    \hline
   \end{tabular}
-\end{table}
+\end{table*}
 
 All eighteen runs delivered a passing suite and passed every acceptance case
 (Table~\ref{tab:pilot}). Two departed from the conventions, both by the smaller model in the

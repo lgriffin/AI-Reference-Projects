@@ -2,47 +2,147 @@
 
 \subsection{Lean explains the ladder}
 
-Table~\ref{tab:lean} maps each lean mechanism to the place it appears in the receivers. The
-mapping is not decoration. Lean production faced the problem this paper faces: a line staffed by
-workers who could not be expected to remember every specification, producing faster than anyone
-could inspect, where a defect that travelled downstream cost far more to fix than one caught at
-its source \citep{ohno1988tps,shingo1986zqc}. Its answer was to build the specification into the
-work itself: fixtures that admit a part only one way, a line that stops at the first defect, a
-written standard at every station, and a cord that any worker may pull. The Assertion Ladder is
-that answer applied to a repository and a memoryless contributor.
+Lean thinking faced a version of the problem this paper faces: work done quickly by many hands,
+more of it than anyone could inspect, where a defect that travelled downstream cost far more to
+fix than one caught where it was made \citep{ohno1988tps,womack1996lean}. Its answer was to build
+the specification into the work itself. This section argues that the Assertion Ladder is that
+answer applied to a repository and a memoryless contributor, through four lean ideas: value,
+standard work, the value stream and root cause analysis. Table~\ref{tab:lean} maps each to the
+receivers and to the evidence, and the section closes with the places where the analogy stops.
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering\small
-  \caption{Lean mechanisms and where they appear in the receivers.}
+  \caption{Lean ideas, the rungs and patterns that carry them, and where they appear in the
+  receivers. The first four rows are the argument; the last three are supporting mechanisms.}
   \label{tab:lean}
-  \begin{tabularx}{\linewidth}{@{}l X X@{}}
-    \toprule
-    Lean mechanism & In the receivers & Evidence \\
-    \midrule
-    Eliminate waste & no DI container, no ORM, one entity; no prose for what a test checks & 637 / 729 / 957 $\to$ 283 / 223 / 242 lines \\
-    Poka-yoke & exhaustive error mapping that will not compile when a case is missing & V6 caught by the compiler in Java and TypeScript \\
-    Jidoka & one verify command; ``change the code, not the test'' & no pilot run modified a rule (18 / 18) \\
-    Standard work & the worked slice and the feature recipe & every pilot run followed the slice's layering \\
-    Andon & ``ask a human first'' for dependencies, rules, schema & declared (L2); not yet enforced \\
-    Kaizen & the V9 fixture corrected after the first seeding run & V9 caught in all three receivers \\
-    Build--measure--learn & seeding and the pilot measure; the misses drive the next rules & 30 / 36 $\to$ 42 / 42 \\
-    \bottomrule
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{2.9cm}|X|X}
+    \hline
+    \textbf{Lean idea} & \textbf{Rung or pattern} & \textbf{In the receivers} & \textbf{Evidence} \\
+    \hline\hline
+    Value, and waste removed & fading; \pattern{Short Manifest} & no DI container, no ORM, one entity; no prose for what a test checks & 637 / 729 / 957 $\to$ 283 / 223 / 242 lines; manifests 480 / 427 / 468 words \\
+    \hline
+    Standard work & L1 \pattern{Worked Slice}, L2 \pattern{Short Manifest}, with L3 as its built-in test & the slice and the feature recipe, followed by every contributor and changed only by people & every pilot run followed the slice's layering \\
+    \hline
+    Value stream: defects found earlier & L3--L5 & V8 and V10 now stopped at the gate, not left to review; V7 moved from a behavioural test to an architecture rule in Python and TypeScript & V8 and V10 passed the gate in all three receivers at \texttt{8c4a74a}; caught now \\
+    \hline
+    Root cause analysis and kaizen & \pattern{Executable Rule}, \pattern{Teaching Failure}; \pattern{Honest Double} & the misses traced to one cause and closed by two rules; the V9 fixture corrected & 30 / 36 $\to$ 42 / 42; V9 caught in all three receivers \\
+    \hline
+    Jidoka (the line stops itself) & \pattern{Single Gate} & one verify command; ``change the code, not the test'' & no pilot run modified a rule (18 / 18) \\
+    \hline
+    Andon (signal and cord) & L4 \pattern{Teaching Failure}; \pattern{Human Boundary} & failures name the rule and the fix; ``ask a human first'' for dependencies, rules and schema & message on every rule; boundary declared (L2), not yet enforced \\
+    \hline
+    Poka-yoke (mistake-proofing) & L5 \pattern{Unrepresentable Mistake} & exhaustive error mapping that will not compile when a case is missing & V6 caught by the compiler in Java and TypeScript \\
+    \hline
   \end{tabularx}
-\end{table}
+\end{table*}
 
-Lean also explains the force most easily forgotten, ease of use. Waste in lean is anything the
-customer would not pay for, and a paragraph of prose that repeats what a test enforces is waste
-for every contributor who reads it every session. Fading is how the ladder removes it. The same
-reasoning warns against climbing too far: a rule enforced by a type-level encoding far more
-elaborate than its risk warrants is over-processing, another of lean's wastes.
+\paragraph{Value} Lean asks first what the customer values, and the ladder adds the domain to the
+answer: a change is valuable only if it works and leaves the domain's rules in one place. Sprawl is
+then easy to name as waste. It is work that looks finished but will be redone, and the rework
+falls on whoever next tries to change the rule. The same lens explains the force most easily
+forgotten, ease of use. A paragraph of prose that repeats what a test enforces is read by every
+contributor in every session and adds nothing the gate does not already guarantee; for a
+contributor that relearns everything each time, that reading is the dominant cost. Fading removes
+it. The receivers show both halves: application code fell from 637, 729 and 957 lines to 283, 223
+and 242 when containers, mappers and a second entity were removed, and the manifests stayed under
+500 words while two new kinds of intent were added.
+
+\paragraph{Standard work} Standard work is the centre of the mapping. The worked slice and the
+feature recipe of Section~\ref{sec:receivers} (state the rule in EARS, let its pattern choose the
+layer, copy the slice, run the gate) specify the content of a change, its sequence and its
+expected outcome, which is how Spear and Bowen describe Toyota's work \citep{spear1999decoding}.
+The ladder then does what they found Toyota does: it attaches a test to the standard, so that a
+departure shows up at once. The lower rungs show and tell the standard; the upper rungs make it
+self-checking. Every pilot run followed the slice's layering, and the two departures the pilot
+recorded both came from the condition with the slice alone and no written standard. Standard work
+is also owned. In lean, the people who do the work improve the standard; in the receivers, an agent
+follows the standard, and the \pattern{Human Boundary} requires a person's decision before the
+rules or the manifest change. That division is deliberate, and we return to it below.
+
+\paragraph{The value stream} Figure~\ref{fig:valuestream} draws the value stream of one change:
+written by an agent, verified by the single gate, reviewed by a person, merged and released. Each
+rung decides where along that stream a broken rule is found. At L0 only a reviewer who reads
+closely can see it, and cognitive erosion is precisely the loss of that reading. At L1 and L2 the
+standard makes the mistake less likely but finds nothing. At L3 and L4 the gate finds it before
+any person has spent time on the change, and at L5 it cannot be written. The seeding results show
+the shift. At commit \texttt{8c4a74a}, V8 and V10 passed the gate in all three receivers and would
+have reached review; now both are stopped at the gate by an architecture rule. V7 moved earlier
+within the gate, from a behavioural test to an architecture rule, in Python and TypeScript, and V6
+was already refused by the compiler in Java and TypeScript. We have no timing data for the stream, so we claim
+only the position at which a defect is found, not the time saved. The lean argument is that
+position matters: a defect found at the gate goes back to the contributor who made it while the
+change is still open, whereas one found in review has already cost a person's attention and, if
+missed, becomes the rework that sprawl describes.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{0.92\linewidth}{!}{\input{figures/value-stream}}
+  \caption{The value stream of one change. Each rung moves the point at which a broken rule is
+  found further upstream. At commit \texttt{8c4a74a}, V8 and V10 passed the gate and could be seen
+  only in review; they are now stopped at the gate. The figure shows position only; we have no
+  timing data.}
+  \label{fig:valuestream}
+\end{figure*}
+
+\paragraph{Root cause analysis} The first seeding run is a small worked example of lean problem
+solving. The problem was concrete: six of 36 seeded mistakes passed the gate. Asking why led to a
+cause at the level of the ladder, not of any receiver. The misses were the same two mistakes, V8
+and V10, in all three languages. Both passed because every behavioural test passed; every
+behavioural test passed because neither mistake changes what the system does; and nothing else
+looked, because the structural rules covered which layer may import which, not which layer may
+log, notify or decide. The root cause was that behaviour cannot see placement and no rule asserted
+placement for side effects or decisions. The countermeasure was two \pattern{Executable Rule}s,
+each with a \pattern{Teaching Failure} naming where the code belongs, which is to say two rules
+moved from L0 and L2 to L4. The check was a second run, which caught all 42 seeds, including the new requirement
+seeds. The standard then
+absorbed the countermeasure, in the plan--do--check--act manner of an A3 report
+\citep{sobek2008a3}. The V9 fixture episode (Section~\ref{sec:usecases}) followed the same cycle on
+a smaller scale, and is the kaizen of a check rather than of the code. What lean adds to the usual
+advice to add a test after a bug is the insistence on the cause: because the same gap appeared in
+three languages, the countermeasure was a kind of rule every receiver needed, not a patch to one of
+them.
+
+\paragraph{Supporting mechanisms} Three further lean mechanisms map onto the ladder more briefly.
+The single gate is \emph{jidoka}: the build stops itself on an abnormality, so that no person has
+to watch every line, and the manifest's instruction to change the code rather than the test is
+the rule that a stop is answered by fixing its cause. No pilot run modified a rule. Jidoka's
+older name, automation with a human touch, fits a team of people and agents well: the machine
+detects and stops, the person judges. The \pattern{Teaching Failure} is the \emph{andon} signal,
+which shows where the problem is and why; the \pattern{Human Boundary} is the andon cord, the
+right and the duty to stop and ask a person before changing a dependency, a rule or a schema. The
+\pattern{Unrepresentable Mistake} is \emph{poka-yoke} of the preventive kind.
+
+\paragraph{Where the analogy stops} The mapping is close but not exact, and the differences are
+instructive. First, an agent does not learn across shifts. A factory worker is taught the
+standard, practises it and in time no longer needs the sheet; an agent is taught afresh every
+session. The cost of showing and telling is therefore paid every time, which is the strongest
+reason to move a rule from prose into a check, where following it costs no reading. For the same
+reason, improvement cannot happen inside the agent. Whatever an agent notices in a session is lost
+unless it is written into the repository, so reflection and kaizen run through people and the
+files they own. Second, lean's respect for people becomes the \pattern{Human Boundary}. In lean the
+people who do the work own the standard. Here much of the work is done by agents, so people keep
+what needs judgement: what counts as value, how high a rule should climb, and when a check is
+wrong. The risk to avoid is the one lean warned against, reducing people to inspectors of someone
+else's output; the ladder gives them the standard and its checks to own instead of every line to
+read. Third, the fixture is made of the same material as the work. A worker cannot redesign the jig
+in the middle of a shift, but an agent can edit a test, which is why changes to the rules sit
+behind the \pattern{Human Boundary}, and why use case UC8 remains at L2 until repository settings
+enforce it. Fourth, the ladder can itself become waste. A check is cheap to run but not free to
+maintain, and a rule encoded in types far more elaborate than its risk warrants is
+over-processing. Reinertsen's caution applies \citep{reinertsen2009principles}, and so do the
+findings of Staats and colleagues on uncertain knowledge work \citep{staats2011lean}: standardise
+what should repeat and leave the rest free. The ladder applies lean to a team's conventions, not
+to its design.
 
 \subsection{Domain sanctity against ease of use}
 
 A repository can be made arbitrarily hard to damage by making it arbitrarily hard to change.
 The ladder resists this in two ways. Each rule climbs only as far as its risk warrants, so the
-cost of a rung is paid only where it buys something. And the ladder is compressed from below as
+cost of a rung is paid only where it buys something; in lean terms, this guards against
+over-processing. And the ladder is compressed from below as
 it grows from above: when the receivers gained a requirement file, a scenario convention and
-four new rules, their manifests grew by one paragraph each and stayed under 500 words. The
+four new rules, their manifests grew by one paragraph each and stayed under 500 words, so the
+written standard stayed short enough to be read in every session. The
 evidence that ease of use survived is modest but concrete: in the pilot, agents given the full
 rule set finished in 151 seconds on average against 121 for the exemplar alone, and used about
 6\% more tokens, for a condition in which none departed from the conventions.

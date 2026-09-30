@@ -7,12 +7,12 @@
   ]
   \def\gap{0.95}
   \foreach \i/\name/\teach/\lean/\col in {
-      0/{L0 Implied}/{hidden curriculum}/{tacit knowledge}/muted,
-      1/{L1 Shown}/{worked example}/{standard work (a model part)}/structure,
-      2/{L2 Told}/{direct instruction}/{standard work (the written sheet)}/requirement,
-      3/{L3 Checked}/{assessment}/{inspection at the station}/behaviour,
-      4/{L4 Explained}/{formative feedback}/{andon with a reason}/reqc,
-      5/{L5 Prevented}/{constraint}/{poka-yoke}/structure} {
+      0/{L0 Implied}/{hidden curriculum}/{tacit knowledge, no standard}/muted,
+      1/{L1 Shown}/{worked example}/{standard work, shown}/structure,
+      2/{L2 Told}/{direct instruction}/{standard work, written}/requirement,
+      3/{L3 Checked}/{assessment}/{built-in test at the point of work}/behaviour,
+      4/{L4 Explained}/{formative feedback}/{andon: the stop says where and why}/reqc,
+      5/{L5 Prevented}/{constraint}/{mistake-proofing (poka-yoke)}/structure} {
     \node[rung=\col] (r\i) at (0, \i*\gap) {\textbf{\name}\quad\textcolor{muted}{\footnotesize\teach}};
     \node[note] at (6.2, \i*\gap) {\textcolor{muted}{lean:} \lean};
   }

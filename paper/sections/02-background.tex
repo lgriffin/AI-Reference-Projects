@@ -2,7 +2,7 @@
 
 The Assertion Ladder draws on five bodies of work: the emergence of coding agents, architectural
 structure and its testing, behaviour and requirement specification, the psychology of learning,
-and lean production. This section introduces only what the later sections use.
+and lean thinking. This section introduces only what the later sections use.
 
 \subsection{Coding agents and the memoryless contributor}
 
@@ -67,19 +67,79 @@ entirely ignorant of this repository in particular. The analogy we use is limite
 second property. The repository must teach the particular, every session, within a context
 window that is large but not unlimited.
 
-\subsection{Lean production and lean software}
+\subsection{Lean thinking in software}
 
-Lean production, derived from the Toyota Production System, treats anything that does not add
-value for the customer as waste, and builds quality into the process rather than inspecting it
-in at the end \citep{ohno1988tps,womack1996lean}. Four of its mechanisms recur in this paper.
-\emph{Jidoka} stops the line at the first defect so that it cannot propagate.
-\emph{Poka-yoke} designs a fixture or step so that a mistake cannot be made, or is detected at
-the moment it is made \citep{shingo1986zqc}. \emph{Standard work} records the current best method
-so that it can be followed and improved. \emph{Andon} gives every worker a way to stop and call
-for help. Lean software development maps these onto programming practices such as automated
-tests, continuous integration and small batches \citep{poppendieck2003lean}, and the
-build--measure--learn loop brings the scientific method to product decisions
-\citep{ries2011lean}.
+Lean thinking began on the factory floor. The Toyota Production System, as described by its
+chief architect, set out to deliver what the customer wanted with as little waste as possible,
+and did so by building quality into each step of the work rather than inspecting it in at the end
+\citep{ohno1988tps}. Womack and Jones later restated it as five principles for any organisation:
+specify value from the customer's point of view, map the value stream, make the work flow, let the
+customer pull it, and keep improving \citep{womack1996lean}. Software took up the same ideas early
+\citep{poppendieck2003lean,poppendieck2006implementing}, and they now sit beneath continuous
+delivery and DevOps \citep{forsgren2018accelerate}. This paper uses four of them, value, standard
+work, value stream mapping and root cause analysis, and three supporting mechanisms.
+
+\paragraph{Value and waste} Lean starts from value: what the customer actually wants. Anything that
+does not serve it is waste. The Poppendiecks translated the seven wastes of manufacturing into
+software as partially done work, extra features, relearning, handoffs, task switching, delays and
+defects \citep{poppendieck2006implementing}. An observational study of software teams found an
+overlapping but different set, including rework, unnecessarily complex solutions, extraneous
+cognitive load and knowledge loss \citep{sedano2017waste}. For a repository shared with agents we
+add one clarification. The customer is not the only party with an interest in a change; the
+domain has one too. A change that works for today's user but spreads a rule across three places
+delivers value now and charges it back later as rework. In this paper, \emph{value} is working
+behaviour that keeps the domain's rules in one place and in its own words, and \emph{waste} is
+anything that does not serve that end. Two wastes matter most. Relearning, or knowledge loss, is
+the memoryless agent's normal condition: each session begins by rediscovering what the last one
+knew. Rework is what sprawl costs once it is finally noticed.
+
+\paragraph{Standard work} Standard work is the current best known way of doing a job, recorded so
+that everyone who does the job can follow it and anyone who finds a better way can change it. It
+is not a rulebook imposed from outside. In Toyota's own account it is the foundation of
+improvement, because a job that nobody does the same way twice cannot be improved, only varied
+\citep{liker2004toyota}. Spear and Bowen, studying Toyota plants, found the idea stated as a rule:
+all work is specified as to content, sequence, timing and outcome, and the specification carries
+built-in tests that signal a problem as soon as it occurs \citep{spear1999decoding}. In software,
+the nearest equivalents are a team's agreed way of adding a feature, the examples it copies, and
+the tests that check the result.
+
+\paragraph{Value stream mapping} A value stream map draws every step a piece of work passes
+through from request to delivery, and marks which steps add value and which only wait, hand work
+on or redo it \citep{rother1999learning}. The technique has been adapted to software, where the
+material is information and much of the waiting is invisible
+\citep{poppendieck2003lean,khurum2014extending,ali2016flow}. The view we need is short. A change is
+written, verified, reviewed, merged and released. The later a defect is found along that stream,
+the more steps it has passed through and the more people have waited on it.
+
+\paragraph{Root cause analysis and improvement} Lean treats every problem as information about the
+process that produced it. Ohno's practice was to ask \emph{why} repeatedly, typically five times,
+until the answer is a cause that a change to the process can remove rather than a symptom to be
+patched \citep{ohno1988tps}. Toyota records such an analysis on a single sheet, the A3 report,
+which follows the plan--do--check--act cycle: state the problem, find its root cause, choose a
+countermeasure, and check whether it worked \citep{sobek2008a3}. The build--measure--learn loop of
+the lean startup applies the same cycle to product decisions \citep{ries2011lean}. Small
+improvements made this way, one after another, are what lean calls \emph{kaizen}.
+
+\paragraph{Supporting mechanisms} Three further terms appear briefly. \emph{Jidoka}, often
+translated as automation with a human touch, means that a machine stops itself when something
+goes wrong, so that nobody needs to watch it and no more bad work is made until the cause is
+fixed \citep{ohno1988tps}. In software, it is the failing build that blocks a merge. \emph{Andon}
+is the signal that shows a stop has happened and where; any worker may also pull the andon cord to
+stop the line and ask for help. \emph{Poka-yoke}, or mistake-proofing, designs a step so that a
+mistake cannot be made, or is caught at the moment it is made \citep{shingo1986zqc}. In software,
+it is a type that will not compile when a case is missing.
+
+\paragraph{Lean in knowledge work, and its limits} Lean transfers to knowledge work, but not
+unchanged. At a large software services firm, projects run on lean principles outperformed
+comparable projects on most measures, yet uncertain tasks, invisible work in progress and design
+problems that surface only during implementation all made the manufacturing tools harder to apply
+\citep{staats2011lean}. A review of practitioner reports found lean applied within agile teams in
+many ways and for different purposes \citep{wang2012leagile}. Reinertsen argues more sharply that
+product development is not repetitive manufacturing: some of its variability creates value, and
+standardising that variability destroys the value \citep{reinertsen2009principles}. We take the
+point. The ladder standardises only the part of software work that ought to repeat, such as where
+a rule lives, how an error is translated and how a scenario cites a requirement, and leaves design
+to the people and agents doing it.
 
 \subsection{Patterns}
 

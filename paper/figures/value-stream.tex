@@ -1,0 +1,30 @@
+% The value stream of one change, and where each rung finds a defect along it.
+\begin{tikzpicture}[
+    font=\footnotesize,
+    step/.style={draw=#1, line width=0.9pt, fill=#1!7, rounded corners=2pt, text width=2.2cm,
+                 minimum height=1.1cm, align=center, inner sep=4pt},
+    arr/.style={-{Stealth[length=2.3mm]}, line width=0.8pt, #1},
+    note/.style={text width=2.3cm, align=center, font=\scriptsize, anchor=north},
+  ]
+  % the stream
+  \node[step=structure] (write) {\textbf{Write}\\an agent edits};
+  \node[step=behaviour, right=0.55cm of write] (verify) {\textbf{Verify}\\the single gate};
+  \node[step=missed, right=0.55cm of verify] (review) {\textbf{Review}\\a person reads};
+  \node[step=muted, right=0.55cm of review] (merge) {\textbf{Merge}};
+  \node[step=muted, right=0.55cm of merge] (prod) {\textbf{Release}};
+  \draw[arr=muted] (write) -- (verify);
+  \draw[arr=muted] (verify) -- (review);
+  \draw[arr=muted] (review) -- (merge);
+  \draw[arr=muted] (merge) -- (prod);
+  % where each rung acts
+  \node[note] at ($(write.south)+(0,-0.15)$) {L1, L2 guide the change\\L5 refuses to compile it\\[2pt]\textcolor{muted}{V6 in Java and TypeScript}};
+  \node[note] at ($(verify.south)+(0,-0.15)$) {L3 finds the defect\\L4 names the fix\\[2pt]\textcolor{muted}{V8, V10 now}};
+  \node[note] at ($(review.south)+(0,-0.15)$) {L0: only a person\\can see it\\[2pt]\textcolor{muted}{V8, V10 at \texttt{8c4a74a}}};
+  \node[note] at ($(merge.south)+(0,-0.15)$) {nothing new\\is checked};
+  \node[note] at ($(prod.south)+(0,-0.15)$) {found by a user,\\or never};
+  % rework loops
+  \draw[arr=behaviour] (verify.north) -- ++(0,0.35) -| node[pos=0.25, above]{rework at once; nobody waits} ($(write.north)+(0.45,0)$);
+  \draw[arr=missed] (review.north) -- ++(0,0.95) -| node[pos=0.25, above]{rework after a person has waited} ($(write.north)+(-0.45,0)$);
+  % direction of the ladder
+  \draw[arr=jotblue, line width=1pt] ($(prod.south)+(0,-1.55)$) -- node[below]{each rung climbed moves detection upstream} ($(write.south)+(0,-1.55)$);
+\end{tikzpicture}

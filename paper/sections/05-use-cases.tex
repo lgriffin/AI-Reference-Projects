@@ -7,44 +7,61 @@ threat, the invariant at stake and the teaching move that answers it. Table~\ref
 lists twelve in six families and Figure~\ref{fig:coverage} places each on the ladder, both in the
 receivers as first published and as they stand after the work described here.
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering\small
   \caption{Twelve use cases in six families. The last two columns give the rung at which the
   receivers asserted the invariant at commit \texttt{8c4a74a} and now.}
   \label{tab:usecases}
-  \begin{tabularx}{\linewidth}{@{}l X X c c@{}}
-    \toprule
-    & Situation & Invariant at stake & Then & Now \\
-    \midrule
+  \begin{tabularx}{\linewidth}{l|X|X|c|c}
+    \hline
+    & \textbf{Situation} & \textbf{Invariant at stake} & \textbf{Then} & \textbf{Now} \\
+    \hline\hline
     \multicolumn{5}{@{}l}{\textit{Placement: sprawl spreads one rule across many places}} \\
+    \hline
     UC1 & A memoryless agent adds a feature & every part lands in the layer that owns it & L3 & L4 \\
+    \hline
     UC2 & A side effect is added to a use case & use cases publish facts; reactions subscribe & L2 & L4 \\
+    \hline
     UC3 & A business rule drifts to the edge & routes translate; they never decide & L0 & L4 \\
+    \hline
     \multicolumn{5}{@{}l}{\textit{Contamination: convenience pulls infrastructure into the core}} \\
+    \hline
     UC4 & A framework type enters the domain & the domain imports only the standard library & L3 & L4 \\
+    \hline
     UC5 & An outside capability leaks into a service & each capability has one owning layer & L3 & L4 \\
+    \hline
     \multicolumn{5}{@{}l}{\textit{Contract integrity: the promises the domain makes}} \\
+    \hline
     UC6 & A new failure mode is introduced & every error has one public translation & L5 & L5 \\
+    \hline
     UC7 & A test double lies & every double passes the real contract & L3 & L3 \\
+    \hline
     \multicolumn{5}{@{}l}{\textit{Harness erosion: the protections themselves wear down}} \\
+    \hline
     UC8 & The agent edits a rule to go green & rules change only with a person's decision & L2 & L2 \\
+    \hline
     UC9 & A dependency is added & new dependencies need a person & L2 & L2 \\
+    \hline
     \multicolumn{5}{@{}l}{\textit{Cognitive load: what people and agents can hold in mind}} \\
+    \hline
     UC10 & A reviewer faces a large AI diff & intent is reviewable apart from code & L1 & L3 \\
+    \hline
     UC11 & An agent starts cold & the declaration stays small & L3 & L3 \\
+    \hline
     \multicolumn{5}{@{}l}{\textit{Transfer: taking the approach to a new domain}} \\
+    \hline
     UC12 & A new domain is embedded & each invariant is placed on the ladder deliberately & L1 & L1 \\
-    \bottomrule
+    \hline
   \end{tabularx}
-\end{table}
+\end{table*}
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
   \input{figures/coverage}
   \caption{Where each use case sits on the ladder in the receivers, at commit \texttt{8c4a74a}
   (hollow) and now (filled). UC6 is at L5 in Java and TypeScript and at L3 in Python.}
   \label{fig:coverage}
-\end{figure}
+\end{figure*}
 
 \subsection{Placement}
 
