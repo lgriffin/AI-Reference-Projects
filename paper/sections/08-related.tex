@@ -1,37 +1,210 @@
 \section{Related work}\label{sec:related}
 
-\paragraph{Architecture conformance} Checking code against an intended architecture has a long
-history; architecture fitness functions \citep{ford2017evolutionary} and tools such as ArchUnit
-\citep{archunit} bring it into the ordinary test suite. The Assertion Ladder places such checks
-at one rung among six and adds what they lack on their own: a view of when a rule should be
-checked rather than shown or told, and a requirement that the check teach.
+The Assertion Ladder draws on six bodies of work that rarely cite one another: architecture
+conformance, behaviour and requirement specification, studies of coding agents, constraints on
+generated code, the psychology of learning, and the pattern form. Lean production is treated in
+Section~\ref{sec:discussion}. This section reviews each body of work and says how the ladder builds
+on it. Each theme ends with the gap in current practice that the ladder proposes to standardise.
+The gaps are collected at the end as G1 to G5.
 
-\paragraph{Specification by example and structured requirements} BDD \citep{north2006bdd} and
-specification by example \citep{adzic2011sbe} make behaviour executable; EARS makes requirements
-unambiguous \citep{mavin2009ears}. We combine them with a closure check that keeps requirements
-and scenarios in step, and we observe a use for EARS it was not designed for: predicting
-placement.
+\subsection{Architecture conformance, erosion and drift}
 
-\paragraph{Architecture styles} Layered, hexagonal and Clean architectures
-\citep{buschmann1996posa,fowler2002peaa,cockburn2005hexagonal,martin2017clean,evans2003ddd}
-protect the domain by structure. The receivers show that, for a domain this size, capability
-confinement rules give a layered codebase much of the same protection with less ceremony.
+The gap between intended and implemented architecture has been studied for more than thirty
+years. Perry and Wolf separated \emph{drift}, a growing insensitivity to the architecture, from
+\emph{erosion}, outright violation of it \citep{perry1992foundations}. Lehman's laws state that a
+changing system grows more complex unless work is done to stop it \citep{lehman1980laws}. The
+debt metaphor gives that work a price: shortcuts are borrowed against future change and repaid
+with interest \citep{cunningham1992wycash,kruchten2012debt}. Two surveys organise the response.
+De~Silva and Balasubramaniam classify erosion-control techniques into those that minimise,
+prevent or repair erosion \citep{desilva2012erosion}. Li et al.\ map the symptoms, causes and
+consequences of erosion reported across the literature \citep{li2022erosion}.
 
-\paragraph{Coding agents} Benchmarks and agent harnesses \citep{chen2021codex,jimenez2024swebench,yang2024sweagent}
-measure whether an agent can complete a task. Studies of programmers using code generators
-\citep{vaithilingam2022expectation,barke2023grounded} and of the security of generated code
-\citep{pearce2022asleep,perry2023insecure} show what passes review. Instruction files for agents
-\citep{agentsmd} are the L2 rung in practice. Our concern is different: not whether one change
-is correct, but whether the domain survives many correct-looking changes.
+Conformance checking is the best-studied remedy. Reflexion models compare a high-level model
+that an engineer proposes with a model extracted from the source, and report convergences,
+divergences and absences \citep{murphy2001reflexion}. Dependency constraint languages state the
+allowed and forbidden dependencies between modules and check them statically
+\citep{terra2009dcl}. Passos et al.\ compare these and related approaches on one system
+\citep{passos2010conformance}. Practice has since moved the checks into the build. Architecture
+fitness functions make an architectural property executable \citep{ford2017evolutionary}.
+ArchUnit expresses dependency rules for Java as ordinary unit tests \citep{archunit}, Import
+Linter enforces layer and independence contracts between Python modules \citep{importlinter},
+and dependency-cruiser validates JavaScript and TypeScript imports against rules in a
+configuration file \citep{dependencycruiser}.
 
-\paragraph{Learning and lean} The pedagogical framing borrows from cognitive load theory and the
-worked-example effect \citep{sweller1988cognitive,sweller1985worked} and from scaffolding
-\citep{wood1976scaffolding}; the lean framing from the Toyota Production System and its software
-descendants \citep{ohno1988tps,shingo1986zqc,womack1996lean,poppendieck2003lean,ries2011lean}.
+The receivers use this tradition directly: the \pattern{Executable Rule} at L3 is a
+conformance check. The ladder adds two things the tradition does not address. It asks which
+rules deserve a check at all, since a check has a cost and some rules are better shown or told.
+It also asks that a failing check teach the fix, which matters when the reader of the failure
+is an agent that will act on it immediately. What is missing is a principle for choosing which
+rules to check and which to document, and a requirement that a failing check explain itself
+(G3).
 
-\paragraph{Our earlier work} The repository standard of exemplified, declared and enforced
-conventions \citep{griffin2026convention} is the structural special case of the ladder. This
-paper extends it to behaviour and requirements, grades assertion by strength, and reports the
-second seeding run.
+\subsection{Specification by example, BDD and requirements}
 
-\todo{Related work needs a systematic search before submission; the entries above are a starting set.}
+Behaviour-driven development grew out of test-driven development \citep{beck2003tdd}. It names
+tests as behaviours in the language of the domain and writes them as given, when and then
+\citep{north2006bdd}. Specification by example treats a set of such examples as the living
+documentation of a system \citep{adzic2011sbe}, and Gherkin with Cucumber makes them executable
+as plain-text scenarios \citep{wynne2012cucumber}. Solis and Wang identified the characteristics
+that define BDD, among them a ubiquitous language, plain-text scenario templates and automated
+acceptance tests \citep{solis2011bdd}. The research record is uneven. Binamungu et al.\ found
+that practitioners struggle to keep large scenario suites consistent and free of duplication as
+they grow \citep{binamungu2018maintaining}. A later mapping study of 166 papers found little
+industrial evaluation and few metrics for the quality of BDD specifications
+\citep{binamungu2023mapping}.
+
+EARS constrains natural-language requirements to a few templates in order to remove ambiguity
+\citep{mavin2009ears}. Its authors report ten years of adoption across industrial domains
+\citep{mavin2019tenyears}. Requirements traceability has a longer history. Gotel and Finkelstein
+showed that most traceability problems arise before the requirement is written, in the loss of
+its origin and rationale \citep{gotel1994traceability}. Bjarnason et al.\ studied six companies
+and reported recurring challenges in keeping requirements aligned with testing, along with the
+practices that address them \citep{bjarnason2014alignment}.
+
+The receivers take the scenario form but not the Gherkin runner. Scenarios are ordinary tests,
+named in given, when and then, that cite a requirement id. The ladder then adds what the
+literature treats as an open maintenance problem: a \pattern{Closure Check} that fails the build
+when a requirement has no scenario or a scenario cites no requirement. It also uses the EARS
+keyword as a hint about placement, a use its designers did not intend. What is missing is an
+executable closure between requirements and scenarios in repositories that agents edit, so that
+traceability is checked on every change rather than audited occasionally (G4).
+
+\subsection{Coding agents, their harnesses and their context files}
+
+Code generation moved from completing functions \citep{chen2021codex} to resolving real issues
+\citep{jimenez2024swebench}. The step depended on the harness. SWE-agent showed that an
+agent-computer interface designed for the model changes what the model can achieve
+\citep{yang2024sweagent}. AutoCodeRover added code search over the syntax tree and test-based
+fault localisation \citep{zhang2024autocoderover}, and OpenHands provides an open platform for
+such agents \citep{wang2025openhands}. These benchmarks and systems measure the agent. The
+repository is held fixed and treated as the problem to be solved.
+
+Empirical studies of assisted programming give a mixed picture. A controlled experiment found
+developers with Copilot finished a task 55.8\% faster \citep{peng2023copilot}. A randomised
+trial with experienced open-source maintainers found that AI tools made them 19\% slower
+\citep{becker2025metr}. The correctness of suggestions varies by language
+\citep{nguyen2022copilot}, and security studies show that insecure code passes unnoticed
+\citep{pearce2022asleep,perry2023insecure}. Studies of the process describe a shift from
+writing to reviewing \citep{vaithilingam2022expectation,barke2023grounded}. At the scale of
+repositories, an industry report found rising code churn and copy-pasted code and falling moved
+code as assistants spread \citep{harding2024copilot}. A difference-in-differences study of
+projects that adopted Cursor found a short rise in velocity and a lasting rise in static-analysis
+warnings and complexity \citep{he2026cursor}. In a dataset of 456{,}000 pull requests written by
+agents, those pull requests were accepted less often than human ones but reviewed much faster
+\citep{li2025aiteammates}. These are the conditions under which sprawl and cognitive erosion
+arise.
+
+Agent context files are the newest object of study. AGENTS.md proposes one Markdown file per
+repository, read at the start of every session \citep{agentsmd}. Studies of such files find
+shallow structure and mostly operational content \citep{chatlatanagulchai2025manifests}, no
+settled structure across 466 open-source projects \citep{mohsenimofidi2026context}, and, across
+2{,}303 files, frequent guidance on testing and architecture but little on security or
+performance \citep{chatlatanagulchai2025agentreadmes}. Evidence on their effect is mixed. One
+study associates AGENTS.md files with shorter agent runtimes and fewer tokens at the same
+completion rate \citep{lulla2026agentsmd}. Another finds that context files do not generally
+improve task success and raise inference cost by over 20\% \citep{gloaguen2026agentsmd}. Work on
+generated tests shows that models can write useful unit tests
+\citep{schafer2024testgen}, and a review of LLMs in software architecture finds few studies
+of architecture-aware generation \citep{schmid2025archllm}.
+
+The ladder places a context file at L2, one rung among six, and treats its growth as a cost.
+The mixed evidence on context files is what the ladder predicts. Prose that repeats what a test
+enforces adds cost without adding protection, and prose that states what no test enforces is
+easily ignored. The receivers keep the manifest short by removing a rule from it once a check
+covers it. What is missing is a link between the instruction file and the checks, so that each
+told rule is either enforced or deliberately left to judgement (G2). A second gap follows from
+the benchmarks. SWE-bench and its successors measure agents against fixed repositories. What is
+missing is a measure of the repository, one that asks whether its harness catches a known set
+of canonical mistakes whoever makes them (G5). Violation seeding (Section~\ref{sec:evaluation})
+is a first form of such a measure.
+
+\subsection{Guardrails and constraints on generated code}
+
+A second line of work constrains the model rather than the repository. Constrained decoding
+restricts generation to programs that parse or type-check. Synchromesh enforces grammar and
+semantic constraints during decoding \citep{poesia2022synchromesh}. Monitor-guided decoding
+consults a static analysis of the repository so that generated code refers only to names that
+exist \citep{agrawal2023monitor}. Type-constrained decoding for TypeScript more than halves
+compilation errors \citep{mundler2025typeconstrained}. Other work places feedback in a loop
+after generation: models improve when they see execution results and explain their own code
+\citep{chen2024selfdebug}. Tests can also serve as the specification. Supplying tests with a
+problem statement raises the rate at which models solve it \citep{mathews2024tdd}, and
+generating tests first to clarify intent helps both the model and the programmer who checks its
+output \citep{fakhoury2024ticoder}.
+
+These techniques sit at particular rungs. Constrained decoding is L5 applied at the model, and
+feedback loops are L3 and L4 applied at the harness. The ladder places the same assertions in
+the repository, where they survive a change of model, vendor or harness and bind people as well
+as agents. The two approaches are complementary. A repository whose rules are executable gives a
+feedback loop something to run, and a type-level assertion gives constrained decoding something
+to enforce. What is missing is a shared vocabulary for how strongly a rule is asserted, so that
+a team can say which of its rules are shown, told, checked, explained or prevented, whatever
+tools do the asserting (G1).
+
+\subsection{Pedagogy and cognitive load in software engineering}
+
+Cognitive load theory holds that working memory is small and that instruction should not waste
+it \citep{sweller1988cognitive}. Worked examples are one of its most robust findings
+\citep{sweller1985worked}, and minimal guidance is less effective than direct instruction for
+people new to a domain \citep{kirschner2006minimal}. Scaffolding gives support that is later
+withdrawn \citep{wood1976scaffolding}, and fading turns worked examples gradually into problems
+\citep{renkl2003fading}. The expertise reversal effect warns that guidance which helps a novice
+can hinder an expert \citep{kalyuga2003reversal}. Formative feedback is most useful when it is
+specific and timely \citep{shute2008feedback}, and programming error messages have long been
+criticised for failing to say what to do \citep{becker2019errormessages}.
+
+Software engineering has studied the same limits. Program comprehension research shows how much
+of development is spent understanding code rather than writing it \citep{siegmund2016comprehension},
+and a mapping study catalogues how the cognitive load of developers is measured
+\citep{goncales2019cognitive}. In code review, understanding the change is the main challenge
+\citep{bacchelli2013review}, and working memory capacity is associated with review effectiveness
+\citep{baum2019workingmemory}.
+
+The ladder applies these findings to a new kind of learner. An agent is expert in general and a
+novice in the particular repository, so the ladder gives it direct instruction and worked
+examples for the particular (L1, L2) and fades the prose once a check exists, as the expertise
+reversal effect would advise. \pattern{Teaching Failure} is formative feedback written into
+the checks. The reviewer's load is reduced by moving rules out of the diff and into the gate.
+What is missing, again, is a shared scale on which these teaching moves are named and graded,
+so that repository design can draw on instructional design deliberately (G1).
+
+\subsection{Patterns and pattern languages}
+
+A pattern names a problem in a context, the forces that act on it and a resolution
+\citep{alexander1977pattern}. The form reached software through the Gang of Four
+\citep{gamma1994design} and the POSA series \citep{buschmann1996posa}, whose fifth volume
+examines how patterns combine into sequences and languages \citep{buschmann2007posa5}.
+Enterprise application patterns catalogue layering and the service layer used by the receivers
+\citep{fowler2002peaa}. Test patterns are closest to the rung patterns. Meszaros catalogues test
+doubles, including the fake object that stands in for a real dependency \citep{meszaros2007xunit}.
+\pattern{Honest Double} adds a contract that both the fake and the real implementation must
+pass.
+
+The Assertion Ladder is a pattern in this classic form with nine smaller patterns beneath it.
+Its forces are specific to repositories shared with agents: memoryless contributors, review
+that cannot keep pace, and the cost of every assertion. Existing catalogues name the solutions
+the rung patterns use, but none grades them against one another.
+
+\subsection{Our earlier work}
+
+Our earlier paper proposed a repository standard in which conventions are exemplified by one
+small vertical slice, declared in a short manifest and enforced by architecture rules written
+as tests \citep{griffin2026convention}. In the vocabulary of this paper, that standard binds
+L1, L2 and L3 for structure alone. This paper generalises it in three ways. It adds the rungs
+above and below (L0, L4 and L5) and so grades assertion by strength. It extends the same rungs
+from structure to behaviour and requirements. And it reports a second seeding run with fourteen
+canonical mistakes rather than twelve. The new run closes the two misses that the first run
+found in every language, which motivated the behavioural and requirement rungs.
+
+\paragraph{Gaps} The review leaves five gaps in current practice. The Assertion Ladder proposes
+a standard for each.
+\begin{enumerate}[label=\textbf{G\arabic*},ref=G\arabic*,leftmargin=*,nosep]
+  \item\label{gap:vocabulary} There is no shared vocabulary for how strongly a rule is asserted.
+  \item\label{gap:prose} Agent instruction files are unvalidated prose with no link to enforcement.
+  \item\label{gap:selection} Conformance tools do not say which rules to check rather than
+    document, or require a failure to name its fix.
+  \item\label{gap:closure} Agent-facing repositories have no executable closure between
+    requirements and scenarios.
+  \item\label{gap:benchmark} No benchmark asks whether a repository's harness catches canonical
+    mistakes; SWE-bench measures agents, not repositories.
+\end{enumerate}

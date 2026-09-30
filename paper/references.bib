@@ -31,7 +31,7 @@
 
 @book{ries2011lean,
   author    = {Eric Ries},
-  title     = {The Lean Startup},
+  title     = {The Lean Startup: How Today's Entrepreneurs Use Continuous Innovation to Create Radically Successful Businesses},
   publisher = {Crown Business},
   year      = {2011}
 }
@@ -43,7 +43,8 @@
   volume  = {12},
   number  = {2},
   pages   = {257--285},
-  year    = {1988}
+  year    = {1988},
+  doi       = {10.1207/s15516709cog1202_4}
 }
 
 @article{sweller1985worked,
@@ -53,7 +54,8 @@
   volume  = {2},
   number  = {1},
   pages   = {59--89},
-  year    = {1985}
+  year    = {1985},
+  doi       = {10.1207/s1532690xci0201_3}
 }
 
 @article{wood1976scaffolding,
@@ -63,7 +65,8 @@
   volume  = {17},
   number  = {2},
   pages   = {89--100},
-  year    = {1976}
+  year    = {1976},
+  doi       = {10.1111/j.1469-7610.1976.tb00381.x}
 }
 
 @inproceedings{mavin2009ears,
@@ -72,14 +75,16 @@
   booktitle = {Proceedings of the 17th IEEE International Requirements Engineering Conference (RE'09)},
   pages     = {317--322},
   publisher = {IEEE},
-  year      = {2009}
+  year      = {2009},
+  doi       = {10.1109/RE.2009.9}
 }
 
 @misc{north2006bdd,
   author       = {Dan North},
   title        = {Introducing {BDD}},
-  howpublished = {Better Software magazine},
-  year         = {2006}
+  year         = {2006},
+  howpublished = {\url{https://dannorth.net/introducing-bdd/}},
+  note         = {First published as ``Behavior Modification'' in Better Software magazine, March 2006}
 }
 
 @book{adzic2011sbe,
@@ -146,6 +151,7 @@
 }
 
 @misc{archunit,
+  author       = {{TNG Technology Consulting}},
   title        = {{ArchUnit}: Unit Test Your {Java} Architecture},
   howpublished = {\url{https://www.archunit.org}},
   note         = {Accessed 2026}
@@ -178,7 +184,8 @@
   volume  = {68},
   number  = {9},
   pages   = {1060--1076},
-  year    = {1980}
+  year    = {1980},
+  doi       = {10.1109/PROC.1980.11805}
 }
 
 @misc{chen2021codex,
@@ -207,7 +214,8 @@
   title     = {Expectation vs.\ Experience: Evaluating the Usability of Code Generation Tools Powered by Large Language Models},
   booktitle = {CHI Conference on Human Factors in Computing Systems, Extended Abstracts},
   publisher = {ACM},
-  year      = {2022}
+  year      = {2022},
+  doi       = {10.1145/3491101.3519665}
 }
 
 @article{barke2023grounded,
@@ -216,21 +224,24 @@
   journal = {Proceedings of the ACM on Programming Languages},
   volume  = {7},
   number  = {OOPSLA1},
-  year    = {2023}
+  year    = {2023},
+  doi       = {10.1145/3586030}
 }
 
 @inproceedings{pearce2022asleep,
   author    = {Hammond Pearce and Baleegh Ahmad and Benjamin Tan and Brendan Dolan-Gavitt and Ramesh Karri},
   title     = {Asleep at the Keyboard? Assessing the Security of {GitHub} {Copilot}'s Code Contributions},
   booktitle = {IEEE Symposium on Security and Privacy (S\&P)},
-  year      = {2022}
+  year      = {2022},
+  doi       = {10.1109/SP46214.2022.9833571}
 }
 
 @inproceedings{perry2023insecure,
   author    = {Neil Perry and Megha Srivastava and Deepak Kumar and Dan Boneh},
   title     = {Do Users Write More Insecure Code with {AI} Assistants?},
   booktitle = {ACM SIGSAC Conference on Computer and Communications Security (CCS)},
-  year      = {2023}
+  year      = {2023},
+  doi       = {10.1145/3576915.3623157}
 }
 
 @misc{agentsmd,
@@ -251,4 +262,701 @@
   title        = {{AI} Reference Projects: taskboard in {Java}, {Python} and {TypeScript}},
   howpublished = {\url{https://github.com/lgriffin/AI-Reference-Projects}},
   year         = {2026}
+}
+
+% ---- Lean (verified 2026-09-30; source URL above each entry) ----
+
+% Lean references added for the lean background and discussion.
+% Each entry was checked on 30 September 2026 against the source named in the comment above it.
+% main.tex must list this file for the entries to resolve: \bibliography{references,refs-lean}
+
+% https://www.pearson.com/store/p/implementing-lean-software-development-from-concept-to-cash/P200000009108/9780321437389
+@book{poppendieck2006implementing,
+  author    = {Mary Poppendieck and Tom Poppendieck},
+  title     = {Implementing Lean Software Development: From Concept to Cash},
+  publisher = {Addison-Wesley},
+  year      = {2006},
+  isbn      = {9780321437389}
+}
+
+% https://doi.org/10.1109/ICSE.2017.20 (IEEE Xplore 7985656); pages from dblp (dblp.dagstuhl.de/pid/88/6473)
+@inproceedings{sedano2017waste,
+  author    = {Todd Sedano and Paul Ralph and C{\'e}cile P{\'e}raire},
+  title     = {Software Development Waste},
+  booktitle = {Proceedings of the 39th International Conference on Software Engineering (ICSE)},
+  pages     = {130--140},
+  publisher = {IEEE},
+  year      = {2017},
+  doi       = {10.1109/ICSE.2017.20}
+}
+
+% https://isiarticles.com/bundles/Article/pre/pdf/12394.pdf (journal header); https://repository.upenn.edu/handle/20.500.14332/34579
+@article{staats2011lean,
+  author  = {Bradley R. Staats and David James Brunner and David M. Upton},
+  title   = {Lean Principles, Learning, and Knowledge Work: Evidence from a Software Services Provider},
+  journal = {Journal of Operations Management},
+  volume  = {29},
+  number  = {5},
+  pages   = {376--390},
+  year    = {2011},
+  doi     = {10.1016/j.jom.2010.11.005}
+}
+
+% https://www.sciencedirect.com/science/article/abs/pii/S0164121212000404
+@article{wang2012leagile,
+  author  = {Xiaofeng Wang and Kieran Conboy and Oisin Cawley},
+  title   = {``{Leagile}'' Software Development: An Experience Report Analysis of the Application of Lean Approaches in Agile Software Development},
+  journal = {Journal of Systems and Software},
+  volume  = {85},
+  number  = {6},
+  pages   = {1287--1299},
+  year    = {2012},
+  doi     = {10.1016/j.jss.2012.01.061}
+}
+
+% https://katalog.vse.cz/Record/000207202 (library record); https://www.leanuk.org/product/learning-to-see/
+@book{rother1999learning,
+  author    = {Mike Rother and John Shook},
+  title     = {Learning to See: Value-Stream Mapping to Create Value and Eliminate Muda},
+  publisher = {Lean Enterprise Institute},
+  address   = {Cambridge, MA},
+  year      = {1999},
+  isbn      = {9780966784305}
+}
+
+% https://onlinelibrary.wiley.com/doi/abs/10.1002/smr.1647 ; volume and pages from https://hs-flensburg.de/bibcite/reference/518
+@article{khurum2014extending,
+  author  = {Mahvish Khurum and Kai Petersen and Tony Gorschek},
+  title   = {Extending Value Stream Mapping through Waste Definition beyond Customer Perspective},
+  journal = {Journal of Software: Evolution and Process},
+  volume  = {26},
+  pages   = {1074--1105},
+  year    = {2014},
+  doi     = {10.1002/smr.1647}
+}
+
+% https://www.sciencedirect.com/science/article/pii/S0164121215002253
+@article{ali2016flow,
+  author  = {Nauman Bin Ali and Kai Petersen and Kurt Schneider},
+  title   = {{FLOW}-Assisted Value Stream Mapping in the Early Phases of Large-Scale Software Development},
+  journal = {Journal of Systems and Software},
+  volume  = {111},
+  pages   = {213--227},
+  year    = {2016},
+  doi     = {10.1016/j.jss.2015.10.013}
+}
+
+% https://www.abebooks.com/9780071392310/Toyota-Way-Management-Principles-Worlds-0071392319/plp
+@book{liker2004toyota,
+  author    = {Jeffrey K. Liker},
+  title     = {The {Toyota} Way: 14 Management Principles from the World's Greatest Manufacturer},
+  publisher = {McGraw-Hill},
+  year      = {2004},
+  isbn      = {9780071392310}
+}
+
+% https://hbr.org/1999/09/decoding-the-dna-of-the-toyota-production-system
+@article{spear1999decoding,
+  author  = {Steven Spear and H. Kent Bowen},
+  title   = {Decoding the {DNA} of the {Toyota} Production System},
+  journal = {Harvard Business Review},
+  volume  = {77},
+  number  = {5},
+  month   = sep,
+  year    = {1999}
+}
+
+% https://www.leanuk.org/product/understanding-a3-thinking/
+@book{sobek2008a3,
+  author    = {Durward K. {Sobek II} and Art Smalley},
+  title     = {Understanding {A3} Thinking: A Critical Component of {Toyota's} {PDCA} Management System},
+  publisher = {Productivity Press},
+  year      = {2008}
+}
+
+% https://search.worldcat.org/title/435994279
+@book{reinertsen2009principles,
+  author    = {Donald G. Reinertsen},
+  title     = {The Principles of Product Development Flow: Second Generation Lean Product Development},
+  publisher = {Celeritas Publishing},
+  address   = {Redondo Beach, CA},
+  year      = {2009}
+}
+
+% https://www.porchlightbooks.com/collections/computers-technology/products/accelerate-nicole-forsgren-phd-9781942788331
+@book{forsgren2018accelerate,
+  author    = {Nicole Forsgren and Jez Humble and Gene Kim},
+  title     = {Accelerate: The Science of Lean Software and {DevOps}: Building and Scaling High Performing Technology Organizations},
+  publisher = {IT Revolution},
+  year      = {2018},
+  isbn      = {9781942788331}
+}
+
+% ---- Tutors (accessed 2026-09-30) ----
+
+% References for Section 6a (Tutors). Both are public repositories, read at the commits named in the note.
+% main.tex must list this file for the entries to resolve: \bibliography{references,refs-tutors}
+% No peer-reviewed publication about Tutors was found in a web search on 30 September 2026, so none is cited.
+
+@misc{tutorsmonorepo,
+  author       = {{Tutors contributors}},
+  title        = {Tutors Mono Repo: an open-source course reader and learning platform},
+  howpublished = {\url{https://github.com/tutors-sdk/tutors-mono-repo}},
+  year         = {2026},
+  note         = {Read at commit \texttt{865d02f}. Accessed 2026-09-30}
+}
+
+@misc{tutorsreleaseharness,
+  author       = {{Tutors contributors}},
+  title        = {Tutors Release Harness},
+  howpublished = {\url{https://github.com/tutors-sdk/tutors-release-harness}},
+  year         = {2026},
+  note         = {Version 1.15.0, read at commit \texttt{c324525}. Accessed 2026-09-30}
+}
+
+% ---- Related work (verified 2026-09-30; source URL above each entry) ----
+
+% New references for sections/08-related.tex.
+% Each entry was checked against the source named in the comment above it (September 2026).
+% main.tex must list this file: \bibliography{references,refs-related}
+
+% ---------------------------------------------------------------------------
+% Architecture conformance, erosion and drift
+% ---------------------------------------------------------------------------
+
+% https://api.crossref.org/works/10.1109/32.917525
+@article{murphy2001reflexion,
+  author  = {Gail C. Murphy and David Notkin and Kevin J. Sullivan},
+  title   = {Software Reflexion Models: Bridging the Gap between Design and Implementation},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {27},
+  number  = {4},
+  pages   = {364--380},
+  year    = {2001},
+  doi     = {10.1109/32.917525}
+}
+
+% https://api.crossref.org/works/10.1145/141874.141884
+@article{perry1992foundations,
+  author  = {Dewayne E. Perry and Alexander L. Wolf},
+  title   = {Foundations for the Study of Software Architecture},
+  journal = {ACM SIGSOFT Software Engineering Notes},
+  volume  = {17},
+  number  = {4},
+  pages   = {40--52},
+  year    = {1992},
+  doi     = {10.1145/141874.141884}
+}
+
+% https://api.crossref.org/works/10.1016/j.jss.2011.07.036
+@article{desilva2012erosion,
+  author  = {Lakshitha de Silva and Dharini Balasubramaniam},
+  title   = {Controlling Software Architecture Erosion: A Survey},
+  journal = {Journal of Systems and Software},
+  volume  = {85},
+  number  = {1},
+  pages   = {132--151},
+  year    = {2012},
+  doi     = {10.1016/j.jss.2011.07.036}
+}
+
+% https://api.crossref.org/works/10.1002/smr.2423
+@article{li2022erosion,
+  author  = {Ruiyin Li and Peng Liang and Mohamed Soliman and Paris Avgeriou},
+  title   = {Understanding Software Architecture Erosion: A Systematic Mapping Study},
+  journal = {Journal of Software: Evolution and Process},
+  volume  = {34},
+  number  = {3},
+  pages   = {e2423},
+  year    = {2022},
+  doi     = {10.1002/smr.2423}
+}
+
+% https://api.crossref.org/works/10.1145/157709.157715
+@inproceedings{cunningham1992wycash,
+  author    = {Ward Cunningham},
+  title     = {The {WyCash} Portfolio Management System},
+  booktitle = {Addendum to the Proceedings on Object-Oriented Programming Systems, Languages, and Applications (OOPSLA '92)},
+  pages     = {29--30},
+  publisher = {ACM},
+  year      = {1992},
+  doi       = {10.1145/157709.157715}
+}
+
+% https://api.crossref.org/works/10.1109/MS.2012.167
+@article{kruchten2012debt,
+  author  = {Philippe Kruchten and Robert L. Nord and Ipek Ozkaya},
+  title   = {Technical Debt: From Metaphor to Theory and Practice},
+  journal = {IEEE Software},
+  volume  = {29},
+  number  = {6},
+  pages   = {18--21},
+  year    = {2012},
+  doi     = {10.1109/MS.2012.167}
+}
+
+% https://api.crossref.org/works/10.1109/MS.2009.117
+@article{passos2010conformance,
+  author  = {Leonardo Passos and Ricardo Terra and Marco Tulio Valente and Renato Diniz and Nabor das Chagas Mendon{\c{c}}a},
+  title   = {Static Architecture-Conformance Checking: An Illustrative Overview},
+  journal = {IEEE Software},
+  volume  = {27},
+  number  = {5},
+  pages   = {82--89},
+  year    = {2010},
+  doi     = {10.1109/MS.2009.117}
+}
+
+% https://api.crossref.org/works/10.1002/spe.931
+@article{terra2009dcl,
+  author  = {Ricardo Terra and Marco Tulio Valente},
+  title   = {A Dependency Constraint Language to Manage Object-Oriented Software Architectures},
+  journal = {Software: Practice and Experience},
+  volume  = {39},
+  number  = {12},
+  pages   = {1073--1094},
+  year    = {2009},
+  doi     = {10.1002/spe.931}
+}
+
+% https://import-linter.readthedocs.io/en/v2.0/index.html
+@misc{importlinter,
+  author       = {David Seddon},
+  title        = {Import Linter},
+  howpublished = {\url{https://import-linter.readthedocs.io}},
+  note         = {Accessed September 2026}
+}
+
+% https://github.com/sverweij/dependency-cruiser
+@misc{dependencycruiser,
+  title        = {dependency-cruiser: Validate and Visualise Dependencies, with Your Rules},
+  howpublished = {\url{https://github.com/sverweij/dependency-cruiser}},
+  note         = {Accessed September 2026}
+}
+
+% ---------------------------------------------------------------------------
+% Specification by example, BDD, requirements and traceability
+% ---------------------------------------------------------------------------
+
+% https://tenlong.com.tw/products/9781934356807
+@book{wynne2012cucumber,
+  author    = {Matt Wynne and Aslak Helles{\o}y},
+  title     = {The Cucumber Book: Behaviour-Driven Development for Testers and Developers},
+  publisher = {Pragmatic Bookshelf},
+  year      = {2012}
+}
+
+% https://api.crossref.org/works/10.1109/SEAA.2011.76
+@inproceedings{solis2011bdd,
+  author    = {Carlos Solis and Xiaofeng Wang},
+  title     = {A Study of the Characteristics of Behaviour Driven Development},
+  booktitle = {37th EUROMICRO Conference on Software Engineering and Advanced Applications (SEAA)},
+  pages     = {383--387},
+  publisher = {IEEE},
+  year      = {2011},
+  doi       = {10.1109/SEAA.2011.76}
+}
+
+% https://api.crossref.org/works/10.1109/SANER.2018.8330207
+@inproceedings{binamungu2018maintaining,
+  author    = {Leonard Peter Binamungu and Suzanne M. Embury and Nikolaos Konstantinou},
+  title     = {Maintaining Behaviour Driven Development Specifications: Challenges and Opportunities},
+  booktitle = {IEEE 25th International Conference on Software Analysis, Evolution and Reengineering (SANER)},
+  pages     = {175--184},
+  publisher = {IEEE},
+  year      = {2018},
+  doi       = {10.1109/SANER.2018.8330207}
+}
+
+% https://api.crossref.org/works/10.1016/j.jss.2023.111749
+@article{binamungu2023mapping,
+  author  = {Leonard Peter Binamungu and Salome Maro},
+  title   = {Behaviour Driven Development: A Systematic Mapping Study},
+  journal = {Journal of Systems and Software},
+  volume  = {203},
+  pages   = {111749},
+  year    = {2023},
+  doi     = {10.1016/j.jss.2023.111749}
+}
+
+% https://api.crossref.org/works/10.1109/MS.2019.2921164
+@article{mavin2019tenyears,
+  author  = {Alistair Mavin and Philip Wilkinson},
+  title   = {Ten Years of {EARS}},
+  journal = {IEEE Software},
+  volume  = {36},
+  number  = {5},
+  pages   = {10--14},
+  year    = {2019},
+  doi     = {10.1109/MS.2019.2921164}
+}
+
+% https://api.crossref.org/works/10.1109/ICRE.1994.292398
+@inproceedings{gotel1994traceability,
+  author    = {Orlena C. Z. Gotel and Anthony C. W. Finkelstein},
+  title     = {An Analysis of the Requirements Traceability Problem},
+  booktitle = {Proceedings of the IEEE International Conference on Requirements Engineering (ICRE)},
+  pages     = {94--101},
+  publisher = {IEEE},
+  year      = {1994},
+  doi       = {10.1109/ICRE.1994.292398}
+}
+
+% https://api.crossref.org/works/10.1007/s10664-013-9263-y
+@article{bjarnason2014alignment,
+  author  = {Elizabeth Bjarnason and Per Runeson and Markus Borg and Michael Unterkalmsteiner and Emelie Engstr{\"o}m and Bj{\"o}rn Regnell and Giedre Sabaliauskaite and Annabella Loconsole and Tony Gorschek and Robert Feldt},
+  title   = {Challenges and Practices in Aligning Requirements with Verification and Validation: A Case Study of Six Companies},
+  journal = {Empirical Software Engineering},
+  volume  = {19},
+  number  = {6},
+  pages   = {1809--1855},
+  year    = {2014},
+  doi     = {10.1007/s10664-013-9263-y}
+}
+
+% https://librarysearch.aut.ac.nz/vufind/Record/1178436/Details
+@book{beck2003tdd,
+  author    = {Kent Beck},
+  title     = {Test-Driven Development: By Example},
+  publisher = {Addison-Wesley},
+  year      = {2003}
+}
+
+% ---------------------------------------------------------------------------
+% Coding agents, AI-assisted programming and agent context files
+% ---------------------------------------------------------------------------
+
+% https://2024.issta.org/details/issta-2024-papers/127/AutoCodeRover-Autonomous-Program-Improvement
+% and https://arxiv.org/abs/2404.05427 (authors, title); DOI from the ISSTA page
+@inproceedings{zhang2024autocoderover,
+  author    = {Yuntong Zhang and Haifeng Ruan and Zhiyu Fan and Abhik Roychoudhury},
+  title     = {{AutoCodeRover}: Autonomous Program Improvement},
+  booktitle = {Proceedings of the 33rd ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA)},
+  publisher = {ACM},
+  year      = {2024},
+  doi       = {10.1145/3650212.3680384}
+}
+
+% https://arxiv.org/abs/2407.16741 (comments: accepted by ICLR 2025)
+@inproceedings{wang2025openhands,
+  author    = {Xingyao Wang and Boxuan Li and Yufan Song and Frank F. Xu and Xiangru Tang and Mingchen Zhuge and Jiayi Pan and Yueqi Song and Bowen Li and Jaskirat Singh and Hoang H. Tran and Fuqiang Li and Ren Ma and Mingzhang Zheng and Bill Qian and Yanjun Shao and Niklas Muennighoff and Yizhe Zhang and Binyuan Hui and Junyang Lin and Robert Brennan and Hao Peng and Heng Ji and Graham Neubig},
+  title     = {{OpenHands}: An Open Platform for {AI} Software Developers as Generalist Agents},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2025}
+}
+
+% https://arxiv.org/abs/2302.06590
+@misc{peng2023copilot,
+  author       = {Sida Peng and Eirini Kalliamvakou and Peter Cihon and Mert Demirer},
+  title        = {The Impact of {AI} on Developer Productivity: Evidence from {GitHub} {Copilot}},
+  howpublished = {arXiv:2302.06590},
+  year         = {2023},
+  doi          = {10.48550/arXiv.2302.06590}
+}
+
+% https://arxiv.org/abs/2507.09089
+@misc{becker2025metr,
+  author       = {Joel Becker and Nate Rush and Elizabeth Barnes and David Rein},
+  title        = {Measuring the Impact of Early-2025 {AI} on Experienced Open-Source Developer Productivity},
+  howpublished = {arXiv:2507.09089},
+  year         = {2025},
+  doi          = {10.48550/arXiv.2507.09089}
+}
+
+% https://conf.researchr.org/details/msr-2022/msr-2022-technical-papers/11/An-Empirical-Evaluation-of-GitHub-Copilot-s-Code-Suggestions
+% DOI confirmed via https://unpaywall.org/10.1145%2F3524842.3528470
+@inproceedings{nguyen2022copilot,
+  author    = {Nhan Nguyen and Sarah Nadi},
+  title     = {An Empirical Evaluation of {GitHub} {Copilot}'s Code Suggestions},
+  booktitle = {Proceedings of the 19th International Conference on Mining Software Repositories (MSR)},
+  publisher = {ACM},
+  year      = {2022},
+  doi       = {10.1145/3524842.3528470}
+}
+
+% https://www.gitclear.com/coding_on_copilot_data_shows_ais_downward_pressure_on_code_quality
+% authors and date from the report PDF: https://gwern.net/doc/ai/nn/transformer/gpt/codex/2024-harding.pdf
+@techreport{harding2024copilot,
+  author      = {William Harding and Matthew Kloster},
+  title       = {Coding on {Copilot}: 2023 Data Suggests Downward Pressure on Code Quality},
+  institution = {GitClear},
+  year        = {2024},
+  month       = jan,
+  url         = {https://www.gitclear.com/coding_on_copilot_data_shows_ais_downward_pressure_on_code_quality}
+}
+
+% https://arxiv.org/abs/2511.04427 (comments: MSR '26)
+@inproceedings{he2026cursor,
+  author    = {Hao He and Courtney Miller and Shyam Agarwal and Christian K{\"a}stner and Bogdan Vasilescu},
+  title     = {Speed at the Cost of Quality: How {Cursor} {AI} Increases Short-Term Velocity and Long-Term Complexity in Open-Source Projects},
+  booktitle = {Proceedings of the 23rd International Conference on Mining Software Repositories (MSR)},
+  year      = {2026},
+  note      = {arXiv:2511.04427}
+}
+
+% https://arxiv.org/abs/2507.15003
+@misc{li2025aiteammates,
+  author       = {Hao Li and Haoxiang Zhang and Ahmed E. Hassan},
+  title        = {The Rise of {AI} Teammates in Software Engineering ({SE}) 3.0: How Autonomous Coding Agents Are Reshaping Software Engineering},
+  howpublished = {arXiv:2507.15003},
+  year         = {2025},
+  doi          = {10.48550/arXiv.2507.15003}
+}
+
+% https://arxiv.org/abs/2509.14744 (journal ref: PROFES 2025)
+@inproceedings{chatlatanagulchai2025manifests,
+  author    = {Worawalan Chatlatanagulchai and Kundjanasith Thonglek and Brittany Reid and Yutaro Kashiwa and Pattara Leelaprute and Arnon Rungsawang and Bundit Manaskasemsak and Hajimu Iida},
+  title     = {On the Use of Agentic Coding Manifests: An Empirical Study of {Claude} {Code}},
+  booktitle = {Proceedings of the 26th International Conference on Product-Focused Software Process Improvement (PROFES)},
+  year      = {2025},
+  note      = {arXiv:2509.14744}
+}
+
+% https://arxiv.org/html/2511.12884v1
+@misc{chatlatanagulchai2025agentreadmes,
+  author       = {Worawalan Chatlatanagulchai and Hao Li and Yutaro Kashiwa and Brittany Reid and Kundjanasith Thonglek and Pattara Leelaprute and Arnon Rungsawang and Bundit Manaskasemsak and Bram Adams and Ahmed E. Hassan and Hajimu Iida},
+  title        = {Agent {READMEs}: An Empirical Study of Context Files for Agentic Coding},
+  howpublished = {arXiv:2511.12884},
+  year         = {2025},
+  doi          = {10.48550/arXiv.2511.12884}
+}
+
+% https://arxiv.org/abs/2510.21413v4 (comments: MSR 2026)
+@inproceedings{mohsenimofidi2026context,
+  author    = {Seyedmoein Mohsenimofidi and Matthias Galster and Christoph Treude and Sebastian Baltes},
+  title     = {Context Engineering for {AI} Agents in Open-Source Software},
+  booktitle = {Proceedings of the 23rd International Conference on Mining Software Repositories (MSR)},
+  year      = {2026},
+  note      = {arXiv:2510.21413}
+}
+
+% https://arxiv.org/abs/2601.20404v1
+@misc{lulla2026agentsmd,
+  author       = {Jai Lal Lulla and Seyedmoein Mohsenimofidi and Matthias Galster and Jie M. Zhang and Sebastian Baltes and Christoph Treude},
+  title        = {On the Impact of {AGENTS.md} Files on the Efficiency of {AI} Coding Agents},
+  howpublished = {arXiv:2601.20404},
+  year         = {2026},
+  doi          = {10.48550/arXiv.2601.20404}
+}
+
+% https://arxiv.org/abs/2602.11988 ; venue from https://iclr.cc/virtual/2026/10021235
+@inproceedings{gloaguen2026agentsmd,
+  author    = {Thibaud Gloaguen and Niels M{\"u}ndler and Mark M{\"u}ller and Veselin Raychev and Martin Vechev},
+  title     = {Evaluating {AGENTS.md}: Are Repository-Level Context Files Helpful for Coding Agents?},
+  booktitle = {ICLR 2026 Workshop on Memory for LLM-Based Agentic Systems (MemAgents)},
+  year      = {2026},
+  note      = {arXiv:2602.11988}
+}
+
+% https://api.crossref.org/works/10.1109/TSE.2023.3334955
+@article{schafer2024testgen,
+  author  = {Max Sch{\"a}fer and Sarah Nadi and Aryaz Eghbali and Frank Tip},
+  title   = {An Empirical Evaluation of Using Large Language Models for Automated Unit Test Generation},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {50},
+  number  = {1},
+  pages   = {85--105},
+  year    = {2024},
+  doi     = {10.1109/TSE.2023.3334955}
+}
+
+% https://arxiv.org/abs/2505.16697
+@misc{schmid2025archllm,
+  author       = {Larissa Schmid and Tobias Hey and Martin Armbruster and Sophie Corallo and Dominik Fuch{\ss} and Jan Keim and Haoyu Liu and Anne Koziolek},
+  title        = {Software Architecture Meets {LLMs}: A Systematic Literature Review},
+  howpublished = {arXiv:2505.16697},
+  year         = {2025},
+  doi          = {10.48550/arXiv.2505.16697}
+}
+
+% ---------------------------------------------------------------------------
+% Guardrails and constraint-based approaches for generated code
+% ---------------------------------------------------------------------------
+
+% https://api.crossref.org/works/10.1145/3729274
+@article{mundler2025typeconstrained,
+  author  = {Niels M{\"u}ndler and Jingxuan He and Hao Wang and Koushik Sen and Dawn Song and Martin Vechev},
+  title   = {Type-Constrained Code Generation with Language Models},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume  = {9},
+  number  = {PLDI},
+  pages   = {601--626},
+  year    = {2025},
+  doi     = {10.1145/3729274}
+}
+
+% https://iclr.cc/virtual/2022/poster/6709
+@inproceedings{poesia2022synchromesh,
+  author    = {Gabriel Poesia and Alex Polozov and Vu Le and Ashish Tiwari and Gustavo Soares and Christopher Meek and Sumit Gulwani},
+  title     = {Synchromesh: Reliable Code Generation from Pre-trained Language Models},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022}
+}
+
+% https://papers.nips.cc/paper_files/paper/2023/hash/662b1774ba8845fc1fa3d1fc0177ceeb-Abstract-Conference.html
+@inproceedings{agrawal2023monitor,
+  author    = {Lakshya A. Agrawal and Aditya Kanade and Navin Goyal and Shuvendu Lahiri and Sriram Rajamani},
+  title     = {Monitor-Guided Decoding of Code {LMs} with Static Analysis of Repository Context},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS)},
+  pages     = {32270--32298},
+  year      = {2023}
+}
+
+% https://mlanthology.org/iclr/2024/chen2024iclr-teaching
+@inproceedings{chen2024selfdebug,
+  author    = {Xinyun Chen and Maxwell Lin and Nathanael Sch{\"a}rli and Denny Zhou},
+  title     = {Teaching Large Language Models to Self-Debug},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024}
+}
+
+% https://api.crossref.org/works/10.1145/3691620.3695527
+@inproceedings{mathews2024tdd,
+  author    = {Noble Saji Mathews and Meiyappan Nagappan},
+  title     = {Test-Driven Development and {LLM}-based Code Generation},
+  booktitle = {Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering (ASE)},
+  pages     = {1583--1594},
+  publisher = {ACM},
+  year      = {2024},
+  doi       = {10.1145/3691620.3695527}
+}
+
+% https://api.crossref.org/works/10.1109/TSE.2024.3428972
+@article{fakhoury2024ticoder,
+  author  = {Sarah Fakhoury and Aaditya Naik and Georgios Sakkas and Saikat Chakraborty and Shuvendu K. Lahiri},
+  title   = {{LLM}-Based Test-Driven Interactive Code Generation: User Study and Empirical Evaluation},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {50},
+  number  = {9},
+  pages   = {2254--2268},
+  year    = {2024},
+  doi     = {10.1109/TSE.2024.3428972}
+}
+
+% ---------------------------------------------------------------------------
+% Pedagogy, cognitive load and comprehension
+% ---------------------------------------------------------------------------
+
+% https://api.crossref.org/works/10.1207/s15326985ep4102_1
+@article{kirschner2006minimal,
+  author  = {Paul A. Kirschner and John Sweller and Richard E. Clark},
+  title   = {Why Minimal Guidance During Instruction Does Not Work: An Analysis of the Failure of Constructivist, Discovery, Problem-Based, Experiential, and Inquiry-Based Teaching},
+  journal = {Educational Psychologist},
+  volume  = {41},
+  number  = {2},
+  pages   = {75--86},
+  year    = {2006},
+  doi     = {10.1207/s15326985ep4102_1}
+}
+
+% https://api.crossref.org/works/10.1207/S15326985EP3801_3
+@article{renkl2003fading,
+  author  = {Alexander Renkl and Robert K. Atkinson},
+  title   = {Structuring the Transition From Example Study to Problem Solving in Cognitive Skill Acquisition: A Cognitive Load Perspective},
+  journal = {Educational Psychologist},
+  volume  = {38},
+  number  = {1},
+  pages   = {15--22},
+  year    = {2003},
+  doi     = {10.1207/S15326985EP3801_3}
+}
+
+% https://api.crossref.org/works/10.1207/S15326985EP3801_4
+@article{kalyuga2003reversal,
+  author  = {Slava Kalyuga and Paul Ayres and Paul Chandler and John Sweller},
+  title   = {The Expertise Reversal Effect},
+  journal = {Educational Psychologist},
+  volume  = {38},
+  number  = {1},
+  pages   = {23--31},
+  year    = {2003},
+  doi     = {10.1207/S15326985EP3801_4}
+}
+
+% https://api.crossref.org/works/10.3102/0034654307313795
+@article{shute2008feedback,
+  author  = {Valerie J. Shute},
+  title   = {Focus on Formative Feedback},
+  journal = {Review of Educational Research},
+  volume  = {78},
+  number  = {1},
+  pages   = {153--189},
+  year    = {2008},
+  doi     = {10.3102/0034654307313795}
+}
+
+% https://api.crossref.org/works/10.1145/3344429.3372508
+@inproceedings{becker2019errormessages,
+  author    = {Brett A. Becker and Paul Denny and Raymond Pettit and Durell Bouchard and Dennis J. Bouvier and Brian Harrington and Amir Kamil and Amey Karkare and Chris McDonald and Peter-Michael Osera and Janice L. Pearce and James Prather},
+  title     = {Compiler Error Messages Considered Unhelpful: The Landscape of Text-Based Programming Error Message Research},
+  booktitle = {Proceedings of the Working Group Reports on Innovation and Technology in Computer Science Education (ITiCSE-WGR)},
+  pages     = {177--210},
+  publisher = {ACM},
+  year      = {2019},
+  doi       = {10.1145/3344429.3372508}
+}
+
+% https://api.crossref.org/works/10.1109/SANER.2016.35
+@inproceedings{siegmund2016comprehension,
+  author    = {Janet Siegmund},
+  title     = {Program Comprehension: Past, Present, and Future},
+  booktitle = {IEEE 23rd International Conference on Software Analysis, Evolution, and Reengineering (SANER)},
+  pages     = {13--20},
+  publisher = {IEEE},
+  year      = {2016},
+  doi       = {10.1109/SANER.2016.35}
+}
+
+% https://api.crossref.org/works/10.1109/ICPC.2019.00018
+@inproceedings{goncales2019cognitive,
+  author    = {Lucian Gon{\c{c}}ales and Kleinner Farias and Bruno da Silva and Jonathan Fessler},
+  title     = {Measuring the Cognitive Load of Software Developers: A Systematic Mapping Study},
+  booktitle = {IEEE/ACM 27th International Conference on Program Comprehension (ICPC)},
+  pages     = {42--52},
+  publisher = {IEEE},
+  year      = {2019},
+  doi       = {10.1109/ICPC.2019.00018}
+}
+
+% https://api.crossref.org/works/10.1109/ICSE.2013.6606617
+@inproceedings{bacchelli2013review,
+  author    = {Alberto Bacchelli and Christian Bird},
+  title     = {Expectations, Outcomes, and Challenges of Modern Code Review},
+  booktitle = {35th International Conference on Software Engineering (ICSE)},
+  pages     = {712--721},
+  publisher = {IEEE},
+  year      = {2013},
+  doi       = {10.1109/ICSE.2013.6606617}
+}
+
+% https://www.zora.uzh.ch/entities/publication/245eb643-3ebd-476c-a613-8097ff6d9582
+@article{baum2019workingmemory,
+  author  = {Tobias Baum and Kurt Schneider and Alberto Bacchelli},
+  title   = {Associating Working Memory Capacity and Code Change Ordering with Code Review Performance},
+  journal = {Empirical Software Engineering},
+  volume  = {24},
+  number  = {4},
+  pages   = {1762--1798},
+  year    = {2019},
+  doi     = {10.1007/s10664-018-9676-8}
+}
+
+% ---------------------------------------------------------------------------
+% Patterns and pattern languages
+% ---------------------------------------------------------------------------
+
+% https://www.dre.vanderbilt.edu/~schmidt/POSA/POSA5
+@book{buschmann2007posa5,
+  author    = {Frank Buschmann and Kevlin Henney and Douglas C. Schmidt},
+  title     = {Pattern-Oriented Software Architecture, Volume 5: On Patterns and Pattern Languages},
+  publisher = {Wiley},
+  year      = {2007}
+}
+
+% https://tenlong.com.tw/products/9780131495050
+@book{meszaros2007xunit,
+  author    = {Gerard Meszaros},
+  title     = {{xUnit} Test Patterns: Refactoring Test Code},
+  publisher = {Addison-Wesley},
+  year      = {2007}
 }

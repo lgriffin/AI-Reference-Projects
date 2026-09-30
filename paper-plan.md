@@ -1,7 +1,7 @@
 # Paper plan: The Assertion Ladder
 
-This file governs the paper that Leigh, Paul, Ray and Colm are writing from this repository. It
-fixes the thesis, the vocabulary, the structure and the rules of evidence, so that four people
+This file governs the paper that Leigh, Paul, Ray, Colm, Darrin and Eamonn are writing from this repository. It
+fixes the thesis, the vocabulary, the structure and the rules of evidence, so that six people
 can write sections in parallel and the result still reads as one argument. Change this file
 first, then the paper.
 
@@ -74,15 +74,16 @@ Owners are a proposal to start from; reassign freely and record the change here.
 
 | # | Section | Purpose and key points | Evidence and figures | Owner |
 | - | --- | --- | --- | --- |
-| 1 | Introduction | Memoryless contributors; the repository as the only shared contract; sprawl and cognitive erosion; the thesis; contributions | Figure 1: the ladder | Leigh |
-| 2 | Background | Layered and Clean architecture; architecture testing and fitness functions; BDD; EARS; cognitive load and worked examples; lean; convention over configuration | Related work table | Paul |
+| 1 | Introduction | Memoryless contributors; the repository as the only shared contract; sprawl and cognitive erosion; the five critical gaps (G1–G5) that call for standardisation; two known uses; contributions | Figure 1: the ladder | Leigh |
+| 2 | Background | Layered and Clean architecture; architecture testing and fitness functions; BDD; EARS; cognitive load and worked examples; lean thinking in software (value, standard work, value stream mapping, root cause analysis) | | Paul; lean: Darrin |
 | 3 | The Assertion Ladder | The pattern in catalogue form (intent, context, forces, solution, consequences); the six rungs; the nine rung patterns; compression and fading | Figure 2: rung patterns | Leigh |
-| 4 | Three receivers | Taskboard, behaviourally identical in three stacks; the binding path of each receiver, rung by rung; what each gains; clean versus layered as a binding choice | Figure 3: binding-path table; Table: sizes from `evaluation/metrics.json` | Ray |
-| 5 | Use cases | The twelve use cases in six families, written stack-free; the WIP-limit steel thread; task deletion as the transfer case; two illustrative domains (ledger, dosing) | Figure 4: coverage grid | Ray |
-| 6 | Evaluation | Violation seeding before and after (36 structural seeds at `8c4a74a`; 42 seeds now), the agent pilot by tier | Tables from `evaluation/results.json`, `runs.json`, `usage.json` | Colm |
-| 7 | Discussion | Sanctity against ease of use; where each capability stops (V8, V10); EARS as a placement oracle; lean as the explanation | | Leigh, Colm |
-| 8 | Threats to validity | One run per pilot cell; one small domain; one model vendor; author-and-agent construction; text-matching rules in TypeScript | | Colm |
-| 9 | Conclusion | The capability, the evidence grade of each claim, what comes next | | Leigh |
+| 4 | A greenfield receiver | Taskboard walked through in TypeScript; Java and Python shown as equivalent bindings; what each gains; clean versus layered as a binding choice | Steel thread; binding-path table | Ray |
+| 5 | Retrofit: Tutors | The ladder added to a production TypeScript codebase already changed by agents; ratchets, mutation floors, EARS audit; extraction of the release harness as the reusable paradigm | Rung-to-artefact table; harness figure; numbers only from the Tutors repos | Eamonn |
+| 6 | Use cases | The twelve use cases in six families, written stack-free; the WIP-limit steel thread; task deletion as the transfer case; two illustrative domains (ledger, dosing) | Figure 4: coverage grid | Ray |
+| 7 | Evaluation | Violation seeding before and after (36 structural seeds at `8c4a74a`; 42 seeds now), the agent pilot by tier | Tables from `evaluation/results.json`, `runs.json`, `usage.json` | Colm |
+| 8 | Discussion | Lean explains the ladder (value, standard work, value stream, RCA); sanctity against ease of use; where each capability stops (V8, V10); threats to validity | Lean table; value-stream figure | Leigh, Darrin, Colm |
+| 9 | Related work | Seven themes, each ending in the gap it leaves; G1–G5 | 90+ verified references | Paul, Colm |
+| 10 | Conclusion | The ladder proposed as a standard against G1–G5; what comes next | | Leigh |
 
 The introduction and conclusion are written last, from the finished sections 3 to 7.
 
@@ -139,10 +140,13 @@ between that claim and the code. Done items were verified locally in all three r
 - [ ] Re-run the pilot with more than one run per cell, against the current repository, and with
       the deletion task in EARS. This needs agent runs and cannot be done from the repository
       alone.
-- [x] Full draft in `paper/` (LaTeX, 20 pages, five illustrations); builds with `latexmk -pdf`
-- [ ] Swap the stand-in layout `paper/jotlocal.sty` for the official JOT template
-- [ ] Fill co-author surnames and affiliations, run a systematic related-work search, and check
-      every entry in `paper/references.bib` against its source
+- [x] Full draft in `paper/` (JOT two-column, 26 pages, seven illustrations); builds with `latexmk -pdf`
+- [x] Authors and affiliations: Leigh Griffin, Paul Power, Ray Carroll (Red Hat); Colm Dunphy, Darrin Taylor and Eamonn de Leastar (SETU)
+- [x] Related work: seven themes and gaps G1–G5; new references verified against DOI, publisher or arXiv (source URL above each bib entry)
+- [x] Official JOT class (`paper/jot.cls` v2.6) in place of the stand-in layout
+- [x] Tutors retrofit case study (Eamonn de Leastar) and the TypeScript-first worked example
+- [ ] Short bios and contact emails for all six authors (`\shortbio` in `paper/main.tex`)
+- [ ] Tutors authors to confirm every figure quoted from the Tutors repositories
 
 ## 8. Open decisions
 

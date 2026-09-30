@@ -1,10 +1,14 @@
-\section{Three receivers}\label{sec:receivers}
+\section{A greenfield receiver in TypeScript}\label{sec:receivers}
 
-A pattern is only as credible as its known uses. This section presents three: one application,
-\emph{taskboard}, implemented three times with identical behaviour. We call them
-\emph{receivers} because they do not define the Assertion Ladder; they take it on, each in the
-idiom of its language, and each gains something from it. The paper works backwards from those
-gains to the capability they share.
+A pattern is only as credible as its known uses. This section presents the first: one
+application, \emph{taskboard}, built with the ladder from the start. It exists three times with
+identical behaviour, in TypeScript, Java and Python. We call each a \emph{receiver} because it
+does not define the Assertion Ladder; it takes the ladder on in the idiom of its language and
+gains something from it. We walk through the TypeScript receiver in detail, since it shares a
+language with the production retrofit in Section~\ref{sec:tutors}, and then show that the Java
+and Python receivers are equivalent: every rung pattern is bound in each, sometimes on a
+different rung. The second known use, a retrofit of a production codebase, follows in
+Section~\ref{sec:tutors}.
 
 \subsection{The application}
 
@@ -41,82 +45,59 @@ The scenario that covers it cites its id and reads as given / when / then
 maps it to a status, and a closure check refuses a new error without one. The limit arrives
 through a constructor from the one settings object. Every step is checked by the same command.
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \input{figures/steel-thread}
+  \resizebox{\linewidth}{!}{\input{figures/steel-thread}}
   \caption{The work-in-progress limit as a steel thread. Colours mark the kind of intent each
   step carries; every step is checked by the single gate.}
   \label{fig:thread}
-\end{figure}
+\end{figure*}
 
-\begin{lstlisting}[language=Python,caption={A scenario in the Python receiver. The docstring cites the requirement and reads given / when / then; the requirement check fails if either is missing.},label=lst:scenario]
-def test_the_wip_limit_is_enforced(service: TaskService) -> None:
-    """R-WIP-1: given a full board, when another task is started,
-    then it is refused and stays in todo."""
-    first, second = service.create_task("First"), service.create_task("Second")
-    service.move_task(first.id, Status.IN_PROGRESS)
-    with pytest.raises(WipLimitExceeded):
-        service.move_task(second.id, Status.IN_PROGRESS)
-    assert service.get_task(second.id).status is Status.TODO
+\begin{lstlisting}[caption={A scenario in the TypeScript receiver. The title cites the requirement and reads given / when / then; the requirement check fails if either is missing.},label=lst:scenario]
+test("R-WIP-1: given a full board, when another task is
+      started, then it is refused and stays in todo", async () => {
+  const first = await service.createTask("First");
+  const second = await service.createTask("Second");
+  await service.moveTask(first.id, "in_progress");
+  await expect(service.moveTask(second.id, "in_progress"))
+    .rejects.toThrow(WipLimitExceeded);
+  expect((await service.getTask(second.id)).status).toBe("todo");
+});
 \end{lstlisting}
 
-\subsection{Binding paths}
+\subsection{The TypeScript binding path}
 
-Table~\ref{tab:binding} shows how each receiver binds every rung pattern. Reading a row shows
-one pattern bound three ways; reading a column shows one receiver's complete path.
+Read rung by rung, the TypeScript receiver binds the ladder as follows.
+\rung{L1}: the \pattern{Worked Slice} is \repo{moveTask}, from the service down to the route.
+\rung{L2}: the \pattern{Short Manifest} is an \repo{AGENTS.md} of 468 words, and the rules
+are ten EARS requirements in \repo{REQUIREMENTS.md}. \rung{L3}: five \pattern{Executable
+Rule}s over source text, a requirement \pattern{Closure Check}, and a repository contract run
+against SQLite and an in-memory \pattern{Honest Double}, all behind one \pattern{Single Gate},
+\repo{npm test}. \rung{L4}: every assertion carries a \pattern{Teaching Failure} message that
+names the rule and the fix (Listing~\ref{lst:tsrule}). \rung{L5}: the status map is a
+\texttt{Record} keyed by a closed union of error codes, so a missing entry is a compile error,
+an \pattern{Unrepresentable Mistake} (Listing~\ref{lst:record}). The \pattern{Human Boundary}
+lists three changes that need a person first: dependencies, the rules and manifest, and schema
+or endpoint shape.
 
-\begin{table}[t]
-  \centering\small
-  \caption{Binding paths of the three receivers.}
-  \label{tab:binding}
-  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.1cm} X X X@{}}
-    \toprule
-    Rung pattern & Java (Spring Boot) & Python (FastAPI) & TypeScript (Fastify) \\
-    \midrule
-    \pattern{Worked Slice} & \repo{moveTask}, service to controller & \repo{move\_task}, service to route & \repo{moveTask}, service to route \\
-    \pattern{Short Manifest} & \repo{AGENTS.md}, 480 words & \repo{AGENTS.md}, 427 words & \repo{AGENTS.md}, 468 words \\
-    \pattern{Executable Rule} & ArchUnit over bytecode, 8 rules & AST walk, 7 rules incl.\ strict type check & source text, 5 rules \\
-    \pattern{Closure Check} & errors by the compiler; requirements by \repo{RequirementsTest} & errors and requirements by tests & errors by the compiler; requirements by a test \\
-    \pattern{Honest Double} & contract run on JDBC and in-memory & contract run on SQLite and in-memory & contract run on SQLite and in-memory \\
-    \pattern{Teaching Failure} & \repo{because(\ldots)} on every rule & a message on every assertion & a message on every assertion \\
-    \pattern{Unrepresentable Mistake} & sealed \repo{DomainException}, exhaustive \repo{switch} & not available; bound at L3 & \repo{Record<ErrorCode, number>} \\
-    \pattern{Single Gate} & \repo{mvn verify} & \repo{pytest} & \repo{npm test} \\
-    \pattern{Human Boundary} & \multicolumn{3}{>{\raggedright\arraybackslash}p{\dimexpr\linewidth-3.8cm\relax}}{the same three items in each manifest: dependencies; the rules and manifest; schema and endpoint shape} \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\begin{lstlisting}[caption={Two executable rules with teaching failures in the TypeScript receiver. The second closes a gap that no behavioural test can see (Section~\ref{sec:evaluation}).},label=lst:tsrule]
+// Ambient capabilities, and the one layer that may touch each.
+const RESERVED: [RegExp, string][] = [
+  [/process\.env/, "config"],
+  [/from "node:sqlite"/, "repositories"],
+  [/from "fastify"/, "api"],
+  [/console\./, "events"],
+];
+expect(misplaced, "move that work into the owning layer; " +
+  "reach it through a constructor argument or a domain event")
+  .toEqual([]);
 
-\paragraph{Java} The Java receiver reaches the top of the ladder most often. Its domain errors
-form a sealed hierarchy, and the handler that maps them to HTTP uses a \texttt{switch} with no
-default branch, so a new error does not compile until it has a status. Its architecture rules
-are ArchUnit rules over bytecode, the most precise of the three enforcement styles, and each
-carries a \texttt{because} clause that ArchUnit prints on failure (Listing~\ref{lst:archunit}).
-Its requirement check uses ArchUnit to import the test classes themselves and asserts that every
-scenario's \texttt{@DisplayName} opens with a requirement id.
-
-\begin{lstlisting}[language=Java,caption={An executable rule with a teaching failure in the Java receiver. It closes a gap that no behavioural test can see (Section~\ref{sec:evaluation}).},label=lst:archunit]
-@ArchTest
-static final ArchRule onlyEventHandlersHaveSideEffects = noClasses()
-    .that().resideOutsideOfPackage("..events..")
-    .should().dependOnClassesThat().resideInAnyPackage(
-        "org.slf4j..", "java.util.logging..", "org.apache.commons.logging..")
-    .because("side effects (logs, mail, audit) listen for a domain "
-           + "event; publish one instead");
+// Routes translate between HTTP and a service call.
+const DECISION = /\b(if|for|while|switch|try|throw)\b|\.(filter|find|some|every|reduce)\(/;
+expect(decision, "routes translate; put the rule on the " +
+  "entity if it concerns one task, otherwise in the service")
+  .toBeUndefined();
 \end{lstlisting}
-
-\paragraph{Python} Python cannot make an unmapped error unrepresentable, so the Python receiver
-binds that rule one rung lower: a \pattern{Closure Check} asserts that every subclass of
-\texttt{DomainError} has an entry in the status map. It compensates elsewhere. Its architecture
-rules walk the syntax tree, which lets them express rules the other receivers cannot, such as
-``a route contains no \texttt{if}, loop, comprehension, \texttt{raise} or \texttt{try}''. And the
-strict type checker runs inside the same gate, so type errors are reported as failures of the
-single command rather than of a separate tool.
-
-\paragraph{TypeScript} The TypeScript receiver reaches L5 through the type system: the status
-map is a \texttt{Record} keyed by a closed union of error codes, so a missing entry is a
-compile error (Listing~\ref{lst:record}). Its architecture rules are the cheapest of the three,
-regular expressions over source text, and the least precise; they are adequate for a codebase
-this small and would need a parser for a larger one.
 
 \begin{lstlisting}[caption={Unrepresentable Mistake in the TypeScript receiver.},label=lst:record]
 // Record<ErrorCode, number> is exhaustive: a new error code
@@ -127,6 +108,67 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
   wip_limit_exceeded: 409,
 };
 \end{lstlisting}
+
+Its architecture rules are the cheapest of the three receivers' styles, regular expressions
+over source text, and the least precise. They are adequate for a codebase this small and would
+need a parser for a larger one; Section~\ref{sec:tutors} shows what a production TypeScript
+codebase used instead.
+
+\subsection{Equivalence in Java and Python}
+
+Table~\ref{tab:binding} shows that the Java and Python receivers bind every rung pattern the
+TypeScript receiver binds. Reading a row shows one pattern bound three ways; reading a column
+shows one receiver's complete path. The behaviour is identical: the same ten requirements, the
+same scenarios, and the same fourteen seeded mistakes caught
+(Section~\ref{sec:evaluation}). What differs is the rung on which a language can carry a rule.
+
+\begin{table*}[t]
+  \centering\small
+  \caption{Binding paths of the three receivers. TypeScript is the worked example; Java and
+  Python show equivalence.}
+  \label{tab:binding}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.1cm}|X|X|X}
+    \hline
+    \textbf{Rung pattern} & \textbf{TypeScript (Fastify)} & \textbf{Java (Spring Boot)} & \textbf{Python (FastAPI)} \\
+    \hline\hline
+    \pattern{Worked Slice} & \repo{moveTask}, service to route & \repo{moveTask}, service to controller & \repo{move\_task}, service to route \\
+    \hline
+    \pattern{Short Manifest} & \repo{AGENTS.md}, 468 words & \repo{AGENTS.md}, 480 words & \repo{AGENTS.md}, 427 words \\
+    \hline
+    \pattern{Executable Rule} & source text, 5 rules & ArchUnit over bytecode, 8 rules & AST walk, 7 rules incl.\ strict type check \\
+    \hline
+    \pattern{Closure Check} & errors by the compiler; requirements by a test & errors by the compiler; requirements by \repo{RequirementsTest} & errors and requirements by tests \\
+    \hline
+    \pattern{Honest Double} & contract run on SQLite and in-memory & contract run on JDBC and in-memory & contract run on SQLite and in-memory \\
+    \hline
+    \pattern{Teaching Failure} & a message on every assertion & \repo{because(\ldots)} on every rule & a message on every assertion \\
+    \hline
+    \pattern{Unrepresentable Mistake} & \repo{Record<ErrorCode, number>} & sealed \repo{DomainException}, exhaustive \repo{switch} & not available; bound at L3 \\
+    \hline
+    \pattern{Single Gate} & \repo{npm test} & \repo{mvn verify} & \repo{pytest} \\
+    \hline
+    \pattern{Human Boundary} & \multicolumn{3}{>{\raggedright\arraybackslash}p{\dimexpr\linewidth-4.4cm\relax}}{the same three items in each manifest: dependencies; the rules and manifest; schema and endpoint shape} \\
+    \hline
+  \end{tabularx}
+\end{table*}
+
+\paragraph{Java} The Java receiver reaches the top of the ladder most often. Its domain errors
+form a sealed hierarchy, and the handler that maps them to HTTP uses a \texttt{switch} with no
+default branch, so the TypeScript \texttt{Record} has an exact equivalent at L5. Its
+architecture rules are ArchUnit rules over bytecode, the most precise of the three styles, and
+each carries a \texttt{because} clause that ArchUnit prints on failure; its rule for side effects,
+the counterpart of the TypeScript \texttt{console} entry, reads ``side effects (logs, mail, audit) listen for a domain event; publish one
+instead''. Its requirement check imports the test classes themselves and asserts
+that every scenario's \texttt{@DisplayName} opens with a requirement id, where TypeScript reads
+test titles.
+
+\paragraph{Python} Python cannot make an unmapped error unrepresentable, so the Python receiver
+binds that rule one rung lower: a \pattern{Closure Check} asserts that every subclass of
+\texttt{DomainError} has an entry in the status map. It compensates elsewhere. Its architecture
+rules walk the syntax tree, a stricter version of the TypeScript text rules: the rule that a
+route decides nothing is checked against \texttt{If}, loop, comprehension, \texttt{Raise} and
+\texttt{Try} nodes rather than keywords. The strict type checker runs inside the same gate.
+Scenarios cite requirements in docstrings where TypeScript uses titles.
 
 \subsection{Layered, not Clean, and what that costs}
 

@@ -1,0 +1,31 @@
+% Tutors: the rungs kept inside the monorepo, and the judge extracted into its own repository.
+% Colours from assertionladder.sty. Included by sections/06a-tutors.tex.
+\begin{tikzpicture}[
+    font=\footnotesize,
+    box/.style={draw=#1, line width=0.9pt, fill=#1!7, rounded corners=2pt, text width=3.3cm,
+                align=left, inner sep=4pt},
+    repo/.style={draw=#1, line width=1pt, rounded corners=4pt, inner sep=6pt},
+    arr/.style={-{Stealth[length=2.3mm]}, line width=0.8pt, #1},
+    lbl/.style={font=\scriptsize\bfseries, anchor=south west, inner sep=1pt},
+  ]
+  % Inside the monorepo
+  \node[box=structure] (arch) {\textbf{Structure}\\dependency rules, knip,\\blocking type checks};
+  \node[box=behaviour, below=0.25cm of arch] (bdd) {\textbf{Behaviour}\\Gherkin scenarios bound\\to product code};
+  \node[box=requirement, below=0.25cm of bdd] (ears) {\textbf{Requirements}\\EARS \texttt{Rule:} with ids;\\the EARS audit};
+  \node[box=muted, below=0.25cm of ears] (rat) {\textbf{Ratchets}\\shrink-only baselines;\\coverage, mutation floors};
+  \node[repo=jotblue, fit=(arch)(bdd)(ears)(rat), label={[lbl, text=jotblue]north west:{\repo{tutors-mono-repo}: rungs checked on every PR}}] (mono) {};
+
+  % The interface
+  \node[box=requirement, right=1.25cm of bdd, text width=2.9cm, align=center] (claims)
+       {\repo{release/claims.yaml}\\\repo{rules.json}\\signed images};
+
+  % The harness
+  \node[box=behaviour, right=1.25cm of claims, yshift=0.95cm] (gate) {\textbf{Gate}\\every observable\\difference claimed};
+  \node[box=missed, below=0.25cm of gate] (mut) {\textbf{Self-test}\\ten planted mutants;\\a clean A/A first};
+  \node[box=muted, below=0.25cm of mut] (kai) {\textbf{Kaizen}\\SOP, glance, 5 Whys,\\A3, scoreboard};
+  \node[repo=missed, fit=(gate)(mut)(kai), label={[lbl, text=missed]north west:{\repo{tutors-release-harness}: the judge, kept apart}}] (har) {};
+
+  \draw[arr=requirement] (ears.east) -- ++(0.35,0) |- (claims.west);
+  \draw[arr=requirement] (claims.east) -- ++(0.35,0) |- (gate.west);
+  \draw[arr=muted, dashed] (kai.south) |- node[pos=0.72, below, font=\scriptsize, align=center]{a 5 Whys ends in a countermeasure:\\a mutant, an EARS spec, an SOP change\ldots} (rat.east);
+\end{tikzpicture}

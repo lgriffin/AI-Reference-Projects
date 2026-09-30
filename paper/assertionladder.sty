@@ -1,0 +1,30 @@
+% assertionladder.sty -- the paper's own macros, loaded on top of the official jot.cls.
+% Colours, figure libraries and writing aids only; layout, fonts, captions, listings style,
+% headers and bibliography style all come from jot.cls.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{assertionladder}[2026/09/30 Macros for the Assertion Ladder paper]
+
+\RequirePackage{array}
+\RequirePackage{multirow}
+\RequirePackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit,backgrounds,decorations.pathreplacing}
+
+% Palette: one colour per kind of intent, used consistently in every figure.
+\definecolor{jotblue}{HTML}{1F3B5A}
+\definecolor{structure}{HTML}{0E6A5B}
+\definecolor{behaviour}{HTML}{3B4DAE}
+\definecolor{requirement}{HTML}{9A5A08}
+\definecolor{muted}{HTML}{5B6661}
+\definecolor{wash}{HTML}{EEF2F0}
+\definecolor{caught}{HTML}{1E7A45}
+\definecolor{compiler}{HTML}{335E9C}
+\definecolor{behav}{HTML}{B08A1E}
+\definecolor{reqc}{HTML}{7A4FB0}
+\definecolor{missed}{HTML}{B0322B}
+
+% Writing aids: a visible marker for text the authors still owe.
+\newcommand{\todo}[1]{{\color{missed}\textbf{[TODO:} #1\textbf{]}}}
+\newcommand{\rung}[1]{\textsf{\textbf{#1}}}
+\newcommand{\pattern}[1]{\textsc{#1}}
+\newcommand{\repo}[1]{\texttt{#1}}

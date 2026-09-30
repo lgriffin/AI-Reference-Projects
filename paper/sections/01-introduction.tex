@@ -50,44 +50,73 @@ deliberately: high enough that the learner cannot miss it, and no higher than th
 justifies, because every assertion also costs something to write, to maintain and to read.
 
 \paragraph{Lean as the explanation} The ladder is not new engineering so much as old
-engineering applied to a new worker. Lean production made quality a property of the process
-rather than of inspection: it stopped the line at the first defect (\emph{jidoka}), designed
-fixtures so that a part could only be fitted one way (\emph{poka-yoke}), wrote down the one best
-current method (\emph{standard work}) and gave every worker a cord to pull when something was
-wrong (\emph{andon}) \citep{ohno1988tps,shingo1986zqc,womack1996lean}. Lean software development
-carried these ideas into programming \citep{poppendieck2003lean}. Each rung of the ladder
-corresponds to one of them, and Section~\ref{sec:discussion} argues that lean explains why the
-ladder works rather than merely decorating it.
+engineering applied to a new worker. Lean thinking starts from \emph{value}, what the customer and
+here also the domain need, and treats everything that does not serve it as waste
+\citep{womack1996lean,poppendieck2006implementing}. For work that repeats, its central tool is
+\emph{standard work}: the current best method, followed by everyone who does the job and improved
+by the team that owns it \citep{liker2004toyota}. It reads a process as a \emph{value stream} and
+asks where along it a defect is found and how much waiting and rework that costs
+\citep{rother1999learning}. And it answers each problem with \emph{root cause analysis}, asking
+why until the answer is something the process can change \citep{ohno1988tps}. Read this way, the
+rungs are standard work for a contributor who cannot remember it: shown in a worked slice, told in
+a short manifest, and then built into the work as checks that stop the build, explain the stop,
+or make the mistake impossible to write. Section~\ref{sec:discussion} argues that lean explains
+why the ladder works rather than merely decorating it.
 
-\paragraph{Three receivers} The pattern is illustrated with one application, \emph{taskboard},
-a small Kanban service with a work-in-progress limit, implemented three times with identical
-behaviour: in Java with Spring Boot, in Python with FastAPI, and in TypeScript with Fastify
-\citep{taskboardrepo}. We present the three implementations as \emph{receivers} of the pattern
-rather than as its source. Each binds every rung in its own idiom, and the paper works backwards
-from what each receiver gains to the single capability they share. A reader interested in one
-language can read that receiver alone; its manifest, requirements and tests are written to be
-understood without the other two.
+\paragraph{Critical gaps} Software engineering already has most of the parts. Architecture
+conformance checking, specification by example, structured requirements and instruction files
+for agents all exist, and Section~\ref{sec:related} reviews them. What it lacks is a standard way
+to combine them. We identify five gaps in current practice that call for standardisation:
+there is no shared vocabulary for how strongly a rule is asserted (\ref{gap:vocabulary});
+instruction files for agents are unvalidated prose with no link to enforcement
+(\ref{gap:prose}); conformance tools say nothing about which rules to check rather than
+document, or that a failure should name its fix (\ref{gap:selection}); agent-facing
+repositories have no executable closure between requirements and the scenarios that test them
+(\ref{gap:closure}); and there is no benchmark of whether a repository's own harness catches the
+mistakes that matter, as opposed to whether an agent can complete a task (\ref{gap:benchmark}).
+Each gap is small; together they mean that every team sharing a repository with agents invents
+its own answer, and most answer only with more prose.
 
-\paragraph{Contributions} This paper makes four contributions.
+\paragraph{Two known uses} The pattern is shown in two settings. The first is greenfield:
+one application, \emph{taskboard}, a small Kanban service with a work-in-progress limit, built
+with the ladder from the start. We walk through its TypeScript implementation and show that Java
+and Python implementations with identical behaviour bind every rung equivalently
+\citep{taskboardrepo}. We call these implementations \emph{receivers} of the pattern rather than
+its source, and work backwards from what each gains to the single capability they share. The
+second is a retrofit: \emph{Tutors}, an open-source TypeScript learning platform in production,
+to which the rungs were added after the fact while coding agents were already contributing, and
+from which the release checks were then extracted into a reusable, product-independent harness
+\citep{tutorsmonorepo,tutorsreleaseharness}. Together they show the ladder being established
+where none existed and being adopted where a codebase already had history.
+
+\paragraph{Contributions} This paper makes five contributions, each aimed at one or more of
+the gaps.
 \begin{enumerate}
   \item The Assertion Ladder, a pattern in the classic form \citep{alexander1977pattern,gamma1994design}
-    with six rungs and nine rung patterns, for embedding a technical domain in a repository
-    shared with coding agents (Section~\ref{sec:ladder}).
+    with six rungs and nine rung patterns, proposed as a shared vocabulary for how strongly a
+    repository asserts each domain rule (\ref{gap:vocabulary}, \ref{gap:prose},
+    \ref{gap:selection}; Section~\ref{sec:ladder}).
   \item A unification of three kinds of intent, structure, behaviour and requirements, as three
-    loads carried by the same ladder, and the observation that the pattern of an EARS
-    requirement \citep{mavin2009ears} predicts the layer that should implement it
-    (Sections~\ref{sec:ladder} and~\ref{sec:receivers}).
-  \item Three receivers with identical behaviour and their binding paths, showing which rungs
-    each language can reach and what it uses where it cannot (Section~\ref{sec:receivers}).
-  \item An evaluation by violation seeding before and after the behavioural and requirement
-    rungs were added, and a pilot with eighteen coding agents (Section~\ref{sec:evaluation}).
+    loads on the same ladder, with a closure check that ties requirements to scenarios and the
+    observation that the pattern of an EARS requirement \citep{mavin2009ears} predicts the layer
+    that should implement it (\ref{gap:closure}; Sections~\ref{sec:ladder}
+    and~\ref{sec:receivers}).
+  \item A greenfield receiver in TypeScript, with equivalent Java and Python receivers, showing
+    which rungs each language can reach and what it uses where it cannot
+    (Section~\ref{sec:receivers}).
+  \item A retrofit of a production codebase, Tutors, and the extraction of its release checks
+    into a reusable harness, showing how the ladder is adopted where it was not designed in
+    (Section~\ref{sec:tutors}).
+  \item Violation seeding as a benchmark of a repository rather than of an agent, run before and
+    after the behavioural and requirement rungs were added, and a pilot with eighteen coding
+    agents (\ref{gap:benchmark}; Section~\ref{sec:evaluation}).
 \end{enumerate}
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
   \resizebox{\linewidth}{!}{\input{figures/ladder}}
   \caption{The Assertion Ladder. Each rung is a teaching move and a lean mechanism. Rules climb
   only as far as their risk warrants; as a rule reaches a checked rung, it is removed from the
   prose below it.}
   \label{fig:ladder}
-\end{figure}
+\end{figure*}

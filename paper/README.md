@@ -19,12 +19,13 @@ This needs a TeX Live install with `tikz`, `pgfplots`, `listings`, `booktabs`, `
 | `sections/` | one file per section, numbered in order, plus the appendix |
 | `figures/` | TikZ and pgfplots illustrations, each included by one section |
 | `references.bib` | bibliography; **every entry must be checked against its source before submission** |
-| `jotlocal.sty` | stand-in layout (see below) |
+| `jot.cls`, `logo/` | official JOT class (see below) |
+| `assertionladder.sty` | the paper's colours and macros |
 
-## Stand-in JOT layout
+## JOT class
 
-`jotlocal.sty` approximates the JOT look so the draft builds anywhere. It is **not** the official template: jot.fm could not be reached when the draft was set up. Before submission, download the author kit from jot.fm, then swap `\usepackage{jotlocal}` for the official class. Also map `\jottitle`, `\jotauthors`, `\jotabstract` and `\jotkeywords` onto its front-matter commands. The writing macros (`\todo`, `\rung`, `\pattern`, `\repo`) and colours are defined in `jotlocal.sty`, so carry them across.
+`jot.cls` is the official Journal of Object Technology class (v2.6), taken from the author kit. It is two-column, Times, author-year citations through apacite and natbib, and `lineno` stays on until the camera-ready version. `assertionladder.sty` holds only the paper's own colours, TikZ libraries and writing macros (`\todo`, `\rung`, `\pattern`, `\repo`). Tables follow the JOT rules: bold header, a double line under it, single lines elsewhere and no outer vertical rules. On Ubuntu the class also needs `texlive-science`, `texlive-publishers`, `texlive-bibtex-extra` and `texlive-plain-generic`.
 
 ## Still owed
 
-Search for `\todo` in the sources: co-author surnames and affiliations, and a systematic related-work search. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.
+Search for `\todo` in the sources: author bios and contact emails. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.
