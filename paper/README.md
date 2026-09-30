@@ -27,4 +27,4 @@ This needs a TeX Live install with `tikz`, `pgfplots`, `listings`, `booktabs`, `
 
 ## Still owed
 
-Search for `\todo` in the sources: co-author surnames and affiliations, and a systematic related-work search. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.
+Search for `\todo` in the sources: a systematic related-work search. Numbers in the evaluation come from `../evaluation/*.json` and must be kept in step with them.

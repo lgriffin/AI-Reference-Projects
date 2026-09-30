@@ -141,8 +141,8 @@ between that claim and the code. Done items were verified locally in all three r
       alone.
 - [x] Full draft in `paper/` (LaTeX, 20 pages, five illustrations); builds with `latexmk -pdf`
 - [ ] Swap the stand-in layout `paper/jotlocal.sty` for the official JOT template
-- [ ] Fill co-author surnames and affiliations, run a systematic related-work search, and check
-      every entry in `paper/references.bib` against its source
+- [x] Authors and affiliations: Leigh Griffin, Paul Power, Ray Carroll (Red Hat); Colm Dunphy (SETU)
+- [ ] Run a systematic related-work search, and check every entry in `paper/references.bib` against its source
 
 ## 8. Open decisions
 
