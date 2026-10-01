@@ -5,8 +5,8 @@ whether the ladder can be climbed by a codebase that was not: an open-source tea
 production, with years of history and few tests, into which coding agents were already
 contributing. It reports what was retrofitted, in what order, what it reached and what it could
 not, and how its release gate was extracted into a separate, reusable repository. Every figure
-below is read from the two public repositories as they stood on 28 September 2026: the
-monorepo \citep{tutorsmonorepo} and the release harness at version 1.15.0
+below is read from the two public repositories: the monorepo as it stood on 28 September 2026
+\citep{tutorsmonorepo} and the release harness at version 1.28.0 of 1 October
 \citep{tutorsreleaseharness}. Where a figure is our own count rather than one the repositories
 record, we say so.
 
@@ -50,7 +50,7 @@ floors.
 \begin{figure*}[t]
   \centering
   \resizebox{\linewidth}{!}{\input{figures/timeline}}
-  \caption{Two climbs, June to September 2026. Tutors, a production codebase, and the
+  \caption{Two climbs, June to October 2026. Tutors, a production codebase, and the
   receivers, built for the paper, reached the rungs over the same weeks. Each point is a level
   of maturity; the one commit named, \texttt{8c4a74a}, is kept because the evaluation files
   are named by it.}
@@ -158,11 +158,12 @@ The last rung Tutors added sits outside the monorepo (Figure~\ref{fig:tutors-har
 precursor was an in-repository check that the generator's output matched production's, byte for
 byte (\path{tests/release/RELEASE-TESTING.md}). The release harness generalises that check to
 everything a user can observe. It runs a candidate's images beside production's, drives the same
-scripted journeys through both, captures nineteen kinds of artefact (DOM, screenshots, network,
-console, headers, accessibility, focus order, timing, metrics, logs, persisted writes, SBOM,
-vulnerabilities, container posture and others), masks known noise, and fails unless every
-difference is covered by a claim (\emph{harness} \repo{README.md}). A claim names an artefact, a
-scope and the Rule or changelog entry that justifies it (\repo{release/claims.yaml}). This is a
+scripted journeys through both, captures every kind of artefact it has an engine for (DOM,
+screenshots, network, console, headers, accessibility, focus order, timing, metrics, logs,
+persisted writes, image manifest, SBOM, vulnerabilities, container posture, startup time and
+others; 25 artefacts at version 1.28.0), masks known noise, and fails unless every difference is
+covered by a claim (\emph{harness} \repo{README.md}). A claim names an artefact, a scope and the
+Rule or changelog entry that justifies it (\repo{release/claims.yaml}). This is a
 \pattern{Closure Check} over the release: every observable difference has a claim, and a claim
 that matches nothing is reported as stale.
 
@@ -176,17 +177,36 @@ that matches nothing is reported as stale.
 \end{figure*}
 
 Why a separate repository? The reason the harness gives is the one we gave in
-Section~\ref{sec:ladder}: a check that an agent can edit is a check that an agent can weaken. The harness ``consumes the monorepo's
-published images \ldots\ and knows nothing about their source, so it can compare any two tags
-\ldots\ and cannot be quietly weakened by the PR it is judging'' (\emph{harness} \repo{README.md};
-decision 1 in \path{docs/architecture/06-decisions.md}). The receivers bind the
-\pattern{Human Boundary} at L2, as a line in the manifest. Extraction binds part of it
-structurally: the gate's code, its masks and its mutants live where the change under review
-cannot reach them, behind their own CODEOWNERS. The harness also holds itself to the discipline
-it imposes. It may fail a release only after a clean production-against-production run less than
-seven days old, and it must catch ten planted regressions, each attributed to the expected
-artefact, weekly and on any change to an engine (\emph{harness} \repo{mutants/mutants.yaml},
-\repo{src/gate.ts}).
+Section~\ref{sec:ladder}: a check that an agent can edit is a check that an agent can weaken.
+The harness ``consumes the monorepo's published images \ldots\ and knows nothing about their
+source, so it can compare any two tags \ldots\ and cannot be quietly weakened by the PR it is
+judging'' (\emph{harness} \repo{README.md}; decision 1 in
+\path{docs/architecture/06-decisions.md}). The receivers bind the \pattern{Human Boundary} at
+L2, as a line in the manifest. Extraction binds part of it structurally: the gate's code, its
+masks and its mutants live where the change under review cannot reach them, behind their own
+CODEOWNERS. The harness also holds itself to the discipline it imposes. It may fail a release
+only after a clean production-against-production run less than seven days old, and it must
+catch sixteen planted regressions, each attributed to the expected artefact, weekly and on any
+change to an engine (\emph{harness} \repo{mutants/mutants.yaml}, \repo{src/gate.ts}).
+
+\paragraph{Intent before perfection} The harness is young and says so. Its first version was
+tagged on 17 September, its contract frozen at 1.0.0 two days later, and it stood at 1.15.0 when
+we first drafted this section and at 1.28.0 four days later. We do not present it as a finished
+tool. What we want to show is the way it is being built, because that way is the ladder applied
+to the harness's own checks. Since 1.21.0 every engine has a level, blocking or informing. A new
+check enters as informing: its findings are reported, ranked and counted, and none of them gates
+(\emph{harness} \repo{docs/contract.md}, ``Engine levels''). It earns the right to block by
+soaking. A planted mutant proves it can fail, the nightly run shows it stays quiet on a clean
+night, a count of clean nights is kept on the readiness page, and a dated 2.0 turns it blocking.
+The checks that arrived this way in the first days of October are a policy family that judges
+the candidate alone (an image running as root, missing build provenance, a vulnerability with a
+fix available), a timing tolerance that reports a 10\% slowdown where the gate needs 20\%,
+folding of build churn into one hunk per app, claims with a lifetime, and a replay set of course
+URLs. Each is told and explained today and checked at 2.0, which is L2 and L4 ahead of L3, the
+same order the EARS audit followed inside the monorepo. In the same days the harness began to
+fold unclaimed differences into causes rather than hunks, to name the pull requests that could
+have made each, and to draft the claim each cause is owed, so that a forecast with hundreds of
+unclaimed hunks reads as a handful of decisions.
 
 What is generic is the contract, not the stack. The integration contract is versioned and
 ``is what \path{tutors-sdk/tutors-mono-repo} (or anything else) may build against''; a test fails
@@ -202,15 +222,20 @@ term points to a mechanism rather than sitting in a glossary (\emph{harness} \re
 \repo{release/SOP.md}). \emph{Jidoka}: the Gate stops the line, and an advisory confidence score
 may never override it (``a FAIL is a FAIL at RCS 99''). \emph{Standard work}: a twelve-step
 release SOP with an owner, an input and a done-when per step, in which steps 2 to 7 run as one
-command that stops before step 8, the one step that must stay human. \emph{Gemba}: a reviewer's glance of
-at most seven ranked places, each marked verified, disputed or escalated. \emph{Kaizen} and root
-cause analysis: \repo{harness why} opens a 5 Whys whose first answer is the harness's own trace,
-rejects ``human error'' as an answer, and requires one of seven countermeasure kinds, a new
-mutant being preferred. \emph{Value stream}: \repo{harness a3} draws an A3 whose current condition
-is a value stream map of a change from merge to production. Compression is written in as well:
-``six journeys in three sets, not a hundred; ten mutants, not thirty. \ldots\ Add a journey only
-when a real regression escaped that a journey would have caught'' (\emph{harness}
-\repo{README.md}, ``Where to stop'').
+command that stops before step 8, the one step that must stay human. \emph{Gemba}: a reviewer's
+glance of at most seven ranked places, each marked verified, disputed or escalated.
+\emph{Kaizen} and root cause analysis: \repo{harness why} opens a 5 Whys whose first answer is
+the harness's own trace, rejects ``human error'' as an answer, and requires one of seven
+countermeasure kinds, a new mutant being preferred. \emph{Value stream} and the A3:
+\repo{harness a3} builds one page from what the harness already keeps and publishes it as the
+centrepiece of its report site, led by the Gate and the score, with a value stream map of a
+change from merge to verified in production as its current condition and each root-cause
+question answered from the data and linked to the 5 Whys that goes deeper. A control chart of
+release size, with a work-in-progress limit on it, sits beside it. Compression is written in as
+well: ``six journeys in three sets, not a hundred; ten mutants, not thirty. \ldots\ Add a
+journey only when a real regression escaped that a journey would have caught'' (\emph{harness}
+\repo{README.md}, ``Where to stop''); the sixteen mutants it now has were each added for a
+specific escape or a specific new check.
 
 \subsection{What the retrofit shows}
 
@@ -249,10 +274,13 @@ statements against a 90\% target on 28 September, and tier F, authorisation, is 
 (\repo{journey.md}). The \pattern{Human Boundary} is declared but not yet practised: none of the
 55 pull requests merged since release 16.2.2 had an approving review, and ``the CI gate, the
 ratchets and the harness stand in for review; they do not replace it'' (\repo{journey.md}). The
-release-confidence tooling is built, but its evidence gates need real releases: the scoreboard
-is empty (\emph{harness} \path{scoreboard/releases.jsonl}), no 5 Whys is yet closed, and the daily
-forecast of main against production was FAIL with 892 unclaimed differences on 28 September,
-most of them an intended image change that nobody had claimed
-(\path{guides/evolution/tutors-revolution.md}). Finally, Tutors is one codebase, the retrofit was
+release-confidence tooling is built, but its evidence gates need real releases: no release has
+yet appended a line to the scoreboard (\emph{harness} \path{scoreboard/releases.jsonl}), the
+register holds three open 5 Whys and none closed, and every check added since 1.21.0 is still
+informing rather than blocking. The daily forecast of main against production was FAIL with 892
+unclaimed differences on 28 September, most of them an intended image change that nobody had
+claimed (\path{guides/evolution/tutors-revolution.md}); folding differences into causes and
+drafting the claims owed is the countermeasure, and whether it holds will show on the readiness
+page night by night rather than in this paper. Finally, Tutors is one codebase, the retrofit was
 carried out largely by two of this paper's authors working with agents, and it was not designed as an
 experiment. We report it as a known use of the pattern, not as a test of it.
