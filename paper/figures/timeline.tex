@@ -1,0 +1,44 @@
+% Two lanes, June to September 2026: the Tutors retrofit and the receivers' own iterations.
+% x is days from 1 June at 0.124 cm per day (121 days = 15 cm).
+\begin{tikzpicture}[
+    font=\scriptsize,
+    lane/.style={line width=1.2pt, #1},
+    dot/.style={circle, fill=#1, inner sep=1.6pt},
+    lab/.style={text width=2.1cm, align=center, inner sep=1pt},
+    tick/.style={gray!60, line width=0.4pt},
+  ]
+  % month grid
+  \foreach \x/\m in {0/Jun, 3.72/Jul, 7.56/Aug, 11.41/Sep, 15/} {
+    \draw[tick] (\x, -3.1) -- (\x, 4.6);
+    \node[gray, anchor=north, font=\scriptsize] at (\x, -3.15) {\m};
+  }
+  % lanes
+  \draw[lane=requirement] (0, 2) -- (15, 2);
+  \draw[lane=structure]   (0, 0) -- (15, 0);
+  \node[anchor=east, font=\footnotesize\bfseries, text=requirement] at (-0.25, 2) {Tutors};
+  \node[anchor=east, font=\scriptsize, text=requirement] at (-0.25, 1.65) {retrofit};
+  \node[anchor=east, font=\footnotesize\bfseries, text=structure] at (-0.25, 0) {taskboard};
+  \node[anchor=east, font=\scriptsize, text=structure] at (-0.25, -0.35) {greenfield};
+  % Tutors points, labels above at three heights
+  \foreach \x/\h/\t in {
+      0/0.45/{1 Jun\\27 tests, no CI},
+      6.94/0.45/{27 Jul\\monorepo founded},
+      8.06/1.45/{early Aug\\honest doubles,\\first CI},
+      9.18/0.45/{mid Aug\\138 type errors\\cleared},
+      13.3/0.45/{16 to 17 Sep\\architecture rules,\\one required job,\\feature files bound},
+      14.0/1.65/{21 to 23 Sep\\EARS Rules; audit\\advisory, then required},
+      14.7/2.85/{26 to 28 Sep\\coverage and mutation\\floors; 2,140 tests,\\89 Rules}} {
+    \draw[tick] (\x, 2) -- (\x, 2+\h);
+    \node[dot=requirement] at (\x, 2) {};
+    \node[lab, anchor=south] at (\x, 2+\h) {\t};
+  }
+  % taskboard points, labels below
+  \foreach \x/\h/\t in {
+      6.94/0.45/{27 Jul\\first iteration:\\three implementations},
+      13.89/0.45/{21 Sep, \texttt{8c4a74a}\\second iteration: slice,\\manifest, rules; 30 of 36},
+      14.88/1.85/{29 Sep\\the ladder: EARS, scenarios,\\closure; 42 of 42}} {
+    \draw[tick] (\x, 0) -- (\x, -\h);
+    \node[dot=structure] at (\x, 0) {};
+    \node[lab, anchor=north, text width=2.6cm] at (\x, -\h) {\t};
+  }
+\end{tikzpicture}

@@ -1,0 +1,55 @@
+% The ladder as it stands at the end of the paper: each rung with its teaching move, its Lean
+% mechanism, the patterns that realise it, how both known uses bind it, and where a broken rule
+% is found. Below, the loop that keeps the ladder climbing.
+\begin{tikzpicture}[
+    font=\scriptsize,
+    rung/.style={draw=jotblue, line width=0.6pt, fill=#1, rounded corners=1.5pt,
+                 minimum height=1.25cm, text width=1.45cm, align=center, inner sep=2pt,
+                 font=\scriptsize\bfseries},
+    cell/.style={text width=#1, align=left, inner sep=2pt, anchor=west},
+    colhead/.style={font=\scriptsize\bfseries, text=jotblue, anchor=south west, inner sep=2pt},
+    loop/.style={draw=jotblue, line width=0.8pt, fill=jotblue!6, rounded corners=3pt,
+                 text width=3.3cm, align=center, inner sep=4pt, minimum height=0.9cm},
+    larr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, jotblue},
+  ]
+  % rails
+  \draw[jotblue, line width=2pt] (0.1, -0.2) -- (0.1, -8.7);
+  \draw[jotblue, line width=2pt] (1.7, -0.2) -- (1.7, -8.7);
+  % column headings
+  \node[colhead] at (-0.05, 0.05) {Rung};
+  \node[colhead] at (1.95, 0.05) {Teaching move};
+  \node[colhead] at (4.35, 0.05) {Lean mechanism};
+  \node[colhead] at (6.55, 0.05) {Rung patterns};
+  \node[colhead] at (9.15, 0.05) {taskboard (greenfield)};
+  \node[colhead] at (12.35, 0.05) {Tutors (retrofit)};
+  \node[colhead] at (15.55, 0.05) {A broken rule is found};
+  \draw[jotblue!50, line width=0.4pt] (-0.1, -0.05) -- (17.9, -0.05);
+  % rows, top to bottom
+  \foreach \y/\col/\name/\teach/\lean/\pat/\tb/\tu/\found in {
+      -0.95/jotblue!75/{L5\\Prevented}/{the wrong answer is not available}/{poka-yoke: the fixture admits the part one way}/{\textsc{Unrepresentable Mistake}}/{sealed errors with an exhaustive switch (Java); a \texttt{Record} keyed by a closed union (TypeScript); not reachable in Python}/{strict TypeScript and blocking \texttt{svelte-check}; the learning-object type still resolves to \texttt{string}}/{it cannot be written},
+      -2.35/jotblue!60/{L4\\Explained}/{feedback that names the fix}/{andon: the stop shows where and why}/{\textsc{Teaching Failure}}/{a message on every rule: where the code belongs and how to reach what it needs}/{a comment on every dependency rule; an audit code table with the fix per code}/{at the gate, with its fix},
+      -3.75/jotblue!45/{L3\\Checked}/{an exercise that marks itself}/{the built-in test of standard work; jidoka}/{\textsc{Executable Rule}, \textsc{Closure Check}, \textsc{Honest Double}}/{5 to 8 architecture rules; the requirement check; one repository contract on SQL and in memory}/{ten dependency rules; the EARS audit both ways; nine shrink-only ratchets; coverage and mutation floors}/{at the gate},
+      -5.15/jotblue!30/{L2\\Told}/{the rule, stated once}/{standard work, written}/{\textsc{Short Manifest}, \textsc{Human Boundary}}/{\texttt{AGENTS.md} under 500 words; ten EARS rules in \texttt{REQUIREMENTS.md}}/{a 2,043-word contributing guide; one agent skill loaded on demand; CODEOWNERS on claims and SOP}/{by a careful reader},
+      -6.55/jotblue!15/{L1\\Shown}/{a worked example to copy}/{standard work, shown}/{\textsc{Worked Slice}}/{\texttt{moveTask}, from the service to the route}/{one URL followed through every file to the rendered cards}/{made less likely; not found},
+      -7.95/wash/{L0\\Implied}/{the hidden curriculum}/{tacit knowledge, no standard}/{none}/{V8 and V10 before 21 September}/{most rules before July}/{in review, or never}} {
+    \node[rung=\col] at (0.9, \y) {\name};
+    \node[cell=2.2cm] at (1.9, \y) {\teach};
+    \node[cell=2.0cm] at (4.3, \y) {\lean};
+    \node[cell=2.4cm] at (6.5, \y) {\pat};
+    \node[cell=3.0cm] at (9.1, \y) {\tb};
+    \node[cell=3.0cm] at (12.3, \y) {\tu};
+    \node[cell=2.1cm] at (15.5, \y) {\found};
+  }
+  \draw[larr, line width=1.2pt] (17.8, -8.6) -- node[right, text width=1.5cm, align=left, font=\scriptsize, xshift=2pt]{climb only as far as the risk warrants} (17.8, -0.3);
+  % the loop
+  \draw[jotblue!50, line width=0.4pt] (-0.1, -9.25) -- (17.7, -9.25);
+  \node[colhead] at (-0.05, -9.25) {The loop that keeps it climbing};
+  \node[loop] (p) at (2.0, -10.45) {\textbf{People place} each rule on a rung and own the rules, the manifest and the checks};
+  \node[loop] (d) at (6.5, -10.45) {\textbf{Trust and delegate}: an agent takes the whole change and runs the gate as often as it likes};
+  \node[loop] (g) at (11.0, -10.45) {\textbf{The gate enforces conformity}: green means done; a rule it cannot satisfy goes to a person};
+  \node[loop] (m) at (15.5, -10.45) {\textbf{A miss raises a rung}: an A3 traces it to a cause and the check is added};
+  \draw[larr] (p) -- (d);
+  \draw[larr] (d) -- (g);
+  \draw[larr] (g) -- (m);
+  \draw[larr] (m.south) -- ++(0, -0.45) -| (p.south);
+\end{tikzpicture}
