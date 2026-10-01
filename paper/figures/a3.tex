@@ -1,0 +1,72 @@
+% The first seeding run written up as an A3 report, in the form the Tutors harness writes for a release.
+\begin{tikzpicture}[
+    font=\scriptsize,
+    panel/.style={draw=jotblue!60, line width=0.6pt, fill=white, text width=7.1cm, align=left,
+                  inner sep=5pt, anchor=north west},
+    head/.style={font=\scriptsize\bfseries, text=jotblue},
+    step/.style={draw=#1, line width=0.7pt, fill=#1!7, rounded corners=2pt, minimum height=0.55cm,
+                 minimum width=1.5cm, align=center, inner sep=2pt},
+    arr/.style={-{Stealth[length=2mm]}, line width=0.7pt, muted},
+  ]
+  % sheet
+  \draw[jotblue, line width=1pt, fill=wash] (0, 0) rectangle (15.4, -10.6);
+  \node[anchor=north west, font=\footnotesize\bfseries, text=jotblue] at (0.25, -0.2)
+    {A3: six seeded mistakes passed the gate};
+  \node[anchor=north east, font=\scriptsize, text=muted] at (15.15, -0.25)
+    {receivers at \texttt{8c4a74a}, 21 September 2026; countermeasures measured 29 September};
+
+  % left column
+  \node[panel] (bg) at (0.25, -0.8) {
+    \textbf{\textcolor{jotblue}{Background}}\\
+    The three receivers enforce structure with architecture rules and a short manifest.
+    Seeding twelve canonical mistakes into each and running the single verify command,
+    the gate caught 30 of 36.};
+  \node[panel] (cur) at (0.25, -2.55) {
+    \textbf{\textcolor{jotblue}{Current condition}}\\[3pt]
+    \begin{tikzpicture}[baseline]
+      \node[step=structure] (w) {write};
+      \node[step=behaviour, right=0.5cm of w] (g) {gate};
+      \node[step=missed, right=0.5cm of g] (r) {review};
+      \draw[arr] (w) -- (g);
+      \draw[arr] (g) -- node[above, text=missed, font=\tiny]{V8, V10 pass} (r);
+    \end{tikzpicture}\\[2pt]
+    V8 (a side effect inlined in the service) and V10 (a business rule placed in the route)
+    pass every test in Java, Python and TypeScript and reach a human reviewer. The other
+    thirty are stopped at the gate.};
+  \node[panel] (goal) at (0.25, -5.0) {
+    \textbf{\textcolor{jotblue}{Goal}}\\
+    Every seeded mistake stopped at the gate, by the earliest mechanism its language allows,
+    with no change to application code.};
+  \node[panel] (rca) at (0.25, -6.3) {
+    \textbf{\textcolor{jotblue}{Root cause (five whys)}}\\
+    1. Why did V8 and V10 pass? Every behavioural test passed.\\
+    2. Why? Neither mistake changes what the system does.\\
+    3. Why did no rule object? The rules say which layer may import which, not which layer
+       may log, notify or decide.\\
+    4. Why? No rule asserted placement for side effects or decisions.\\
+    5. Why in all three languages? Behaviour cannot see placement, and the pattern had no
+       structural rule for it. The gap was in the ladder, not in a receiver.};
+
+  % right column
+  \node[panel] (cm) at (7.95, -0.8) {
+    \textbf{\textcolor{jotblue}{Countermeasures}}\\
+    Two \textsc{Executable Rule}s in each receiver: only the events layer may log or notify;
+    routes decide nothing. Each carries a \textsc{Teaching Failure} that names where the
+    code belongs. V8 and V10 move from L0 and L2 to L4.\\[2pt]
+    While there: a requirement \textsc{Closure Check}, with two new seeds (V13, V14) to
+    prove it can fail.};
+  \node[panel] (chk) at (7.95, -3.45) {
+    \textbf{\textcolor{jotblue}{Check}}\\
+    Second run: 42 of 42 caught. V7 now found by an architecture rule rather than a
+    behavioural test in Python and TypeScript. Cost: 31 to 89 lines of test code and
+    80 to 83 words of manifest per receiver. Application code unchanged.};
+  \node[panel] (fu) at (7.95, -5.55) {
+    \textbf{\textcolor{jotblue}{Follow-up}}\\
+    Repeat the pilot against the current receivers with the request in EARS. Raise the
+    harness-erosion use cases from L2 to L3. Adopt the release harness on a second product.};
+  \node[panel, fill=jotblue!6] (how) at (7.95, -7.3) {
+    \textbf{\textcolor{jotblue}{How this sheet is used}}\\
+    In Tutors the harness writes an A3 for every release and its findings inform a confidence
+    score. In the receivers the countermeasure became part of the gate. The form is the same;
+    a team chooses whether it advises or stops the line.};
+\end{tikzpicture}

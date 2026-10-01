@@ -12,7 +12,19 @@ screen of tests and a paragraph of prose per receiver. The Tutors retrofit shows
 established in a production codebase that agents were already changing. It reached the checked
 and explained rungs wherever a check could be written, added ratchets so that legacy violations
 could only shrink, and moved its release checks into a harness that the change under review
-cannot weaken.
+cannot weaken. Figure~\ref{fig:ladder-complete} draws the ladder as it stands at the end of the
+paper: each rung with its teaching move and its Lean mechanism, the patterns that realise it,
+how both known uses bind it, where a broken rule is found, and underneath, the loop of trust,
+delegation and conformity that keeps it climbing.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/ladder-complete}}
+  \caption{The Assertion Ladder, complete. Read a row for one rung across both known uses;
+  read the bottom strip for how a team keeps climbing: people place each rule, an agent is
+  trusted with the change, the gate enforces conformity, and a miss raises a rung.}
+  \label{fig:ladder-complete}
+\end{figure*}
 
 We propose the ladder as a standard for repositories shared with coding agents, one answer to
 each of the five gaps in Section~\ref{sec:related}: a shared vocabulary of rungs; instruction

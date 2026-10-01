@@ -6,15 +6,15 @@ Lean thinking faced a version of the problem this paper faces: work done quickly
 more of it than anyone could inspect, where a defect that travelled downstream cost far more to
 fix than one caught where it was made \citep{ohno1988tps,womack1996lean}. Its answer was to build
 the specification into the work itself. We read the Assertion Ladder as that answer applied to
-a repository and a memoryless contributor, and this section makes the case through four lean
-ideas: value, standard work, the value stream and root cause analysis. Table~\ref{tab:lean} maps each to the
+a repository and a memoryless contributor, and this section makes the case through four Lean
+ideas: value, standard work, the value stream and root cause analysis. Table~\ref{tab:Lean} maps each to the
 receivers and to the evidence, and the section closes with the places where the analogy stops.
 
 \begin{table*}[t]
   \centering\small
   \caption{Lean ideas, the rungs and patterns that carry them, and where they appear in the
   receivers. The first four rows are the argument; the last three are supporting mechanisms.}
-  \label{tab:lean}
+  \label{tab:Lean}
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{2.9cm}|X|X}
     \hline
     \textbf{Lean idea} & \textbf{Rung or pattern} & \textbf{In the receivers} & \textbf{Evidence} \\
@@ -55,7 +55,7 @@ The ladder then does what they found Toyota does: it attaches a test to the stan
 departure shows up at once. The lower rungs show and tell the standard; the upper rungs make it
 self-checking. Every pilot run followed the slice's layering, and the two departures the pilot
 recorded both came from the condition with the slice alone and no written standard. Standard work
-is also owned. In lean, the people who do the work improve the standard; in the receivers, an agent
+is also owned. In Lean, the people who do the work improve the standard; in the receivers, an agent
 follows the standard, and the \pattern{Human Boundary} requires a person's decision before the
 rules or the manifest change. That division is deliberate, and we return to it below.
 
@@ -69,7 +69,7 @@ the shift. At commit \texttt{8c4a74a}, V8 and V10 passed the gate in all three r
 have reached review; now both are stopped at the gate by an architecture rule. V7 moved earlier
 within the gate, from a behavioural test to an architecture rule, in Python and TypeScript, and V6
 was already refused by the compiler in Java and TypeScript. We have no timing data for the stream, so we claim
-only the position at which a defect is found, not the time saved. The lean argument is that
+only the position at which a defect is found, not the time saved. The Lean argument is that
 position matters: a defect found at the gate goes back to the contributor who made it while the
 change is still open, whereas one found in review has already cost a person's attention and, if
 missed, becomes the rework that sprawl describes.
@@ -84,7 +84,7 @@ missed, becomes the rework that sprawl describes.
   \label{fig:valuestream}
 \end{figure*}
 
-\paragraph{Root cause analysis} The first seeding run is a small worked example of lean problem
+\paragraph{Root cause analysis} The first seeding run is a small worked example of Lean problem
 solving. The problem was concrete: six of 36 seeded mistakes passed the gate. Asking why led to a
 cause at the level of the ladder, not of any receiver. The misses were the same two mistakes, V8
 and V10, in all three languages. Both passed because every behavioural test passed; every
@@ -97,12 +97,31 @@ moved from L0 and L2 to L4. The check was a second run, which caught all 42 seed
 seeds. The standard then
 absorbed the countermeasure, in the plan--do--check--act manner of an A3 report
 \citep{sobek2008a3}. The V9 fixture episode (Section~\ref{sec:usecases}) followed the same cycle on
-a smaller scale, and is the kaizen of a check rather than of the code. What lean adds to the usual
+a smaller scale, and is the kaizen of a check rather than of the code. What Lean adds to the usual
 advice to add a test after a bug is the insistence on the cause: because the same gap appeared in
 three languages, the countermeasure was a kind of rule every receiver needed, not a patch to one of
 them.
 
-\paragraph{Supporting mechanisms} Three further lean mechanisms map onto the ladder more briefly.
+Figure~\ref{fig:a3} writes the episode up as an A3, in the form the Tutors release harness
+writes for a release (Section~\ref{sec:tutors}). We include it because it is the ladder's
+hallmark on one page. The current condition is where a mistake was found along the stream, the
+root cause is the rung it was sitting on, the countermeasure is the rung it climbed to, and the
+check is the next run. The form carries no verdict of its own, which is the point. In Tutors the
+harness opens an A3 on every failed candidate and its findings inform a confidence score that a
+person reads before shipping. In the receivers the countermeasure went straight into the gate.
+A team can use the same sheet for confidence or for a hard check, and the ladder is the scale
+on which it says which.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{0.96\linewidth}{!}{\input{figures/a3}}
+  \caption{The first seeding run as an A3 report. One sheet carries the problem, where it was
+  found, why, what rung the rule climbed to and what the next run showed. Tutors writes the same
+  sheet for a release and reads it as confidence; the receivers made its countermeasure a gate.}
+  \label{fig:a3}
+\end{figure*}
+
+\paragraph{Supporting mechanisms} Three further Lean mechanisms map onto the ladder more briefly.
 The single gate is \emph{jidoka}: the build stops itself on an abnormality, so that no person has
 to watch every line, and the manifest's instruction to change the code rather than the test is
 the rule that a stop is answered by fixing its cause. No pilot run modified a rule. Jidoka's
@@ -119,10 +138,10 @@ session. The cost of showing and telling is therefore paid every time, which is 
 reason to move a rule from prose into a check, where following it costs no reading. For the same
 reason, improvement cannot happen inside the agent. Whatever an agent notices in a session is lost
 unless it is written into the repository, so reflection and kaizen run through people and the
-files they own. Second, lean's respect for people becomes the \pattern{Human Boundary}. In lean the
+files they own. Second, Lean's respect for people becomes the \pattern{Human Boundary}. In Lean the
 people who do the work own the standard. Here much of the work is done by agents, so people keep
 what needs judgement: what counts as value, how high a rule should climb, and when a check is
-wrong. The risk to avoid is the one lean warned against, reducing people to inspectors of someone
+wrong. The risk to avoid is the one Lean warned against, reducing people to inspectors of someone
 else's output; the ladder gives them the standard and its checks to own instead of every line to
 read. Third, the fixture is made of the same material as the work. A worker cannot redesign the jig
 in the middle of a shift, but an agent can edit a test, which is why changes to the rules sit
@@ -131,7 +150,7 @@ enforce it. Fourth, the ladder can itself become waste. A check is cheap to run 
 maintain, and a rule encoded in types far more elaborate than its risk warrants is
 over-processing. Reinertsen's caution applies \citep{reinertsen2009principles}, and so do the
 findings of Staats and colleagues on uncertain knowledge work \citep{staats2011lean}: standardise
-what should repeat and leave the rest free. The ladder applies lean to a team's conventions, not
+what should repeat and leave the rest free. The ladder applies Lean to a team's conventions, not
 to its design.
 
 \subsection{Domain sanctity against ease of use}

@@ -5,8 +5,8 @@ whether the ladder can be climbed by a codebase that was not: an open-source tea
 production, with years of history and few tests, into which coding agents were already
 contributing. It reports what was retrofitted, in what order, what it reached and what it could
 not, and how its release gate was extracted into a separate, reusable repository. Every figure
-below is read from the two public repositories, the monorepo at commit \texttt{865d02f}
-\citep{tutorsmonorepo} and the release harness at version 1.15.0, commit \texttt{c324525}
+below is read from the two public repositories as they stood on 28 September 2026: the
+monorepo \citep{tutorsmonorepo} and the release harness at version 1.15.0
 \citep{tutorsreleaseharness}. Where a figure is our own count rather than one the repositories
 record, we say so.
 
@@ -31,19 +31,31 @@ domain protected while agents change it.
 
 \subsection{The retrofit, rung by rung}
 
-Table~\ref{tab:tutors-binding} maps each rung pattern to the artefact that binds it in Tutors.
-The order in which they arrived says something about what each one costs. The first moves, in early August, were
-to replace call-sequence mocks with real implementations and a data-driven stand-in carrying 27
-validation tests of its own (commit \texttt{786f1fe}), and to clear 138 type errors
-(\texttt{95064ea}). These are the cheapest rungs: they make existing tests honest before new
-ones are added. Structure came next. On 16 September a ``testing runway'' added architecture
-rules, suite-health lints and completeness checks as tiers A to O, and one aggregate CI job,
-\repo{ci-success}, as the required status (\texttt{c57b9eb}, \texttt{3bf806b}). Requirements
-came last. Feature files had existed since August, but on 17 September all 24 were found to be
-documentation only; binding them to product code (\texttt{adffc55}) found bugs in search, sort
-and logging (\path{guides/evolution/tutors-revolution.md}, ``Spec-first''). EARS \texttt{Rule:}
-blocks with permanent ids and an audit followed on 21 September, and on 26 September coverage and
-mutation floors.
+Table~\ref{tab:tutors-binding} maps each rung pattern to the artefact that binds it in Tutors,
+and Figure~\ref{fig:timeline} dates the retrofit beside the receivers' own iterations. We give
+dates rather than commits, because what matters is the maturity each point marks and not the
+hash that records it; the hashes are in the repositories for anyone who wants them. The order
+says something about what each rung costs. The first moves, in early August, replaced
+call-sequence mocks with real implementations and a data-driven stand-in carrying 27 validation
+tests of its own, and cleared 138 type errors. These are the cheapest rungs: they make existing
+tests honest before new ones are added. Structure came next. In mid September a ``testing
+runway'' added architecture rules, suite-health lints and completeness checks as tiers A to O,
+and one aggregate CI job, \repo{ci-success}, as the required status. Requirements came last.
+Feature files had existed since August, but on 17 September all 24 were found to be
+documentation only; binding them to product code found bugs in search, sort and logging
+(\path{guides/evolution/tutors-revolution.md}, ``Spec-first''). EARS \texttt{Rule:} blocks with
+permanent ids and an audit followed on 21 September, and on 26 September coverage and mutation
+floors.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/timeline}}
+  \caption{Two climbs, June to September 2026. Tutors, a production codebase, and the
+  receivers, built for the paper, reached the rungs over the same weeks. Each point is a level
+  of maturity; the one commit named, \texttt{8c4a74a}, is kept because the evaluation files
+  are named by it.}
+  \label{fig:timeline}
+\end{figure*}
 
 \begin{table*}[t]
   \centering\small
@@ -112,11 +124,10 @@ Rule: If total or per-package test coverage falls below
 \end{lstlisting}
 
 \paragraph{Climbing in steps} Two rules show the ladder being climbed deliberately rather than
-all at once. Type checks ran with \repo{continue-on-error} until the type errors were cleared, and
-became blocking on 18 September (\texttt{1bea114}). The EARS audit was added as a non-blocking
-job on 21 September (\texttt{6de1236}) and joined the required \repo{ci-success} job on
-23 September (\texttt{4600835}). In both cases the rule was declared and measured before it was
-allowed to stop the line.
+all at once. Type checks ran with \repo{continue-on-error} until the type errors were cleared,
+and became blocking on 18 September. The EARS audit was added as a non-blocking job on
+21 September and joined the required \repo{ci-success} job two days later. In both cases the
+rule was declared and measured before it was allowed to stop the line.
 
 \subsection{What a retrofit adds: ratchets and self-tests}
 
@@ -186,7 +197,7 @@ journeys and the fixture stubs are still Tutors'. We therefore read the harness 
 made reusable at the level of its contract, and not yet as a tool demonstrated on a second
 product.
 
-\paragraph{Lean, named in the code} The harness is explicit about its lean vocabulary, and each
+\paragraph{Lean, named in the code} The harness is explicit about its Lean vocabulary, and each
 term points to a mechanism rather than sitting in a glossary (\emph{harness} \repo{docs/lean.md};
 \repo{release/SOP.md}). \emph{Jidoka}: the Gate stops the line, and an advisory confidence score
 may never override it (``a FAIL is a FAIL at RCS 99''). \emph{Standard work}: a twelve-step
@@ -203,7 +214,9 @@ when a real regression escaped that a journey would have caught'' (\emph{harness
 
 \subsection{What the retrofit shows}
 
-Three results are measured by the repositories themselves. First, the ladder can be climbed on a
+Three results are measured by the repositories themselves, and together they are the agentic
+loop of Section~\ref{sec:ladder} run at length: agents were trusted with most of the commits,
+the gate grew under them, and each miss raised a rung. First, the ladder can be climbed on a
 production codebase in weeks: from 27 tests on 1 June to 2,140 declared tests, 184 bound scenarios
 under 89 EARS Rules and 51 CI jobs on 28 September (\repo{journey.md}). Second, the release rung
 finds what the lower rungs miss. The harness found four production bugs that no test had,

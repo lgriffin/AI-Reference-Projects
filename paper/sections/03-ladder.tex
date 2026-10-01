@@ -56,7 +56,7 @@ A teacher would call it the hidden curriculum.
 \paragraph{\rung{L1 Shown}} One complete example embodies the rule: a vertical slice from the
 domain to the endpoint, small enough to read whole. Agents, like novices, copy structure before
 they understand it \citep{sweller1985worked}, so the slice is the cheapest effective assertion
-there is. To a lean eye the slice is standard work shown rather than written: the team's current
+there is. To a Lean eye the slice is standard work shown rather than written: the team's current
 best way to add a feature, in a form a contributor can copy. Its weakness is that the learner may
 copy the wrong detail, or generalise from an accident of the example.
 
@@ -210,7 +210,7 @@ hypothesis supported by the ten taskboard rules and by one pilot run, not as a l
 
 The solution says to climb only as far as a rule's risk warrants, and to remove a rule from the
 prose once a check covers it. Both clauses are about ease of use, which is the force teams
-forget first. A manifest that repeats what the tests enforce is waste in the lean sense: it costs
+forget first. A manifest that repeats what the tests enforce is waste in the Lean sense: it costs
 reading time every session and adds nothing the gate does not already guarantee. Standard work
 is meant to change as the team learns, and here it changes by subtraction as well as addition:
 once a rule is built into a check, the written standard no longer needs to carry it. Instructional
@@ -218,3 +218,19 @@ design calls the same move \emph{fading}: scaffolding is withdrawn as the learne
 it \citep{wood1976scaffolding}. In the receivers the manifest says so of itself: ``anything a
 test can check lives in the tests, not here.'' Section~\ref{sec:evaluation} reports what the
 added rungs cost in words.
+
+\subsection{The agentic loop: trust, delegate, conform}
+
+The ladder is not only a way to grade rules. It is what lets a team hand work to an agent at
+all. The loop we run, in the receivers and in Tutors, has three moves. People \emph{trust} the
+agent with a change because the rungs say what it cannot get wrong without the build saying so.
+They \emph{delegate} the whole change rather than a sketch of it, and let the agent run the gate
+as often as it likes. And the gate \emph{enforces conformity} to the ladder: a change is done
+when the single command is green, and a rule the agent cannot satisfy is raised to a person at
+the \pattern{Human Boundary} rather than relaxed. The loop closes when a miss shows up. A
+mistake that reached review is a rule sitting on too low a rung; the rung is raised, the check is
+added, and the next delegation starts from a stronger ladder. Section~\ref{sec:evaluation}
+shows one turn of the loop on the receivers. Section~\ref{sec:tutors} shows it run for three
+months on a production codebase, where 329 of 483 commits were authored or co-authored by an
+agent and the gate that judged them grew, over the same months, from nothing to one required
+job.

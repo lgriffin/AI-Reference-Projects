@@ -14,6 +14,12 @@ order of how early they give feedback, are the compiler, an architecture rule, t
 check, a behavioural test, and nothing. Table~\ref{tab:violations} lists the fourteen mistakes:
 twelve structural, and two that break the trace between requirements and scenarios.
 
+Two states of the receivers are compared throughout. We name the earlier one by the commit that
+records it, \texttt{8c4a74a}, because the files in \repo{evaluation/} are named by it, but the
+hash stands for a point of maturity on the timeline in Figure~\ref{fig:timeline}: the second
+iteration of 21 September 2026, with a slice, a manifest and structural rules and nothing above
+them. ``Now'' is the ladder as it stood on 29 September.
+
 \begin{table*}[t]
   \centering\small
   \caption{The fourteen seeded mistakes, and the mechanism that caught each in Java / Python /
@@ -54,8 +60,8 @@ twelve structural, and two that break the trace between requirements and scenari
   \end{tabularx}
 \end{table*}
 
-Figure~\ref{fig:seeding} compares the receivers at commit \texttt{8c4a74a}, before the work
-described here, with the receivers now. Before, the single gate caught 30 of 36 structural
+Figure~\ref{fig:seeding} compares the receivers at \texttt{8c4a74a}, before the ladder was
+added, with the receivers now. Before, the single gate caught 30 of 36 structural
 mistakes. The six misses were the same two mistakes in every language: V8, a side effect inlined
 in the service, and V10, a business rule placed in the route. The same two mistakes got through
 in three languages, past three different styles of enforcement, which told us the gap was in the
