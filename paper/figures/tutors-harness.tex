@@ -21,8 +21,8 @@
 
   % The harness
   \node[box=behaviour, right=1.25cm of claims, yshift=0.95cm] (gate) {\textbf{Gate}\\every observable\\difference claimed};
-  \node[box=missed, below=0.25cm of gate] (mut) {\textbf{Self-test}\\ten planted mutants;\\a clean A/A first};
-  \node[box=muted, below=0.25cm of mut] (kai) {\textbf{Kaizen}\\SOP, glance, 5 Whys,\\A3, scoreboard};
+  \node[box=missed, below=0.25cm of gate] (mut) {\textbf{Self-test}\\sixteen planted mutants;\\a clean A/A first};
+  \node[box=muted, below=0.25cm of mut] (kai) {\textbf{Kaizen}\\SOP, glance, 5 Whys, A3;\\new checks inform, then block};
   \node[repo=missed, fit=(gate)(mut)(kai), label={[lbl, text=missed]north west:{\repo{tutors-release-harness}: the judge, kept apart}}] (har) {};
 
   \draw[arr=requirement] (ears.east) -- ++(0.35,0) |- (claims.west);
