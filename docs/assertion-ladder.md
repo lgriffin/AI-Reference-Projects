@@ -3,8 +3,9 @@
 A pattern for embedding a technical domain in a repository that people and coding agents change
 together, so that AI-generated volume (sprawl) and the limits of human attention (cognitive
 erosion) do not wear the domain away. The three implementations in this repository are its
-receivers: each binds every rung in its own idiom. The paper that this guide supports is planned
-in [`paper-plan.md`](../paper-plan.md).
+receivers: each binds every rung in its own idiom. The paper that this guide supports, version 1 of which was
+submitted to the *Journal of Object Technology* on 2 October 2026, is in [`paper/`](../paper/);
+[`paper-plan.md`](../paper-plan.md) governs it.
 
 ## The pattern
 

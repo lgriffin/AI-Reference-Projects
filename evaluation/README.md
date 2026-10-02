@@ -1,6 +1,7 @@
 # Evaluation
 
-Everything Section 6 of the paper reports can be regenerated from here. Each implementation
+Everything Section 6 of the paper reports can be regenerated from here. The numbers in version 1,
+submitted to the *Journal of Object Technology* on 2 October 2026, are the ones in the JSON files here. Each implementation
 must first be installed (see its README) so that its verify command runs.
 
 | Script               | Produces        | Paper                                   |
