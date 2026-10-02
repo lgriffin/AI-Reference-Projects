@@ -11,7 +11,8 @@ first, then the paper.
   (the worked example, with file references at commit `8c4a74a`)
 - Guide: [`docs/assertion-ladder.md`](docs/assertion-ladder.md), the pattern and each receiver's
   binding path, in the repository
-- Status: plan not yet agreed by all four authors; owners and open decisions are open to change
+- Status: version 1 of the paper submitted to JOT for consideration on 2 October 2026; the
+  plan now governs what changes in version 2
 
 ## 1. Thesis
 
@@ -146,7 +147,8 @@ between that claim and the code. Done items were verified locally in all three r
 - [x] Official JOT class (`paper/jot.cls` v2.6) in place of the stand-in layout
 - [x] Tutors retrofit case study (Eamonn de Leastar) and the TypeScript-first worked example
 - [x] Short bios, contact emails and the SETU and Red Hat Waterford collaboration acknowledgment
-- [ ] Tutors authors to confirm every figure quoted from the Tutors repositories
+- [x] Tutors authors to confirm every figure quoted from the Tutors repositories
+- [x] Version 1 submitted to JOT (jot.fm) on 2 October 2026, with the cover letter in `paper/`
 
 ## 8. Open decisions
 
@@ -154,6 +156,6 @@ between that claim and the code. Done items were verified locally in all three r
 | --- | --- | --- |
 | Gherkin files or scenario-named tests | Scenario-named tests: no new dependency | |
 | Relation to other papers | A standalone new paper; the `8c4a74a` run and the pilot are this work's own first iteration | Decided (Leigh, 2026-09-30) |
-| Keep "Intent Harness" as a name | Retire it; use Assertion Ladder throughout | |
+| Keep "Intent Harness" as a name | Retire it; use Assertion Ladder throughout | Decided (the submitted paper uses Assertion Ladder throughout) |
 | Include the two illustrative domains | Yes, clearly marked as illustrations | |
-| Paper title | "The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents" | Working title |
+| Paper title | "The Assertion Ladder: Graduated Assertion for Embedding a Technical Domain in Repositories Shared with Coding Agents" | Decided (submitted under this title, 2026-10-02) |

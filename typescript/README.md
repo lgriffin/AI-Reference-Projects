@@ -4,7 +4,9 @@ A deliberately small Kanban API that is a complete example of a repository prepa
 human-AI development: eight default architectural patterns, a manifest that states them
 ([AGENTS.md](AGENTS.md)), and tests that enforce them. The same application exists in
 [Java](../java), [Python](../python) and [TypeScript](../typescript); the three are
-behaviourally identical.
+behaviourally identical. This is the code reported in version 1 of *The Assertion Ladder*,
+submitted to the *Journal of Object Technology* on 2 October 2026 (see the
+[root README](../README.md)).
 
 ## Run it
 

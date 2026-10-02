@@ -8,10 +8,23 @@ This repository is the open companion to our paper for the *Journal of Object Te
 > Leigh Griffin, Paul Power and Ray Carroll (Red Hat, Waterford, Ireland); Colm Dunphy, Darrin Taylor
 > and Eamonn de Leastar (South East Technological University, Waterford, Ireland)
 
+**Status: version 1 submitted.** The first version of the paper was submitted to the *Journal
+of Object Technology* ([jot.fm](https://www.jot.fm)) for consideration on 2 October 2026. The
+submitted paper is [`paper/assertion-ladder.pdf`](paper/assertion-ladder.pdf) and the cover
+letter that went with it is [`paper/cover-letter.pdf`](paper/cover-letter.pdf). The code, data
+and scripts in this repository are the ones that version reports on.
+
 **About the versions here.** The working draft of the paper is written and edited internally by
-the authors. This repository holds the final versions, published in the open alongside the code,
-data and scripts the paper reports on, so that anyone can read, rebuild and check them. The current
-release is [`paper/assertion-ladder.pdf`](paper/assertion-ladder.pdf).
+the authors. This repository holds the released versions, published in the open alongside the
+code, data and scripts the paper reports on, so that anyone can read, rebuild and check them.
+Changes that land after a submission are the next version, not edits to the submitted one.
+
+**For reference: the Tutors repositories.** The paper's production case study is Tutors, SETU's
+open-source learning platform. Its code is not in this repository; read it at
+[tutors-sdk/tutors-mono-repo](https://github.com/tutors-sdk/tutors-mono-repo), where the paper
+reports the retrofit, and [tutors-sdk/tutors-release-harness](https://github.com/tutors-sdk/tutors-release-harness),
+the release harness extracted from it. The submitted paper reads the mono repo at commit
+`865d02f` and the harness at version 1.28.0.
 
 ## Why we wrote it
 
@@ -26,14 +39,14 @@ We meet this from two sides of the same city. At South East Technological Univer
 Colm and Eamonn lead the software programme, the online
 [Higher Diploma in Science in Computer Science](https://www.setu.ie/courses/higher-diploma-in-computer-science-2-years-online), where students now learn to program
 alongside agents and lecturers need codebases that teach a domain to both. Darrin leads the
-[Master of Business Studies in Lean Enterprise Excellence](https://www.setu.ie/courses/master-of-business-in-lean-enterprise-excellence), where lean practice is taught to
+[Master of Business Studies in Lean Enterprise Excellence](https://www.setu.ie/courses/master-of-business-in-lean-enterprise-excellence), where Lean practice is taught to
 people who improve real organisations. At Red Hat in Waterford, Leigh, Paul and Ray work on
 software that agents also change, and see hiring move towards graduates who can work safely in such
 repositories. The
 question is the same for a student, a new hire and an agent: how does a repository make its domain
 rules impossible to miss and hard to break, without burying everyone in prose?
 
-Our answer is lean before it is technical. Start from what the domain values, make the best current
+Our answer is Lean before it is technical. Start from what the domain values, make the best current
 method standard work that anyone can follow, look at where along the value stream a mistake is
 found, and fix causes rather than symptoms. That framing is set out at book length in Leigh's
 *Build High Value Software Systems* (Manning, forthcoming).
@@ -67,8 +80,9 @@ found, and fix causes rather than symptoms. That framing is set out at book leng
 4. **Evidence.** [`evaluation/`](evaluation/) seeds fourteen canonical mistakes into each
    implementation and records what catches them: a benchmark of the repository, not of the agent. A
    pilot gave eighteen coding agents the same feature request with different rungs available.
-5. **The paper.** [`paper/`](paper/) holds the released sources and PDF; [`paper-plan.md`](paper-plan.md)
-   records the thesis, vocabulary, section owners and rules of evidence the authors agreed.
+5. **The paper.** [`paper/`](paper/) holds the sources and PDF of version 1, as submitted to JOT
+   on 2 October 2026; [`paper-plan.md`](paper-plan.md) records the thesis, vocabulary, section
+   owners and rules of evidence the authors agreed.
 
 ## The receivers
 
