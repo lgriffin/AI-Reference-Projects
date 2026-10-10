@@ -148,3 +148,41 @@ climbs, the agent carries the rule into every receiver and keeps the templates i
 single gate in each receiver checks the result. A new rung pattern, a new receiver in another
 language, or a new rule in the requirements file can be added the same way, by anyone, with
 the same checks deciding whether it landed.
+
+## Statements for the Journal
+
+The Journal asked, with the resubmission, for a statement of how AI tools were used and a
+statement of each author's contribution. Both are kept here, with the code and the paper they
+describe.
+
+### Use of AI tools
+
+We used Claude, Anthropic's coding agent, extensively in preparing both the manuscript and the
+accompanying artefacts, and we say so because the paper is about working in exactly that way. For
+the artefacts, the three receivers, their manifests and rules, the seeding script and the pilot's
+audit were built in an agentic interchange: the authors set the intent, the agent drafted the
+templates, the authors reviewed and corrected them, and each receiver's own checks decided when a
+change was done. This repository keeps that history intact, with the agent's commit trailers left
+in place, as part of the record. For the manuscript, six authors writing from two institutions
+produce disconnects, so we used Claude to hold the paper together: to keep the vocabulary, the
+numbers and the argument in step from section to section, and to draft and revise text from our
+notes and review comments. We also used general AI review capabilities for review, for clarity and
+for unity of voice. The idea of the ladder, the Lean reading that frames it, the design decisions,
+the claims and the interpretation of the evidence are the authors' own; every number in the
+evaluation can be regenerated from this repository without any AI tool; and no AI tool is an
+author.
+
+### Author contributions
+
+Leigh Griffin conceived the Assertion Ladder and the Lean reading that frames it, led the design
+of the study, led the writing and is the corresponding author. Paul Power led the technical work
+at Red Hat: the receivers, the architecture rules, the seeding benchmark and the pilot. Ray
+Carroll built and explored the receivers across the three languages, kept the Java and Python
+implementations equivalent to the TypeScript one, and reviewed the code. Together they form the
+core research group at Red Hat whose work supports the college. Eamonn de Leastar led the Tutors
+retrofit and the release harness, and wrote and verified the case study. Colm Dunphy brought the
+pedagogical perspective: the student who must learn and master a domain while agents build past
+their capability, and what the ladder protects. Darrin Taylor brought the Lean practice: value,
+standard work, the value stream and root cause analysis, and the A3. The Lean influence and the
+aim of protecting students working against AI are what made the union of the two institutions
+complete. All authors reviewed and approved the manuscript.
