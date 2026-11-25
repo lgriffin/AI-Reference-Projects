@@ -1,0 +1,246 @@
+{
+    "route": "/",
+    "type": "course",
+    "title": "Ladder Sample Course",
+    "summary": "A tiny course that every rung of the Tutors ladder reads. It holds one of each learning object the early rungs support.",
+    "contentMd": "# Ladder Sample Course\n\nA tiny course that every rung of the Tutors ladder reads. It holds one of each learning object the early rungs support.\n",
+    "frontMatter": {},
+    "id": "ladder-sample-course",
+    "img": "https://{{COURSEURL}}/course.png",
+    "imgFile": "course.png",
+    "video": "",
+    "videoids": {
+        "videoid": "",
+        "videoIds": []
+    },
+    "hide": false,
+    "authLevel": 0,
+    "los": [
+        {
+            "route": "/topic/{{COURSEURL}}/topic-01-basics",
+            "type": "topic",
+            "title": "Basics",
+            "summary": "Talks, notes and resources that introduce the course.",
+            "contentMd": "# Basics\n\nTalks, notes and resources that introduce the course.\n",
+            "frontMatter": {},
+            "id": "topic-01-basics",
+            "img": "https://{{COURSEURL}}/topic-01-basics/topic.png",
+            "imgFile": "topic.png",
+            "video": "",
+            "videoids": {
+                "videoid": "",
+                "videoIds": []
+            },
+            "hide": false,
+            "authLevel": 0,
+            "los": [
+                {
+                    "route": "/topic/{{COURSEURL}}/topic-01-basics/",
+                    "type": "unit",
+                    "title": "Introduction",
+                    "summary": "",
+                    "contentMd": "# Introduction\n",
+                    "frontMatter": {},
+                    "id": "unit-1-intro",
+                    "img": "",
+                    "imgFile": "",
+                    "video": "",
+                    "videoids": {
+                        "videoid": "",
+                        "videoIds": []
+                    },
+                    "hide": false,
+                    "authLevel": 0,
+                    "los": [
+                        {
+                            "route": "/talk/{{COURSEURL}}/topic-01-basics/unit-1-intro/talk-1-welcome",
+                            "type": "talk",
+                            "title": "Welcome",
+                            "summary": "A short talk that opens the course.",
+                            "contentMd": "# Welcome\n\nA short talk that opens the course.\n\n---\n\n## What you will build\n\n- A generator\n- A static website\n",
+                            "frontMatter": {
+                                "marp": true,
+                                "theme": "default",
+                                "paginate": true
+                            },
+                            "id": "talk-1-welcome",
+                            "img": "https://{{COURSEURL}}/topic-01-basics/unit-1-intro/talk-1-welcome/talk.png",
+                            "imgFile": "talk.png",
+                            "video": "",
+                            "videoids": {
+                                "videoid": "",
+                                "videoIds": []
+                            },
+                            "hide": false,
+                            "authLevel": 0,
+                            "pdf": "",
+                            "pdfFile": ""
+                        },
+                        {
+                            "route": "/note/{{COURSEURL}}/topic-01-basics/unit-1-intro/note-1-reading",
+                            "type": "note",
+                            "title": "Reading Guide",
+                            "summary": "How to read this course.",
+                            "contentMd": "# Reading Guide\n\nHow to read this course.\n\n## Steps\n\n1. Read the talk.\n2. Do the lab.\n\nSome **bold** text, some *emphasis* and a [link](https://tutors.dev).\n\n```ts\nconst answer: number = 42;\n```\n",
+                            "frontMatter": {},
+                            "id": "note-1-reading",
+                            "img": "https://{{COURSEURL}}/topic-01-basics/unit-1-intro/note-1-reading/note.png",
+                            "imgFile": "note.png",
+                            "video": "",
+                            "videoids": {
+                                "videoid": "",
+                                "videoIds": []
+                            },
+                            "hide": false,
+                            "authLevel": 0
+                        }
+                    ]
+                },
+                {
+                    "route": "/topic/{{COURSEURL}}/topic-01-basics/",
+                    "type": "side",
+                    "title": "Resources",
+                    "summary": "",
+                    "contentMd": "# Resources\n",
+                    "frontMatter": {},
+                    "id": "side-resources",
+                    "img": "",
+                    "imgFile": "",
+                    "video": "",
+                    "videoids": {
+                        "videoid": "",
+                        "videoIds": []
+                    },
+                    "hide": false,
+                    "authLevel": 0,
+                    "los": [
+                        {
+                            "route": "/archive/{{COURSEURL}}/topic-01-basics/side-resources/archive-1-solutions",
+                            "type": "archive",
+                            "title": "Solutions",
+                            "summary": "A zipped archive of the lab solutions.",
+                            "contentMd": "# Solutions\n\nA zipped archive of the lab solutions.\n",
+                            "frontMatter": {},
+                            "id": "archive-1-solutions",
+                            "img": "https://{{COURSEURL}}/topic-01-basics/side-resources/archive-1-solutions/archive.png",
+                            "imgFile": "archive.png",
+                            "video": "",
+                            "videoids": {
+                                "videoid": "",
+                                "videoIds": []
+                            },
+                            "hide": false,
+                            "authLevel": 0,
+                            "archiveFile": "archive.zip"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "/topic/{{COURSEURL}}/topic-02-practice",
+            "type": "topic",
+            "title": "Practice",
+            "summary": "A lab and a link to practise with.",
+            "contentMd": "# Practice\n\nA lab and a link to practise with.\n",
+            "frontMatter": {},
+            "id": "topic-02-practice",
+            "img": "https://{{COURSEURL}}/topic-02-practice/topic.png",
+            "imgFile": "topic.png",
+            "video": "",
+            "videoids": {
+                "videoid": "",
+                "videoIds": []
+            },
+            "hide": false,
+            "authLevel": 0,
+            "los": [
+                {
+                    "route": "/topic/{{COURSEURL}}/topic-02-practice/",
+                    "type": "unit",
+                    "title": "Hands On",
+                    "summary": "",
+                    "contentMd": "# Hands On\n",
+                    "frontMatter": {},
+                    "id": "unit-1-lab",
+                    "img": "",
+                    "imgFile": "",
+                    "video": "",
+                    "videoids": {
+                        "videoid": "",
+                        "videoIds": []
+                    },
+                    "hide": false,
+                    "authLevel": 0,
+                    "los": [
+                        {
+                            "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab",
+                            "type": "lab",
+                            "title": "Lab-01-First-Steps",
+                            "summary": "Build a course folder and generate it.",
+                            "contentMd": "# Objectives\n\nBuild a course folder and generate it.\n",
+                            "frontMatter": {},
+                            "id": "book-1-first-lab",
+                            "img": "https://{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab/img/main.png",
+                            "imgFile": "img/main.png",
+                            "video": "",
+                            "videoids": {
+                                "videoid": "",
+                                "videoIds": []
+                            },
+                            "hide": false,
+                            "authLevel": 0,
+                            "los": [
+                                {
+                                    "title": "Objectives",
+                                    "shortTitle": "Lab-01-First-Steps",
+                                    "contentMd": "# Objectives\n\nBuild a course folder and generate it.\n",
+                                    "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab/Lab-01-First-Steps",
+                                    "id": "Lab-01-First-Steps",
+                                    "type": "step"
+                                },
+                                {
+                                    "title": "Setup",
+                                    "shortTitle": "Setup",
+                                    "contentMd": "# Setup\n\nInstall Node 22 or later.\n\n- Check the version with `node --version`.\n",
+                                    "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab/Setup",
+                                    "id": "Setup",
+                                    "type": "step"
+                                },
+                                {
+                                    "title": "Build",
+                                    "shortTitle": "Build",
+                                    "contentMd": "# Build\n\nRun the generator:\n\n```bash\nnode src/main.ts course\n```\n",
+                                    "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab/Build",
+                                    "id": "Build",
+                                    "type": "step"
+                                }
+                            ]
+                        },
+                        {
+                            "route": "https://tutors.dev",
+                            "type": "web",
+                            "title": "Tutors",
+                            "summary": "The Tutors website.",
+                            "contentMd": "# Tutors\n\nThe Tutors website.\n",
+                            "frontMatter": {},
+                            "id": "web-1-tutors",
+                            "img": "https://{{COURSEURL}}/topic-02-practice/unit-1-lab/web-1-tutors/web.png",
+                            "imgFile": "web.png",
+                            "video": "",
+                            "videoids": {
+                                "videoid": "",
+                                "videoIds": []
+                            },
+                            "hide": false,
+                            "authLevel": 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "properties": {
+        "credits": "The Tutors ladder sample course"
+    }
+}

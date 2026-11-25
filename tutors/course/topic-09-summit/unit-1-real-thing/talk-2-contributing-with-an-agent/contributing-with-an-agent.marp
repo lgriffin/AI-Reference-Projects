@@ -1,0 +1,156 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Contributing with an agent, under the ladder
+
+### The repository's guardrails, and your own fence
+
+Tutors Ladder, Summit, talk 2
+
+---
+
+## The Summit has no Rung Fence
+
+- Every variant fenced your agent to its rung
+- tutors-mono-repo has no such fence: an agent can reach every package, workflow and baseline
+- It has strong guardrails of its own, mostly at L3 and L4
+- At the pinned commit it has **no `AGENTS.md` or `CLAUDE.md`**: little at L2 for an agent to read first
+
+So you bring two things: the repository's gates, and a fence of your own.
+
+---
+
+## What the repository gives an agent to read (L2)
+
+| File | What it tells |
+| --- | --- |
+| `CONTRIBUTING.md` | setup, the three local checks, what CI checks, EARS Rules, changelog hints |
+| `docs/COURSE-PAGE-WALKTHROUGH.md` | one page from URL to pixels (also an L1 worked path) |
+| `guides/testing/TESTING-OVERVIEW.md` | the test tiers and every baseline |
+| `.claude/skills/ears-gherkin-dev/SKILL.md` | a Claude Code skill: eight steps for a behavioural change, spec first |
+| `.github/PULL_REQUEST_TEMPLATE.md` | the checklist your PR must fill in |
+
+None is under 500 words or loaded at the start of every session. Your session manifest fills that gap.
+
+---
+
+## Checked and explained (L3, L4): ratchets
+
+"Baselines only shrink" (`guides/testing/TESTING-OVERVIEW.md`):
+
+- a problem not in the baseline fails the build
+- a baseline line that no longer occurs **also** fails the build
+- so fixing something means deleting its line
+
+`tests/architecture/known-violations.txt` holds the dependency-cruiser violations that predate the rules.
+`tests/architecture/dependency-rules.test.ts` reads it. Eight more baselines work the same way.
+
+---
+
+## Checked: EARS Rules as the requirement
+
+- Behaviour a student, lecturer or operator can observe needs a `Rule:` in `tests/bdd/features`
+- EARS form, exactly one "shall", a `@rule-NNNN` id and an `@ears-*` tag
+- Bound to steps that exercise product code; `pnpm test:bdd` runs them
+- `pnpm test:ears:audit` checks their shape; `--next-id` gives a free id (check open PRs too)
+
+The skill's rule for agents: write the Rule, show it to the human, and "wait for a yes: the requirement is
+the thing they are approving".
+
+---
+
+## Checked: floors and budgets
+
+| Check | Surprise (from CONTRIBUTING.md) |
+| --- | --- |
+| coverage floors (`tests/suite-health/coverage-floors.json`) | fail when coverage drops, **and** when it sits 2 or more points above a floor |
+| mutation floors (`tests/mutation/nightly-mutation-floors.json`) | a new library module with no floor fails |
+| changelog hint (`changelog-hint.yml`) | a dependency change needs `sbom` in the PR title |
+
+An agent that "improves" tests can turn CI red. Read the message: it names the file to change.
+
+---
+
+## The Single Gate and the Human Boundary
+
+- **Single Gate**: a PR merges with one approving review and a green **CI success** check, which needs every
+  job in `.github/workflows/ci.yml`
+- **Human Boundary**: `.github/CODEOWNERS` puts `.github/`, `release/claims.yaml`, `release/SOP.md` and
+  `SECURITY.md` behind the maintainers
+- A broad release claim needs `approvedBy`: "a person, never a bot" (`release/README.md`)
+- The release command stops at the reviewer's glance, "because step 8 must stay human"
+
+---
+
+## The release harness, from a contributor's side
+
+You do not run the harness. You make its job possible:
+
+- a PR title in Conventional Commits form with its artefact hint: `fix(reader): raise nav contrast (axe, dom)`
+- no hint means "nothing observable should differ"
+- at release time, the hint becomes a claim in `release/claims.yaml`
+- an observable difference nobody claimed fails the release
+
+---
+
+## Your fence: a session manifest
+
+A short file you give your agent at the start of every session. It is your L2, and it borrows the ladder's
+fence.
+
+- **Rung**: the rung this change sits on, and the upstream areas that rung mirrors
+- **May touch**: the files the issue names, their tests, at most one feature file
+- **Must not touch**: other packages, workflows, baselines (except deleting a fixed line), floors, claims
+- **Gate**: the commands to run before saying "done"
+- **Ask a human first**: any new dependency, any edited test, anything under CODEOWNERS
+
+The lab gives you a template.
+
+---
+
+## Choosing a good first issue at your rung
+
+| The issue touches | Its rung |
+| --- | --- |
+| `packages/jsr/gen`, `model`, `tutors` | 1 Seed |
+| `packages/jsr/tutors-lite` | 2 Lite |
+| `.dependency-cruiser.cjs`, `packages/jsr/types`, `tests/architecture` | 3 Layers |
+| `apps/reader`, `packages/svelte/ui-*`, `utils/i18n` | 4 Reader |
+| `tests/`, `tests/bdd/features`, `guides/testing` | 5 Proven |
+| `utils/rbac`, `identity`, `sanitize.ts`, security headers | 6 Guarded |
+| `.github/workflows`, `release/`, `Dockerfile`, `deploy/` | 7 Shipped |
+
+Pick from the `good first issue` label. CONTRIBUTING.md: each "names the files to change, the expected result
+and how to check it".
+
+---
+
+## Climb no higher than you have reached
+
+- Take an issue at or below the highest rung you have finished
+- If it spans two rungs, take it only if you have finished both
+- Docs fixes sit at Orientation: the walkthrough drift you found in Lab 2 is one
+- Say "I'll take this" on the issue before you start; that is enough for a good first issue
+
+---
+
+## The loop
+
+1. Read the issue and the files it names, yourself
+2. Write the session manifest; start the agent with it
+3. If behaviour changes: the EARS Rule first, approved by you
+4. Let the agent change code; run the gates
+5. Read every line of the diff; cut what you cannot explain
+6. Open the PR with the template filled in honestly
+
+---
+
+## Summary
+
+- The real repository guards itself mostly at L3 and L4
+- You add the L2 an agent lacks, and a fence of your own
+- Pick work at your rung; climb on purpose
+- The lab takes you through one contribution, end to end

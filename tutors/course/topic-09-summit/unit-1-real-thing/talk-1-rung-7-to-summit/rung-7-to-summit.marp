@@ -1,0 +1,164 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# From rung 7 to the real thing
+
+### Every rung, found again in tutors-mono-repo
+
+Tutors Ladder, Summit, talk 1
+
+---
+
+## You have climbed seven rungs
+
+- Rung 1 to 3: a generator, a static site, a layered workspace
+- Rung 4 to 7: a reader, a proven suite, a guarded build, a shipped release
+- Each one mirrors part of the real repository
+
+This talk maps each rung to its upstream areas, then shows what the real repository adds that no rung covers.
+All paths are at the pinned commit `2b96b69` of tutors-sdk/tutors-mono-repo.
+
+---
+
+## Rungs 1 to 3: the generator and its architecture
+
+| Rung | Variant | Upstream areas |
+| --- | --- | --- |
+| 1 Seed | `rung-1-seed` | `packages/jsr/gen`, `packages/jsr/model`, `packages/jsr/tutors` |
+| 2 Lite | `rung-2-lite` | `packages/jsr/tutors-lite` |
+| 3 Layers | `rung-3-layers` | `pnpm-workspace.yaml`, `packages/jsr/types`, the ports in `packages/jsr/course-rules`, `tests/architecture` |
+
+Upstream adds: `packages/jsr/create` (the scaffolder and `tutors validate`), `packages/jsr/tutors-cli`, and
+dependency-cruiser rules in `.dependency-cruiser.cjs`.
+
+---
+
+## Rungs 4 to 7: the four tracks
+
+| Rung | Variant | Upstream areas |
+| --- | --- | --- |
+| 4 Reader | `rung-4-reader` | `apps/reader`, `packages/svelte/ui-*` |
+| 5 Proven | `rung-5-proven` | `tests/`, `guides/testing`, `stryker.config.json` |
+| 6 Guarded | `rung-6-guarded` | `packages/jsr/identity`, `packages/svelte/utils/rbac`, `docs/security`, `SECURITY.md` |
+| 7 Shipped | `rung-7-shipped` | `.github/workflows`, `release/`, `Dockerfile`, tutors-release-harness |
+
+Each variant's `RUNG.md` lists the exact files.
+
+---
+
+## Supabase: the data behind signed-in use
+
+- `supabase/migrations/`: nine SQL migrations at the pinned commit, applied in name order
+- `guides/MIGRATIONS.md`: expand and contract, so a rolling release never breaks the version still running;
+  a merged migration is never edited, deleted or renamed
+- `pnpm check:migrations` checks a new migration before CI does
+- Browser packages reach personal data only through `@tutors/data-api` (`packages/svelte/data-api`), never
+  through the database client
+
+In anonymous mode (`PUBLIC_ANON_MODE=TRUE`) none of this runs. That is why the quick start needs no backend.
+
+---
+
+## Realtime and live
+
+- `packages/jsr/realtime` (`@tutors/realtime`): the realtime port, with topics, the adapter contract and a
+  budgeted gateway, and no broker imports
+- `packages/svelte/realtime-supabase`: the one adapter that drives Supabase Realtime channels
+- `apps/live`: the live classroom and presence app
+- `tests/architecture/realtime-boundary.test.ts` fails on any other file that opens a channel
+
+This is rung 3's ports and adapters, at full size.
+
+---
+
+## Catalogue, time and the validator
+
+| App | What it is | Shares with the ladder |
+| --- | --- | --- |
+| `apps/catalogue` | course catalogue and discovery, with visit statistics | lists courses; its data comes from the backend |
+| `apps/time` | student activity and time tracking, using `@tutors/tutors-time-lib` from `packages/jsr/time` | a JSR library, like rung 1's model |
+| `apps/validator` | validates a published `tutors.json` (V020) or a private local ZIP | the same `course-rules` you ran in Orientation |
+
+In anonymous mode the catalogue, live and time apps start but show no courses or students. That is
+expected (CONTRIBUTING.md).
+
+---
+
+## JSR publishing
+
+- `.github/workflows/jsr-publish.yml`: when a final release is published, every library in `packages/jsr`
+  whose `deno.json` version JSR does not serve yet is published, dependencies first (Rule 0775)
+- `deno publish` authenticates with GitHub's OIDC token, so no JSR token is stored, and JSR records Sigstore
+  provenance
+- That is how `jsr:@tutors/tutors-create validate`, which every course's standard `netlify.toml` runs,
+  reaches lecturers
+
+---
+
+## The release harness
+
+A separate repository, tutors-sdk/tutors-release-harness:
+
+- runs a release candidate's images beside production's
+- drives the same scripted traffic through both, normalises the noise and diffs everything observable
+- **fails unless every difference is claimed** in `release/claims.yaml` by a changelog entry or a Rule
+- verifies the cosign signature of every image it pulls from `quay.io/tutors-sdk/tutors-<app>`
+
+Being separate means "it cannot be quietly weakened by the PR it is judging" (its README).
+
+---
+
+## The release itself
+
+- `release/SOP.md`: twelve steps, each with an owner, an input and a done-when, organised around five Lean
+  ideas
+- `pnpm release:candidate X.Y.Z` runs steps 1, 2 and 5 to 7, then stops at step 8, the reviewer's glance,
+  "because step 8 must stay human"
+- Contributors own steps 3 and 4: the changelog line with its artefact hints, and the claims
+
+Rung 7 built a small version of this. The real one has a harness on the other side.
+
+---
+
+## Service level objectives
+
+- `release/slo.yaml`: indicative availability and latency targets per app, over 28 days
+- `docs/slo.md` explains them: the reader is strictest, 99.5% not 5xx and 95% under one second
+- Grafana alerts are generated from the file (`pnpm slo:alerts`); `pnpm check:slo` fails if they drift
+- The harness judges each candidate against the stricter of these and its own floors (`slo/floors.yaml`)
+
+---
+
+## Supply chain: the OpenSSF Scorecard and friends
+
+- `.github/workflows/scorecard.yml`: OpenSSF Scorecard weekly (Mondays 07:20 UTC), on pushes to `main` and
+  on branch-protection changes; results go to code scanning and the public dashboard
+- The README carries the Scorecard and OpenSSF Baseline badges
+- `codeql.yml` and `zizmor.yml` scan the code and the workflows themselves
+- Images are signed with cosign, keyless, from GitHub OIDC (`image-build.yml`)
+
+Rung 6 starts this story; the real repository finishes it.
+
+---
+
+## Sizes, side by side
+
+| | Ladder | tutors-mono-repo |
+| --- | --- | --- |
+| apps | one reader (rung 4) | 5 |
+| packages | a few workspace packages, from rung 3 | 11 under `packages/jsr`, 21 under `packages/svelte` |
+| workflows | the ones rung 7 adds | 17 |
+| EARS Rules | the ones rung 5 writes | over 400 ids in 85 feature files |
+
+You will not hold all of it in your head. You do not need to. You need the rung your change sits on.
+
+---
+
+## Summary
+
+- Every rung has a home in the real repository, and you know its shape
+- What is new at the Summit is mostly **scale** and **operation**: data, realtime, releases, SLOs
+- The next talk: how to change it safely, with an agent, one rung at a time

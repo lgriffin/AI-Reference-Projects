@@ -1,0 +1,16 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Welcome
+
+A short talk that opens the course.
+
+---
+
+## What you will build
+
+- A generator
+- A static website

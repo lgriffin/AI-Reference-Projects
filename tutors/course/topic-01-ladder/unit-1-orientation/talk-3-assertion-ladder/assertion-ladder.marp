@@ -1,0 +1,141 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# The Assertion Ladder for learners
+
+### Working with a coding agent, one rung at a time
+
+Tutors Ladder, Orientation, talk 3
+
+---
+
+## The problem
+
+- A coding agent writes code faster than you can read it
+- It starts every session with no memory of your project's rules
+- Asked for "a reader", it will happily add Svelte, a router, a database client and a test framework
+- You receive code you cannot yet understand, and you learn less
+
+The Assertion Ladder comes from a paper on keeping a domain intact when agents contribute. Here it protects
+you, the learner.
+
+---
+
+## Six levels for a rule
+
+| Level | Name | What the contributor experiences |
+| --- | --- | --- |
+| L0 | Implied | nothing; it guesses |
+| L1 | Shown | a pattern to imitate |
+| L2 | Told | a rule it may follow, forget or misread |
+| L3 | Checked | a red suite |
+| L4 | Explained | a red suite whose message names the rule, the offender and the fix |
+| L5 | Prevented | the wrong form does not compile |
+
+Pick the weakest level that still covers the rule's risk. Then stop.
+
+---
+
+## The rung patterns
+
+| Level | Pattern | In one line |
+| --- | --- | --- |
+| L1 | Worked Slice | one complete feature, small enough to read whole |
+| L2 | Short Manifest | one file under 500 words, read at the start of every session |
+| L3 | Executable Rule | a test that fails when the rule is broken |
+| L4 | Teaching Failure | the failure names the rule, the offender and the remedy |
+| L5 | Unrepresentable Mistake | types that make the wrong form fail to compile |
+| all | Single Gate | one command runs every check; green means done |
+| all | Human Boundary | a short list of changes that need a person first |
+
+---
+
+## Two patterns this course adds
+
+**Rung Fence**: an executable rule that lists what the rung may use, fails naming the rung that
+introduces anything else, and is changed only by a person.
+
+**Rung Delta**: each variant's `RUNG.md` names the capability added, the expertise it needs and the
+upstream files it mirrors.
+
+Both are defined in `tutors/LADDER.md`.
+
+---
+
+## A Rung Fence at work
+
+You are on rung 2 and ask your agent to "make the pages interactive".
+It adds `import { mount } from "svelte"`. The gate fails with a message like this one:
+
+```
+Rung Fence: src/render.ts imports "svelte".
+Rung 2 (Lite) uses no runtime dependencies.
+Svelte arrives at rung 4 (Reader). Stay on this rung,
+or climb to rung 4 on purpose: see RUNG.md.
+```
+
+L3, because it fails. L4, because it says why and what to do.
+
+---
+
+## Every variant binds every level
+
+| Level | Where you find it in a variant |
+| --- | --- |
+| L1 Shown | a worked slice in the code, small enough to read whole and copy |
+| L2 Told | `AGENTS.md`, with "Rung Fence" and "Ask a human first" sections |
+| L3 Checked | `tests/rung-fence.test.ts` and the rung's own tests |
+| L4 Explained | fence and rule messages that name the fix |
+| L5 Prevented | discriminated unions and exhaustive `switch`, where TypeScript allows |
+| Single Gate | `npm test` or `pnpm test` |
+| Human Boundary | only a person edits the fence |
+
+---
+
+## Working with an agent safely
+
+1. **Start each session from the manifest.** Ask the agent to read `AGENTS.md` and `RUNG.md` first.
+2. **Name the rung in your request.** "On rung 3, add a port for ..." beats "add ...".
+3. **Run the gate before you read the diff.** Red means the agent left the rung or broke a rule.
+4. **Read what it wrote.** If you cannot explain a line, ask, or take that part out.
+5. **Never let the agent edit the fence or the tests to go green.** That is the Human Boundary.
+
+---
+
+## Climbing means lifting the fence on purpose
+
+When you are ready for the next rung:
+
+- read the next topic's talks and the next variant's `RUNG.md`
+- copy the variant (or check out its tag)
+- **you**, not the agent, widen the fence by the next rung's allowance
+- commit that change on its own, so the climb is visible in history
+
+A fence you lift by accident is not a fence.
+
+---
+
+## The real repository does this too
+
+tutors-mono-repo keeps its own rules at the higher levels:
+
+- `tests/architecture/known-violations.txt`: a baseline that may only shrink (L3, a ratchet)
+- EARS Rules in `tests/bdd/features`, checked by `pnpm test:ears:audit` (L3)
+- `.github/CODEOWNERS` puts `release/claims.yaml` and `release/SOP.md` behind the maintainers
+  (a Human Boundary)
+
+At the Summit you will meet each of these as a contributor.
+
+---
+
+## Summary
+
+- The capability ladder is **what** you build
+- The Assertion Ladder is **how** each rung stays safe
+- The fence keeps an agent's help at your level
+- You decide when to climb
+
+Read the note "Assertion levels in this course" next, then start the labs.

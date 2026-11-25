@@ -1,0 +1,139 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# The capability ladder
+
+### Seven rungs from a seed to the real thing
+
+Tutors Ladder, Orientation, talk 2
+
+---
+
+## The idea
+
+> "The course would invite students to rebuild the Tutors from the very simplest version, through to the
+> most sophisticated. Each rung in the ladder requires some additional expertise to understand, but
+> delivers major new capabilities."
+
+From the project lead's proposal for this course.
+
+---
+
+## The rungs
+
+| Rung | Variant | Capability delivered |
+| --- | --- | --- |
+| 1 | `rung-1-seed` | Course folder in, `tutors.json` out |
+| 2 | `rung-2-lite` | A static HTML website from `tutors.json` |
+| 3 | `rung-3-layers` | The same tools as a layered pnpm workspace with ports |
+| 4 | `rung-4-reader` | An interactive Svelte 5 reader |
+| 5 | `rung-5-proven` | Tests as specification |
+| 6 | `rung-6-guarded` | Safe content, private courses, a secure supply chain |
+| 7 | `rung-7-shipped` | A versioned, gated, containerised release |
+| Summit | tutors-mono-repo | The real thing |
+
+---
+
+## The expertise each rung adds
+
+| Rung | New expertise |
+| --- | --- |
+| 1 Seed | TypeScript on Node, the file system, the course format, discriminated unions |
+| 2 Lite | Markdown rendering, HTML templates, escaping, exhaustive rendering |
+| 3 Layers | Workspaces, dependency direction, ports and adapters, architecture tests |
+| 4 Reader | Svelte 5 runes, SvelteKit routing, components, Vite |
+| 5 Proven | EARS, Given/When/Then, honest doubles, golden files, mutation testing |
+| 6 Guarded | XSS and sanitising, path containment, identity ports, RBAC, CSP, supply chain |
+| 7 Shipped | CI, SemVer, changelogs, containers, release claims, SLOs |
+
+---
+
+## How each rung maps to upstream
+
+| Rung | Mirrors in tutors-mono-repo |
+| --- | --- |
+| 1 | `packages/jsr/gen`, `packages/jsr/model`, `packages/jsr/tutors` |
+| 2 | `packages/jsr/tutors-lite` |
+| 3 | `pnpm-workspace.yaml`, `packages/jsr/types`, `course-rules` ports, `tests/architecture` |
+| 4 | `apps/reader`, `packages/svelte/ui-*` |
+| 5 | `tests/`, `guides/testing`, `stryker.config.json` |
+| 6 | `packages/jsr/identity`, `packages/svelte/utils/rbac`, `docs/security`, `SECURITY.md` |
+| 7 | `.github/workflows`, `release/`, `Dockerfile`, tutors-release-harness |
+
+Each variant's `RUNG.md` names the exact files.
+
+---
+
+## The shape of the ladder
+
+```
+              Summit: tutors-mono-repo
+       /        |         |         \
+   4 Reader  5 Proven  6 Guarded  7 Shipped
+       \        |         |         /
+              3 Layers
+                 |
+              2 Lite
+                 |
+              1 Seed
+```
+
+Rungs 1 to 3 are one line. Rungs 4 to 7 each start from a copy of rung 3, so take them in any order.
+
+---
+
+## Why rebuild from the simplest version?
+
+- **You can read it whole.** Rung 1 fits in an afternoon. The mono-repo does not fit in a week.
+- **Every line has a reason you have met.** Nothing arrives before the rung that explains it.
+- **You experiment on real features.** Each rung is a working Tutors, so you can break it and watch.
+- **The names match upstream.** `Course`, `Topic`, `Lab`, `LabStep`, `"talk"`, `"web"`: what you learn
+  carries straight across.
+
+---
+
+## Why these tracks?
+
+- **CLI** and **UI (static)**: the generator and the simplest reader, the two halves of Tutors
+- **Architecture**: the mono-repo is a layered workspace; you need that map before the big pieces
+- **UI (app)**, **Testing**, **Security**, **Releasing**: four independent skills, each a large part of
+  the real repository
+
+---
+
+## What a variant holds
+
+| File | Purpose |
+| --- | --- |
+| `README.md` | run it in three commands |
+| `RUNG.md` | the Rung Delta: capability, expertise, upstream mirror table |
+| `AGENTS.md` | the short manifest for a coding agent, under 500 words |
+| `package.json` | its `test` script is the Single Gate |
+| `tests/rung-fence.test.ts` | the Rung Fence |
+
+All under `tutors/variants/` in the AI-Reference-Projects repository.
+
+---
+
+## Folders now, tags later
+
+- This course keeps one folder per rung, because one repository holds the whole ladder
+- When the ladder moves to its own repository, each rung becomes a tag: `rung-1-seed` to `rung-7-shipped`
+- Rungs 4 to 7 become branches from `rung-3-layers` until they are composed
+- Composing them is the Summit's capstone assignment
+
+---
+
+## How to climb
+
+1. Read the topic's talks
+2. Read the variant's `RUNG.md`
+3. Run its gate: `npm test` for rungs 1 and 2, `pnpm test` from rung 3
+4. Do the lab: change the variant and keep the gate green
+5. Do the assignment
+6. Open the upstream files the rung mirrors and compare
+
+Next: how the Assertion Ladder keeps each rung safe.
