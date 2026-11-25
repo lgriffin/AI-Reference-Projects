@@ -1,0 +1,257 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Writing requirements with EARS
+
+### One sentence, one "shall", one thing you can observe
+
+Week 6, rung 4 of 7 (Proven), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed, 2 Lite, 3 Layers | | 1 to 5 |
+| **4 Proven** | **`rung-4-proven`** | **6 (this week), 7** |
+| 5 Reader | `rung-5-reader` | 8, 9 |
+| 6 Guarded, 7 Shipped, Summit | | 10 to 12 |
+
+Rung 4 is a copy of rung 3. Same tools, same output. What is new: every rule is written down, with an id,
+and proved.
+
+---
+
+## A requirement nobody can check
+
+> The generator should handle lab folders properly.
+
+- "should": is it required or not?
+- "handle", "properly": what would you observe?
+- Which code does it bind? Which test proves it?
+
+An agent reading this will do *something*. You cannot tell whether it did the right thing, and neither can
+it.
+
+---
+
+## EARS
+
+**Easy Approach to Requirements Syntax**: Alistair Mavin and colleagues, Rolls-Royce, IEEE Requirements
+Engineering 2009.
+
+The generic shape:
+
+> While \<precondition\>, when \<trigger\>, the \<system\> shall \<response\>.
+
+Every part but the system and the response is optional. Leaving parts out gives five patterns. Keeping more
+than one gives the complex form.
+
+The rules of the game: **one** "shall", a **named** system, a response you can **observe**.
+
+---
+
+## The five patterns
+
+| Pattern | Reads | Use it for |
+| --- | --- | --- |
+| Ubiquitous | The \<system\> shall \<response\>. | what is always true |
+| Event-driven | When \<trigger\>, the \<system\> shall \<response\>. | a response to something that happens |
+| State-driven | While \<state\>, the \<system\> shall \<response\>. | behaviour that holds for as long as a state lasts |
+| Unwanted behaviour | If \<condition\>, then the \<system\> shall \<response\>. | errors, bad input, failures |
+| Optional feature | Where \<feature\>, the \<system\> shall \<response\>. | behaviour only some setups have |
+
+Rung 4's `REQUIREMENTS.md` has the same table, with a Gherkin tag for each: `@ears-ubiquitous`,
+`@ears-event-driven`, `@ears-state-driven`, `@ears-unwanted`, `@ears-optional`.
+
+---
+
+## Ubiquitous: always true
+
+```
+R-001 | Ubiquitous | The generator shall give each folder the learning-object kind named by the
+                     longest known prefix of its name. | gen
+R-008 | Ubiquitous | The site shall escape every piece of course text that it writes into a page. | lite
+```
+
+Upstream, `tests/bdd/features/generator/course-json.feature`:
+
+```gherkin
+@rule-0263 @ears-ubiquitous
+Rule: Tutors shall write a tutors.json that conforms to the tutors.json schema in @tutors/tutors-types.
+```
+
+No trigger, no state. If you find yourself writing "always", you probably want this pattern, without the
+word.
+
+---
+
+## Event-driven: when something happens
+
+```
+R-004 | Event-driven | When a lab folder holds markdown files, the generator shall write one step per
+                       file, in file-name order, whose id is the file name between its first and last dot. | gen
+R-010 | Event-driven | When a lab has more than one step, the site shall link each step page to the step
+                       before it and the step after it. | lite
+```
+
+Upstream:
+
+```gherkin
+@rule-0266 @ears-event-driven
+Rule: When properties.yaml lists a topic under ignore, tutors shall write that topic with hide set to
+      true rather than leave it out.
+```
+
+The trigger is an event or an input the system sees. The comma after the trigger is part of the form.
+
+---
+
+## Unwanted behaviour: if it goes wrong
+
+```
+R-002 | Unwanted behaviour | If a course folder has no course.md, then the generator shall refuse to build
+                             it and say that course.md is missing. | gen
+R-012 | Unwanted behaviour | If the command is not given both a course folder and an output folder, then
+                             the command shall print its usage and exit with status 2. | cli
+```
+
+Upstream, `tests/bdd/features/shared/offline-resilience.feature`:
+
+```gherkin
+@rule-0535 @ears-unwanted
+Rule: If loading a course fails, then the reader shall keep serving the courses it already loaded,
+      without a network request.
+```
+
+"If ..., then ..." marks the path nobody wants. Use it so error handling is specified, not improvised.
+
+---
+
+## State-driven: for as long as
+
+Rung 4 has none yet. Upstream, `tests/bdd/features/shared/realtime-usage.feature`:
+
+```gherkin
+@rule-0279 @ears-state-driven
+Rule: While a student has disabled activity sharing, the reader shall not load the course online list.
+
+  @active
+  Scenario: Entering a course with sharing disabled loads no online list
+  @inactive
+  Scenario: Enabling sharing loads the online list
+```
+
+A state lasts; an event happens once. Upstream's audit requires two scenarios for this pattern: one
+`@active` (the state holds) and one `@inactive` (it does not), so the "while" is really tested.
+
+---
+
+## Optional feature: where it is included
+
+Upstream, `tests/bdd/features/shared/sign-in-session.feature`:
+
+```gherkin
+@rule-0257 @ears-optional
+Rule: Where anonymous mode is on, the reader shall treat every visitor as signed out.
+
+  @active
+  Scenario: Anonymous mode ignores a valid session
+  @inactive
+  Scenario: Without anonymous mode the same session signs the visitor in
+```
+
+"Where" names a feature or a configuration that some installations have and some do not. A rung 4 candidate:
+"Where the command is given `--json-only`, the command shall write tutors.json and no pages." (Rung 5 needs
+it.)
+
+---
+
+## The complex form: patterns combined
+
+```gherkin
+# tests/bdd/features/ui/learning-activities.feature
+@rule-0050 @ears-state-driven
+Rule: While a slide deck has focus, the reader shall move to the next slide when the student presses
+      the right arrow key.
+
+# tests/bdd/features/instructor/course-validation-cli.feature
+@rule-0704 @ears-optional
+Rule: Where strict checking is chosen for tutors validate, tutors shall exit with status 2 when the course
+      has warnings and no errors.
+```
+
+Mavin's order is: Where, While, When, then "the system shall". Upstream tags a complex Rule by its
+**opening** keyword and keeps one "shall". Use the complex form sparingly: two conditions are often two
+requirements.
+
+---
+
+## Choosing the pattern
+
+1. Does it hold all the time? **Ubiquitous.**
+2. Is it caused by something that happens at a moment? **Event-driven**, "When".
+3. Does it hold for as long as some state lasts? **State-driven**, "While".
+4. Is it about a failure, a bad input, something nobody wants? **Unwanted**, "If ..., then".
+5. Does only some configuration have it? **Optional**, "Where".
+
+A test of the choice: write the scenario's Given. A state becomes a Given; an event becomes a When; an
+unwanted condition becomes a When that goes wrong.
+
+---
+
+## The system name
+
+| Rung 4 says | Lives in |
+| --- | --- |
+| the generator | `packages/gen` |
+| the site | `packages/lite` |
+| the command | `apps/cli` |
+
+Upstream's names: tutors, the reader, the catalogue, the live dashboard, the time dashboard, the data API.
+"The system shall" is not a system name.
+
+The name decides **where the code goes** and **which layer the test reaches into**. A wrong name is a
+wrong place.
+
+---
+
+## Words the audit rejects
+
+| Fault | Example | Code |
+| --- | --- | --- |
+| no "shall", or two | "The command should write ..." | `shall-count`, `obligation-keyword` |
+| vague | "The command shall handle tutors.json properly." | `vague-language` |
+| unknown system | "The system shall write ..." | `system-name` |
+| wrong opening | Event-driven, but starts "The command ..." | `ears-form` |
+| wrong layer | about the command, "Implemented in" gen | `layer-mismatch` |
+
+Each one was run through rung 4's `scripts/checks/ears-audit.ts`. You will run them yourself in Lab 6.
+
+---
+
+## Faults only a person sees
+
+```
+State-driven | While a course is being built, the generator shall report each folder it skips
+               through the warn option. | gen
+```
+
+The audit passes it: "While", a comma, one "shall", a known system, the right layer.
+
+But "while a course is being built" is not a state the user can be in or out of. It is the whole job. This
+is R-005, which is rightly **Unwanted behaviour**. The audit checks the shape; **you** check the meaning.
+
+---
+
+## Take away
+
+- One sentence, one "shall", one named system, one observable response
+- Five patterns, and a complex form for a precondition plus a trigger
+- The pattern follows the situation: always, when, while, if, where
+- The audit checks the shape; a person checks the meaning
+- Read "Writing requirements with EARS": it is the reference for every week from now on

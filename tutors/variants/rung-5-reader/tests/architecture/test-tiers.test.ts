@@ -32,7 +32,7 @@ test("scripts/checks imports only node: built-ins and its own files", () => {
 test("every tier folder under tests/ is in the map in tests/TESTING.md, and every tier in the map exists", () => {
   const folders = readdirSync(join(ROOT, "tests")).filter((name) => statSync(join(ROOT, "tests", name)).isDirectory()).sort();
   const map = readFileSync(join(ROOT, "tests", "TESTING.md"), "utf8").split(/^## /m).find((section) => section.startsWith("The map")) ?? "";
-  const mapped = [...map.matchAll(/^\| `([a-z-]+)\/` \|/gm)].map((m) => m[1]!).sort();
+  const mapped = [...map.matchAll(/^\| `([a-z0-9-]+)\/` \|/gm)].map((m) => m[1]!).sort();
   assert.deepEqual(
     folders,
     mapped,
