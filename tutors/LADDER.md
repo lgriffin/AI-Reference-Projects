@@ -88,6 +88,42 @@ Each week topic holds:
   final week one `book-assignment-*/`, and `web-*/` links (`weburl`, `https://` only) to the upstream files
   mirrored and to official learning resources.
 
+## Grounded in Bloom's taxonomy
+
+The module is designed with constructive alignment against the revised Bloom's taxonomy (Anderson and
+Krathwohl, 2001): Remember, Understand, Apply, Analyse, Evaluate, Create. Every outcome, activity and
+assessment names its level, and the levels line up.
+
+- **Each week** states three to five learning outcomes, each beginning with a measurable verb tagged with its
+  level, for example "(Apply) Run the seed generator on a course folder and explain each field of the output".
+  Outcomes never use unmeasurable verbs such as "know" or "be aware of".
+- **Within a week** the work climbs the levels: the talks and reading note serve Remember and Understand (and
+  end with self-check questions tagged by level); the lab steps are tagged with their level and move through
+  Apply and Analyse; "Name the rule" and "Specify first" are Evaluate-and-Create work on requirements; "Build
+  beyond" is Create.
+- **Within a rung** the first week leans on Understand and Apply, the last week on Analyse and Evaluate, and
+  the rung's coding assignment is assessed at Create, with acceptance criteria mapped to outcomes.
+- **Across the module** the centre of gravity rises: weeks 1 to 3 are mostly Remember to Apply, weeks 4 to 7
+  mostly Apply to Analyse, weeks 8 to 11 mostly Analyse to Evaluate, and week 12 is Evaluate and Create on the
+  real tutors-mono-repo.
+- **The two ladders meet Bloom.** Reading a Rung Fence message is Understand; fixing the code it names is
+  Apply; seeding a violation to see which Assertion Ladder rung catches it is Analyse; deciding how far a rule
+  should climb (L2 told, L3 checked, L5 prevented) is Evaluate; writing a new fence or check is Create.
+
+| Weeks | Rung | Dominant Bloom levels | Typical evidence |
+| --- | --- | --- | --- |
+| 1-2 | 1 Seed | Remember, Understand, Apply | explain the course format; run and extend the generator |
+| 3 | 2 Lite | Understand, Apply | render a site; explain why escaping is by construction |
+| 4-5 | 3 Layers | Apply, Analyse | restructure into packages; diagnose a layering failure |
+| 6-7 | 4 Proven | Analyse, Evaluate | write and critique EARS rules; judge a test suite by mutation score |
+| 8-9 | 5 Reader | Apply, Analyse, Evaluate | specify and build reader features; trace a route through the code |
+| 10 | 6 Guarded | Analyse, Evaluate | model threats; judge which defence and which rung fits a risk |
+| 11 | 7 Shipped | Evaluate, Create | judge release readiness from evidence; design a release claim |
+| 12 | Summit | Evaluate, Create | contribute a change upstream under the ladder |
+
+`course/course.md` carries the module-level learning outcomes, each tagged with its level, and a table showing
+which weeks teach and which assignments assess each one.
+
 ## Variant conventions
 
 - TypeScript on Node 22.18 or later (the upstream mono-repo itself needs Node 26.13 or later), run with built-in type stripping (`node src/main.ts`), so only erasable
