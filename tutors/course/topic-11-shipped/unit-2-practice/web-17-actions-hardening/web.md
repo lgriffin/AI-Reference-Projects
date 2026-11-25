@@ -1,3 +1,3 @@
-Security hardening for GitHub Actions
+Secure use of GitHub Actions
 
-GitHub's own guide: pin actions to a full commit SHA, and give each workflow the least permission it needs.
+GitHub's secure use reference (formerly "Security hardening for GitHub Actions"): pin actions to a full commit SHA, and give each workflow the least permission it needs.
