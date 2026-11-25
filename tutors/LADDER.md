@@ -124,6 +124,46 @@ assessment names its level, and the levels line up.
 `course/course.md` carries the module-level learning outcomes, each tagged with its level, and a table showing
 which weeks teach and which assignments assess each one.
 
+## A Lean thread
+
+Lean runs through the module gently and stays about software: value first, standard work, and the
+elimination of waste, with value stream mapping and root cause analysis as the main tools.
+
+- **Value.** Every rung states the value it delivers, seen from its customer: the student reading a course,
+  the lecturer publishing one, the contributor changing the code. Week 1 maps the value stream of Tutors
+  itself, from a lecturer's folder to a student's screen, and each later rung says which step of that stream
+  it improves.
+- **Standard work.** The ladder is built from standard work: the Single Gate (one command decides "done"),
+  each variant's `AGENTS.md` (standard work for an agent), and the weekly rhythm that every lab follows from
+  week 7 on (specify first, see red, make green, run the gate, reflect). Standard work is the baseline that
+  improvement starts from, so labs ask students to improve it, not only follow it. Upstream examples: the
+  release SOP (`release/SOP.md`) and the course rules.
+- **Waste elimination.** The wastes of software development (partially done work, extra features,
+  relearning, handoffs, delays, task switching and defects) are named where they appear. AI sprawl is
+  overproduction: code nobody needed yet, which the Rung Fence stops. A teaching failure removes the waste of
+  relearning; a closure check removes the waste of lists drifting apart; a fast gate removes delay.
+  Students are expected to build beyond each variant, which is pulled work with a reason, not overproduction:
+  every "Build beyond" extension starts from the value it adds.
+- **Kaizen every week.** Every lab ends with a short Kaizen step (Bloom: Evaluate): name one waste you met
+  this week, in the variant or in your own way of working, find its root cause, and propose or make one
+  improvement to the standard work.
+- **Root cause analysis.** Week 5 teaches Five Whys on a red architecture test, and later weeks use it on
+  failures (a surviving mutant in week 7, an XSS escape in week 10).
+- **Value stream mapping and the A3.** Week 11 maps the release value stream (commit to running release),
+  measures lead time and waiting, and uses an A3 (the readiness page, mirroring tutors-release-harness) to
+  decide whether to ship.
+
+| Week | Lean focus |
+| --- | --- |
+| 1 | Value and the customer; the Tutors value stream |
+| 2-3 | Standard work: the gate and the manifest; defects caught early |
+| 4-5 | Waste of handoffs and coupling; Five Whys on a red build |
+| 6-7 | Standard work for requirements; defects and rework; mutation survivors as hidden defects |
+| 8-9 | Value to the student reader; pull, not push, for features |
+| 10 | Defects that escape; poka-yoke (mistake-proofing) as L5 |
+| 11 | Value stream map of a release; lead time; the A3 |
+| 12 | Kaizen upstream: one small improvement contributed to tutors-mono-repo |
+
 ## Variant conventions
 
 - TypeScript on Node 22.18 or later (the upstream mono-repo itself needs Node 26.13 or later), run with built-in type stripping (`node src/main.ts`), so only erasable
