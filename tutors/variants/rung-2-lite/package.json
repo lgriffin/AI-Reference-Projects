@@ -1,0 +1,14 @@
+{
+  "name": "@ladder/rung-2-lite",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 2 (Lite): a course folder in, a static website out",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test tests/*.test.ts"
+  }
+}

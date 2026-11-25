@@ -1,0 +1,209 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# The upstream reader's routes
+
+### `apps/reader` in tutors-mono-repo
+
+Tutors Ladder, week 8. Rung 5 of 7: Reader. Every path is at tutors-mono-repo `2b96b69`.
+
+---
+
+## Why look upstream this week
+
+Rung 5 has five kinds of page. The real reader has many more, and a server. Looking upstream answers three
+questions:
+
+- Is the shape we learned (folder, `load`, service, component) the real shape? Yes.
+- What does rung 5 leave out, and where does each thing arrive?
+- How does upstream **specify** a reader? With the same EARS Rules you write in the lab.
+
+---
+
+## `apps/reader`, top level
+
+```
+apps/reader/
+  package.json          svelte 5.57.2, @sveltejs/kit 3.1.1, "#lib/*": "./src/lib/*"
+  vite.config.ts
+  playwright.config.ts, playwright.static.config.ts
+  src/
+    app.css  app.html  hooks.client.ts  hooks.server.ts
+    lib/                actor-data.ts  root-data.ts  server/
+    routes/
+  tests/e2e/            reading, resource-cards, accessibility, static-reader, ...
+```
+
+The app is thin. Almost every component lives in `packages/svelte/*`. That is next week.
+
+---
+
+## The route groups
+
+| Group or folder | Holds |
+| --- | --- |
+| `(course-reader)/` | `course`, `topic`, `lab`, `note`, `talk`, `video`, `wall`, `search`, `quiz`, `notebook`, `whiteboard`, ... |
+| `(home)/` | the home page and the course list |
+| `(auth)/` | sign-in pages |
+| `(create)/` | the course creation wizard and check page |
+| `api/`, `healthz/`, `metrics/`, `version/` | `+server.ts` endpoints |
+
+Rung 5 mirrors `(course-reader)` with five kinds of page, and none of the endpoints: the Rung Fence fails on
+any `*.server.ts`.
+
+---
+
+## How a course page is built
+
+`docs/COURSE-PAGE-WALKTHROUGH.md`:
+
+| Route | Service method | Component |
+| --- | --- | --- |
+| `/course/[courseid]` | `readCourse` | `structure/Composite.svelte` |
+| `/topic/[courseid]/[...loid]` | `readTopic` | `structure/Composite.svelte` |
+| `/lab/[courseid]/[...loid]` | `readLab` | `content/lab/Lab.svelte` |
+| `/note/[courseid]/[...loid]` | `readLo` | `content/Note.svelte` |
+| `/talk/[courseid]/[...loid]` | `readLo` | `content/talk/TalkAdobe`, `TalkClient` or `TalkMarp` |
+
+> Every learning-object route in the reader has the same shape: a route folder, a `courseService` method,
+> an index lookup, and one component from `@tutors/ui-components`.
+
+---
+
+## The lab route, side by side
+
+Upstream, `(course-reader)/lab/[courseid]/[...loid]/+page.ts`:
+
+```ts
+const liveLab = await courseService.readLab(params.courseid, url.pathname, fetch);
+const lastSegment = url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
+if (lastSegment.startsWith("book")) {
+  liveLab.setFirstPageActive();
+} else {
+  liveLab.setActivePage(lastSegment);
+}
+```
+
+Rung 5, the same file:
+
+```ts
+const { tree, found: liveLab } = found(await requestLab(params.courseid, url.pathname, fetch));
+```
+
+Upstream decides in the route, by the folder's name. Rung 5 decides in `readLab`, by asking the tree whether
+the path is a lab (R-018). Same behaviour; one of them a scenario can reach.
+
+---
+
+## A route rung 5 does not have: the wall
+
+`(course-reader)/wall/[type]/[courseid]/+page.ts`:
+
+```ts
+export const load: PageLoad = async ({ params, fetch }) => {
+  const course = await courseService.readCourse(params.courseid, fetch);
+  const los = await courseService.readWall(params.courseid, params.type, fetch);
+  ...
+  return { type: params.type, lo: course, los: los };
+};
+```
+
+A wall is every learning object of one kind in a course: all the labs, all the talks. `createWalls` in
+`packages/jsr/model/src/utils/course-utils.ts` builds them when the tree is decorated.
+
+In this week's lab you specify this route for rung 5, then build it.
+
+---
+
+## Where the course comes from
+
+Rung 5: an id is a folder under `static/courses/`, and nothing else (R-015).
+
+Upstream, `determineCourseUrl` in `packages/svelte/course/src/course/services/lo-tree.ts`, specified by
+`@rule-0659` in `tests/bdd/features/course/course-loading.feature`:
+
+| Address | Fetched |
+| --- | --- |
+| `web-dev-101` | `https://web-dev-101.netlify.app/tutors.json` |
+| `courses.example.edu/web/dev-101` | `https://courses.example.edu/web/dev-101/tutors.json` |
+| `localhost:3000` | `http://localhost:3000/tutors.json` |
+
+One reader, any course on any host. That is the contract paying off.
+
+---
+
+## Upstream specifies its reader the same way
+
+`tests/bdd/features/course/course-navigation.feature`:
+
+```gherkin
+@rule-0005 @ears-event-driven
+Rule: When a student follows a lab route, the reader shall show that lab with its first step and its
+      breadcrumb trail.
+
+  Scenario: Navigate from topic to lab
+    When I follow the route "/lab/web-dev-101/topic-0/lab-0"
+    Then I should arrive at the lab "First Web Page"
+    And the first lab step should be rendered with the heading "Build First Web Page"
+    And the breadcrumb should show "Web Development 101 > HTML Fundamentals > First Web Page"
+```
+
+Rung 5 splits this one Rule in two, R-018 (first step) and R-021 (breadcrumbs), so that each has one
+"shall" and can fail on its own.
+
+---
+
+## A drift worth noticing
+
+`docs/COURSE-PAGE-WALKTHROUGH.md` lists `apps/reader/src/routes/+layout.server.ts`.
+At `2b96b69` that file does not exist. There is `+layout.ts`, whose comment says:
+
+> The root load is universal, not a server load (Rule 0771): it runs in the browser, so no navigation asks
+> for __data.json and the static build (SVELTEKIT_ADAPTER=static) needs no server.
+
+Our `+layout.ts` makes the same choice, and the Rung Fence keeps it.
+
+Documentation is L2, Told. The code and its tests are L3 and above. When they disagree, the code is right,
+and the drift is a good first contribution.
+
+---
+
+## Running it
+
+From the mono-repo root (`apps/reader/README.md`):
+
+```bash
+pnpm install
+cp .env.example .env        # PUBLIC_ANON_MODE=TRUE: no backend needed
+pnpm dev                    # builds ui-primitives, ui-navigators, ui-components, then the reader
+```
+
+Then open <http://localhost:5173/course/reference-course>.
+
+- Needs Node 26.13 or later (`.nvmrc`) and pnpm 11.24 or later (`package.json`, `packageManager`).
+- If you cannot run Node 26, read the files: the flow does not need a running server to follow.
+
+---
+
+## What rung 5 leaves for later
+
+| Upstream has | Arrives |
+| --- | --- |
+| `sanitizeHtml`, sign-in, roles, locks | rung 6 (Guarded) |
+| `adapter-node`, the container, release gates | rung 7 (Shipped) |
+| courses from any host, search, walls, videos, quizzes, notebooks | the Summit (or your "Build beyond") |
+| Tailwind, Skeleton, Iconify, markdown-it, Shiki, axe checks, presence, Supabase | the Summit |
+
+Each line is something no rung 5 requirement asked for. Leaving it out is not a gap; it is pull.
+
+---
+
+## What to take away
+
+- `apps/reader` is routes; each learning-object route has the same four parts.
+- Upstream specifies loading and navigation as EARS Rules, as rung 5 does.
+- Where rung 5 differs (404s, the decision moved out of the route), it differs so that a scenario can prove it.
+- Docs drift. Read the code, and note the drift.

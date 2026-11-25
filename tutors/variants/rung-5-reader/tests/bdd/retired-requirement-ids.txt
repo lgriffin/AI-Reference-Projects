@@ -1,0 +1,3 @@
+# Requirement ids that are never used again. One id per line, e.g. R-013.
+# A requirement that is deleted adds its id here in the same commit; the audit fails one that reuses it.
+# Mirrors upstream tests/bdd/ears-retired-rule-ids.txt.

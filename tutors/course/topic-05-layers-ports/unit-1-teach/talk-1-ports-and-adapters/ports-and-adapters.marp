@@ -1,0 +1,285 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Ports and adapters
+
+### One port, two adapters, one contract
+
+Week 5, rung 3 of 7 (Layers), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed, 2 Lite | | 1 to 3 |
+| **3 Layers** | **`rung-3-layers`** | 4, **5 (this week, the last on rung 3)** |
+| 4 Proven | `rung-4-proven` | 6, 7 |
+| 5 Reader to 7 Shipped, Summit | | 8 to 12 |
+
+Last week: the arrows point inward. This week: the platform stays at the edge, behind a port.
+
+---
+
+## The problem
+
+In rungs 1 and 2, the generator called `readdirSync` and `readFileSync` directly. So it could only read a
+course from a local disk, and every test had to write files into a temporary folder.
+
+Upstream has the same need, three times over: the **CLI** reads courses from disk, **Tutors Studio** reads
+them through Tauri, and the **reader's wizard** checks generated files in the browser. One set of course
+rules, three ways to reach the files.
+
+Hexagonal Architecture's answer: the core declares a **port**, an interface in its own terms. Each shell
+supplies an **adapter** that implements it.
+
+---
+
+## The port
+
+```ts
+// variants/rung-3-layers/packages/gen/src/file-system-port.ts
+export interface DirEntry {
+  name: string;
+  kind: "file" | "dir";
+}
+
+export interface FileSystemPort {
+  /** The entries directly inside `dir`, in any order. Paths are "/"-separated and relative to the course root ("" is the root). */
+  list(dir: string): Promise<DirEntry[]>;
+  /** The whole file as UTF-8 text. Rejects when there is no such file. */
+  readText(path: string): Promise<string>;
+  /** True for a file or a folder, and for the root "". */
+  exists(path: string): Promise<boolean>;
+}
+```
+
+The port belongs to `gen`, the core that **uses** it. Its paths are course paths, not disk paths. It is
+`async` because a browser or Tauri cannot read synchronously.
+
+---
+
+## Upstream's port
+
+```ts
+// packages/jsr/course-rules/src/ports.ts (tutors-mono-repo 2b96b69)
+/**
+ * The only way the rules touch a course: five calls a shell implements over whatever holds the files
+ * (node:fs for the CLI and CI, Tauri commands in Studio, an in-memory map in the reader and in tests).
+ * The core never imports node:fs, so every shell runs byte-identical rules.
+ */
+export interface FileSystemPort {
+  list(dir: string): Promise<DirEntry[]>;
+  read(path: string): Promise<Uint8Array>;
+  write(path: string, bytes: Uint8Array): Promise<void>;
+  move(from: string, to: string): Promise<void>;
+  exists(path: string): Promise<boolean>;
+}
+```
+
+`write` and `move` serve `tutors validate --fix`. Rung 3's `gen` only reads, so its port has only the reads
+(**Interface Segregation**), and `readText` replaces `read`'s bytes. Same names, same path convention.
+
+---
+
+## The core, through the port
+
+```ts
+// variants/rung-3-layers/packages/gen/src/course-builder.ts
+export async function buildCourse(fs: FileSystemPort, courseId: string, options: BuildOptions = {}): Promise<Course> {
+  if (!(await fs.exists("course.md"))) throw new Error("no course.md, so this is not a Tutors course");
+  const course = await buildLo(fs, "", "course", options, courseId);
+  ...
+}
+
+async function readFolder(fs: FileSystemPort, rel: string, id: string): Promise<Folder> {
+  const entries = (await fs.list(rel)).filter((entry) => !entry.name.startsWith(".") && !IGNORED.has(entry.name));
+  entries.sort((a, b) => (a.name < b.name ? -1 : 1));
+  ...
+}
+```
+
+Two things the core cannot know arrive as arguments: the course's `id` (a folder name the port does not
+expose), and where warnings go (`BuildOptions.warn`, instead of `process.stderr`).
+
+---
+
+## Adapter 1: memory
+
+```ts
+// variants/rung-3-layers/packages/gen/src/memory-file-system.ts
+export class MemoryFileSystem implements FileSystemPort {
+  private readonly files = new Map<string, string>();
+
+  constructor(files: Record<string, string> = {}) {
+    for (const [path, text] of Object.entries(files)) this.files.set(normalise(path), text);
+  }
+
+  list(dir: string): Promise<DirEntry[]> {
+    const prefix = normalise(dir) === "" ? "" : `${normalise(dir)}/`;
+    ...  // a folder exists as the prefix of a file's path
+  }
+  ...
+}
+```
+
+A whole course in one object literal: `new MemoryFileSystem({ "course.md": "# C\n", "topic-1/topic.md": "# T\n" })`.
+Mirrors upstream `packages/jsr/course-rules/src/adapters/memory-fs.ts`, which "the test suite runs the whole
+rule catalogue against".
+
+---
+
+## Adapter 2: the disk
+
+```ts
+// variants/rung-3-layers/apps/cli/src/node-file-system.ts
+export class NodeFileSystem implements FileSystemPort {
+  private readonly root: string;
+  constructor(root: string) { this.root = resolve(root); }
+
+  async list(dir: string): Promise<DirEntry[]> {
+    const entries = await readdir(join(this.root, dir), { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() || entry.isDirectory())
+      .map((entry) => ({ name: entry.name, kind: entry.isDirectory() ? "dir" : "file" }));
+  }
+  readText(path: string): Promise<string> { return readFile(join(this.root, path), "utf8"); }
+  async exists(path: string): Promise<boolean> { return stat(join(this.root, path)).then(() => true, () => false); }
+}
+```
+
+It lives in `apps/cli`, the only package with Node's types. Upstream's disk adapter is `diskCourse` in
+`packages/jsr/create/src/course-fs.ts`.
+
+---
+
+## The composition root
+
+```ts
+// variants/rung-3-layers/apps/cli/src/run.ts
+export async function run(args: string[]): Promise<number> {
+  const [courseArg, outArg] = args;
+  ...
+  const fs = new NodeFileSystem(courseFolder);                    // choose the adapter
+  const course = await buildCourse(fs, basename(courseFolder), {  // hand it to the core
+    warn: (message) => process.stderr.write(`${message}\n`),
+  });
+  const pages = buildSite(course);                                // hand the result to lite
+  for (const { path, html } of pages) { await mkdir(...); await writeFile(...); }
+  return 0;
+}
+```
+
+The one place that knows every piece. `main.ts` is two lines: `process.exitCode = await run(process.argv.slice(2))`.
+`run` returns an exit code, so `apps/cli/tests/cli.test.ts` can call it.
+
+---
+
+## The risk of a test double
+
+`gen`'s fast tests all use `MemoryFileSystem`. What if it lies?
+
+- it lists a folder's grandchildren, and `node:fs` does not
+- it resolves `"topic-1/"` and `node:fs` does not, or the other way round
+- it says `exists("")` is false
+
+Then `gen` passes every test and fails on a real disk. A double that drifts from the real thing makes every
+test that uses it a little less true.
+
+---
+
+## The Honest Double
+
+One contract, run against **every** adapter:
+
+```ts
+// variants/rung-3-layers/apps/cli/tests/file-system-port.contract.test.ts
+const ADAPTERS: [name: string, make: (files: Record<string, string>) => FileSystemPort][] = [
+  ["NodeFileSystem", nodeFileSystem],        // writes the files into a temporary folder
+  ["MemoryFileSystem", (files) => new MemoryFileSystem(files)],
+];
+
+for (const [name, make] of ADAPTERS) {
+  describe(`FileSystemPort contract: ${name}`, () => {
+    test("list gives the files and folders directly inside a folder", async () => { ... });
+    test("readText gives the whole file as UTF-8, and rejects a missing file", async () => { ... });
+    test("exists is true for the root, a folder and a file, and false otherwise", async () => { ... });
+  });
+}
+```
+
+If the double drifts, the same assertion that passes for one fails for the other.
+
+---
+
+## Making the contract unavoidable
+
+A new adapter could simply skip the contract. So the architecture test checks that it does not:
+
+```ts
+// variants/rung-3-layers/tests/architecture/architecture.test.ts
+test("every FileSystemPort adapter runs the port contract", () => {
+  const contract = readFileSync(join(ROOT, "apps/cli/tests/file-system-port.contract.test.ts"), "utf8");
+  const adapters = modules.flatMap(({ source, file }) =>
+    [...source.matchAll(/class (\w+) implements FileSystemPort/g)].map((m) => ({ name: m[1]!, file })));
+  none(adapters.filter(({ name }) => !contract.includes(`["${name}",`)).map(...),
+    "Honest Double rule: every FileSystemPort adapter runs the same contract, so a test double cannot drift from the real thing. " +
+    "Add the adapter to ADAPTERS in apps/cli/tests/file-system-port.contract.test.ts.");
+});
+```
+
+A Closure Check over adapters: the set of classes that implement the port equals the set the contract runs.
+
+---
+
+## Upstream does the same, with the generator as truth
+
+```ts
+// tests/unit/course-rules/gen-conformance.test.ts (tutors-mono-repo 2b96b69)
+/**
+ * The validator's truth source is the generator: V002 must name exactly the folders gen leaves out of a
+ * course ... Each fixture course is written to disk, built by gen, and the folders gen dropped are
+ * compared with the V002 findings.
+ */
+const v002 = (await validate(new MemoryFileSystem(files))).filter((f) => f.rule === "V002" || f.rule === "V018")
+```
+
+The rules run on `MemoryFileSystem`; the generator runs on the same files on disk; the two must agree. And
+`.dependency-cruiser.cjs` has a rule, `course-rules-no-file-system`: "The course validator reads a course
+only through its FileSystemPort, so the CLI, Studio and the reader's browser wizard run the same rules."
+
+---
+
+## Another seam upstream: an injected generator
+
+```ts
+// packages/jsr/tutors-lite/src/run.ts (tutors-mono-repo 2b96b69)
+/** The generator calls tutors-lite makes, injectable so a test can stand in for any one of them. */
+export interface LiteGenerator {
+  parseCourse: typeof parseCourse;
+  generateStaticCourse: typeof generateStaticCourse;
+  copyAssets: typeof copyAssets;
+}
+
+export async function runTutorsLite(srcFolder: string, srcVentoFolder = "", generator: LiteGenerator = defaultGenerator)
+```
+
+Not a file-system port: a seam at the generator's edge, so `test/run.test.ts` can make generation fail
+(`generateStaticCourse: () => Promise.resolve(false)`) and check that assets are not copied. Choose the seam
+where the test needs to stand in.
+
+---
+
+## Summary
+
+- the core owns the port, in its own terms; adapters live at the edge
+- the composition root picks the adapter and wires the layers
+- a test double is honest only if it passes the real adapter's contract
+- a rule makes every adapter run that contract
+- upstream's `course-rules` port is the same design, used by three shells
+
+Next: talk 2, the rules that make the port and the contract unavoidable.

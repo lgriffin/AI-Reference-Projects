@@ -1,0 +1,267 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Claims, evidence and SLOs
+
+### What a release promises, and how each promise is checked
+
+Week 11, rung 7 of 7 (Shipped), talk 2
+
+---
+
+## Where we are on the ladder
+
+| Rung | What it left you with | Week |
+| --- | --- | --- |
+| 4 Proven | requirements, each proved by a Rule and a scenario | 6, 7 |
+| 6 Guarded | defences, each a requirement about an attacker | 10 |
+| **7 Shipped** | **promises to people outside the team, each tied to that proof** | **11** |
+
+Last week you kept a threat table. This week it becomes a list of release claims.
+
+---
+
+## A promise is not a check
+
+"No page runs inline script" in a README is **L2, Told**. Anyone can break it, and nothing turns red.
+
+The same sentence with a test behind it is **L3, Checked**. With a message that names the rule and the
+fix, **L4, Explained**.
+
+A release claim is the bridge: one promise, in words a person outside the team would use, tied to the
+requirements it rests on and the tests that keep it.
+
+---
+
+## Three lists that meet
+
+| List | Says | Reader | Closed by |
+| --- | --- | --- | --- |
+| `REQUIREMENTS.md` | what the code **shall** do | the team | `pnpm test:ears:audit` |
+| `release/claims.yaml` | what this release **promises** | users, a reviewer | `pnpm release:claims` |
+| the tests | what **happened** when it ran | the gate | `pnpm test` |
+
+```yaml
+- id: no-inline-script
+  promise: No page runs inline script. Every static page carries a policy that allows no script
+    at all, and the reader runs only its own files.
+  requirements: [R-023, R-034]
+  evidence:
+    - "tests/unit/lite/csp.test.ts#R-023: every page carries the policy as its first meta ..."
+    - "tests/bdd/features/site/safe-content.feature#The policy names nothing that could run"
+    - "tests/e2e/guarded.e2e.ts#the built page carries the policy, and the policy stops a script ..."
+```
+
+Fourteen claims: the generator, the site, the reader, the security rules, the release itself.
+
+---
+
+## The Closure Check
+
+`pnpm release:claims` resolves every reference. Rename a scenario and:
+
+```
+release/claims.yaml: 1 problem(s). A release may not promise what no test checks.
+
+- Claim "no-inline-script" cites the test "The policy names nothing that runs" in
+  tests/bdd/features/site/safe-content.feature, and no test there has that name. A test id is
+  the exact name in test("...") or the exact title of a Scenario. Did you mean: "Every page of
+  the shared fixture carries the policy, first", "The policy names nothing that could run"?
+```
+
+It also fails on a claim with no evidence, a skipped test, a requirement nobody wrote down, a grading test
+used as evidence (it never runs in the gate), a misspelt key, a duplicate id. R-040 is the sentence.
+
+---
+
+## Upstream's claims mean something else
+
+`release/claims.yaml` in tutors-mono-repo lists the **differences from production a release intends**:
+
+| Field | Meaning |
+| --- | --- |
+| `artefact` | what moved: `dom`, `screenshot`, `network`, `console`, `headers`, `axe`, ... |
+| `scope` | a glob: a page key, a route |
+| `reason` or `rule` | the changelog entry or the EARS Rule behind it |
+| `approvedBy` | a person, required on a broad claim (`"*"`) |
+
+| | Rung 7 | Upstream |
+| --- | --- | --- |
+| a claim says | "we promise this" | "we meant this difference" |
+| it cites | a requirement and a test id | a Rule id or a changelog entry |
+| checked by | `scripts/check-release-claims.ts` | `scripts/checks/release-claims.ts` |
+
+Both are **Closure Checks**: every reference must resolve, or the release stops.
+
+---
+
+## The release harness
+
+A separate repository, tutors-sdk/tutors-release-harness. Its README says what it does:
+
+> Run the same scripted traffic through two identical stacks that differ only in the application image,
+> normalise the noise, diff everything observable, and fail unless each diff hunk is claimed.
+
+- **A/A**: two copies of the same image. Is the harness itself quiet?
+- **A/B**: production beside the candidate. Is every difference claimed?
+- The **Gate** decides. The Release Confidence Score comes after: "A FAIL is a FAIL at RCS 99."
+- Bands: **Green** 90 or more, **Amber** 75 to 89, Red below. A dimension under its floor caps the score at 74.
+
+That is **jidoka**: the line stops on a defect, and no number talks it back on.
+
+---
+
+## SLOs: a number written down
+
+Upstream, `release/slo.yaml`: availability and latency per app, over 28 days.
+
+```yaml
+- id: reader-availability
+  app: reader
+  kind: availability
+  target: 0.995
+  description: Students reading a course. The strictest app; about 3h22m of errors in 28 days.
+```
+
+The harness keeps its own floors and judges a candidate against **the stricter of the two**, "so lowering
+a number here never loosens a release".
+
+A static site has no requests to fail. Rung 7's objectives are budgets on the build:
+
+| Objective | Measure | Budget | Today |
+| --- | --- | --- | --- |
+| `build-time` | `build-ms` | 2000 ms | about 100 ms |
+| `site-size` | `site-bytes` | 25000 B | 18.2 kB |
+| `reader-size` | `reader-bytes` | 160000 B | 122.8 kB |
+
+---
+
+## A budget teaches when it fails
+
+```
+FAIL SLO "site-size" exceeded: the size of the whole site is 18.2 kB, over its budget of
+15.6 kB by 2.6 kB (17%). The largest files are tutors.json (5.1 kB),
+topic-01-basics/index.html (1.9 kB), index.html (1.7 kB). Shrink what is not value to a
+learner (repeated markup, unused styles). If the growth is value a learner gets, raise the
+budget in release/slo.yaml in its own pull request that says why. Never raise a budget to make
+a release pass: a budget is a ratchet, as upstream's slo/floors.yaml in the release harness is.
+```
+
+- by how much, where to look, what to do, and what never to do: **L4**
+- a budget nobody measured is not a budget kept: an unbuilt reader reads "was not judged", exit 1 (R-041)
+- size is judged **in the gate** (it is the same on every machine); time is judged by `pnpm release:slo`
+  and in CI, because a gate that fails when a laptop is busy teaches people to ignore it
+
+---
+
+## Is the proof itself any good?
+
+Two checks from earlier rungs join the release evidence:
+
+- **Mutation score.** Stryker changes the code and asks whether a test notices. Rung 7 mutates the release
+  logic too (`scripts/lib`). First run 91.40%; after the tests the survivors asked for, 95.66%. Every file
+  holds its own floor, and a floor is a ratchet like a budget.
+- **Supply-chain audit.** Registry sources only, a lockfile with integrity hashes, allowances in date.
+
+A claim says a test exists and runs. The mutation score says the tests would notice. Together they are
+evidence a stranger can weigh.
+
+---
+
+## The release as a value stream
+
+```
+$ pnpm release:value-stream
+| # | Step                      | SOP | Process time | Share | Result |
+| 1 | The Single Gate           | 4   | 13.1 s       | 38%   | passed |
+| 2 | The reader in Chromium    | 4   | 5.6 s        | 16%   | passed |
+| 4 | Supply-chain audit        | 5   | 0.3 s        | 1%    | passed |
+| 5 | Release claims            | 6   | 0.3 s        | 1%    | passed |
+| 6 | Service level objectives  | 7   | 3.6 s        | 10%   | passed |
+| 7 | Build and smoke the image | 8   | 11.2 s       | 32%   | passed |
+| 8 | The readiness A3          | 9   | 0.7 s        | 2%    | passed |
+
+- Process time: 34.9 s        - Lead time: 34.9 s        - Flow efficiency: 100%
+```
+
+A machine waits for nobody. A release waits for a runner, a reviewer, a decision. Tell the script:
+`--wait readiness=57600` (the reviewer answered next morning). Lead time 17 hours; flow efficiency under 1%.
+
+---
+
+## Reading a value stream map
+
+- **Process time**: work on the release. **Waiting**: the release sitting still. **Lead time**: both.
+- The longest *step* is rarely the problem. The longest *wait* usually is.
+- Ask of every station: is this step done twice? (The reader is built in the gate, again for the browser
+  tier, again for the SLO check.) Does it wait for one person? Does a failure here stop the line?
+- A failed step stops the line: later steps read "not run", never "passed" (R-044).
+
+Upstream's SOP writes a budget on every step and says so plainly: active time is about three hours; wall
+time is a day and a half, because of the watch window.
+
+---
+
+## The A3
+
+One page holding the whole problem. The harness rebuilds one every night for the release reviewer. Rung 7
+writes `out/readiness.md`:
+
+```
+# Release readiness: tutors-ladder 1.1.0
+**READY, with one check not run.** Nothing stands between this commit and a tag.
+
+## 1. Background: the value in this release      ← the curated changelog section
+## 2. Current condition                          ← each check: standard, now, source
+## 3. Goal
+## 4. Root cause analysis                        ← each gap; ask why until it is a process or a tool
+## 5. Countermeasures
+## 6. Plan: the standard work left (release/SOP.md)
+## 7. Follow-up
+```
+
+Current condition now holds the claims, each SLO, the supply chain, the mutation score, the container and
+the lead time. R-042: HOLD when a check has a gap, READY only when none has.
+
+---
+
+## The A3 shows; it never decides
+
+- **HOLD**: a gap. An uncommitted change is one: "a release is a commit, not a folder."
+- **READY, with one check not run**: mutation testing, or the smoke check, did not run for *this* commit.
+  A pass for another commit says nothing about this one.
+- The command always exits 0. The checks decide; the page shows what they decided.
+
+Upstream's A3 says the same of itself: "Every number names where it came from, and what the inputs cannot
+show is said to be not measured, never filled in."
+
+If a page could pass a release, people would argue with the page instead of closing the gap.
+
+---
+
+## Lean, in this rung
+
+| Idea | Upstream | Rung 7 |
+| --- | --- | --- |
+| Jidoka, stop the line | the harness Gate | claims, SLO, floors and smoke exit 1; the value stream stops |
+| Visual management | the score, the scoreboard | the readiness A3 |
+| Standard work | the twelve-step SOP | the ten-step `release/SOP.md` |
+| Gemba, go and look | the reviewer's glance, at most seven items | the Reviewer reads the A3 and the map (step 9) |
+| Kaizen | 5 Whys in the harness's `kaizen/` register | the A3's root causes; the map compared release to release |
+
+"Human error" is never an answer. It is the prompt for the next why.
+
+---
+
+## Takeaways
+
+- A **claim** turns a sentence into a promise with evidence. The Closure Check makes every reference resolve.
+- An **SLO** is a number written down, checked each release, and moved only on purpose.
+- **Mutation score** and the **supply-chain audit** say whether the evidence deserves trust.
+- A **value stream map** shows where a release's time goes: mostly into waiting.
+- The **A3** shows where a release stands and why. The checks decide, and a person tags.
+
+In the lab you cut release 1.1.0, break each check, map the stream and read the A3.

@@ -1,0 +1,13 @@
+---
+marp: true
+---
+
+# A friendly deck
+
+<iframe src="javascript:alert('frame')"></iframe>
+
+---
+
+## Slide two
+
+[Next](vbscript:msgbox(1))

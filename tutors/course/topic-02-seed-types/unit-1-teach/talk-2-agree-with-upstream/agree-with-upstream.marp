@@ -1,0 +1,203 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Agree with upstream
+
+### The command, the oracle and the fence
+
+Week 2, Rung 1 of 7: Seed. Talk 2
+
+---
+
+## The command line
+
+```ts
+// variants/rung-1-seed/src/main.ts
+const [courseArg, outArg] = process.argv.slice(2);
+if (!courseArg) {
+  process.stderr.write("usage: node src/main.ts <courseFolder> [outFile]\n");
+  process.exit(2);
+}
+const courseFolder = resolve(courseArg);
+if (!existsSync(join(courseFolder, "course.md"))) {
+  process.stderr.write(`${courseFolder} has no course.md, so it is not a Tutors course.\n`);
+  process.exit(1);
+}
+const outFile = resolve(outArg ?? join(courseFolder, "json", "tutors.json"));
+const course = buildCourse(courseFolder);
+mkdirSync(dirname(outFile), { recursive: true });
+writeFileSync(outFile, `${JSON.stringify(course, null, 2)}\n`);
+```
+
+Exit 2 for a usage error, 1 for "not a course", 0 for done.
+
+---
+
+## The upstream command
+
+```ts
+// packages/jsr/tutors/main.ts (tutors-mono-repo 2b96b69)
+if (!fs.existsSync("course.md")) {
+  process.stdout.write("Cannot locate course.md. Please change to course folder and try again.\n");
+} else {
+  const srcFolder = process.cwd();
+  const destFolder = `${srcFolder}/json`;
+  const [course, lr] = parseCourse(srcFolder);
+  generateDynamicCourse(course, destFolder);
+  copyAssets(lr, destFolder);
+}
+```
+
+Upstream works in the current folder and always exits 0. `tutors-cli` (`packages/jsr/tutors-cli/main.ts`)
+puts it behind one program: `tutors build`, `tutors website`, `tutors validate`, ...
+
+---
+
+## How do we know rung 1 is right?
+
+"Right" means: **the same `tutors.json` that upstream writes**, for every field rung 1 builds.
+
+Not a description of upstream. Upstream itself, as an **oracle**:
+
+```
+variants/fixtures/ladder-sample-course/            the shared fixture course
+variants/fixtures/ladder-sample-course.tutors.json what upstream `tutors build` wrote for it
+```
+
+Every variant, on every rung, is tested against that one file.
+
+---
+
+## The conformance test
+
+```ts
+// variants/rung-1-seed/tests/conformance.test.ts
+const oracle = JSON.parse(readFileSync(join(FIXTURES, "ladder-sample-course.tutors.json"), "utf8"));
+const course = buildCourse(join(FIXTURES, "ladder-sample-course"));
+
+/** The fields this rung builds. Upstream has more (img, video, frontMatter, ...); RUNG.md lists them. */
+const FIELDS = ["type", "id", "title", "summary", "contentMd", "route", "archiveFile", "shortTitle"];
+
+function project(lo: Json): Json {
+  const out: Json = {};
+  for (const field of FIELDS) if (field in lo) out[field] = lo[field];
+  if (Array.isArray(lo.los)) out.los = lo.los.map((child: Json) => project(child));
+  return out;
+}
+
+test("every field this rung builds matches upstream, learning object by learning object", () => {
+  assert.deepEqual(project(course), project(oracle));
+});
+```
+
+---
+
+## Two tests, two kinds of failure
+
+```ts
+test("the course tree has the same shape, ids, types and titles as upstream", () => {
+  const outline = (lo: Json): unknown => [lo.type, lo.id, lo.title, ...(Array.isArray(lo.los) ? lo.los.map(outline) : [])];
+  assert.deepEqual(outline(course), outline(oracle));
+});
+```
+
+The outline test fails first and small when the **tree** is wrong: a missing object, a wrong order, a wrong
+kind. The projection test then finds a wrong **field**. A short diff is a teaching diff.
+
+The projection is the important design move: rung 1 claims only the fields it builds, so the test is strict
+about those and silent about the rest. Adding a field means adding it to `FIELDS`.
+
+---
+
+## Why an oracle beats a specification
+
+| Approach | What can go wrong |
+| --- | --- |
+| Read upstream, write expectations by hand | you test your reading of upstream, not upstream |
+| Snapshot your own output | you freeze your own bugs |
+| **Compare with upstream's output** | only a change upstream; then regenerate, and read the diff |
+
+The upstream quirks (the lab title from `img/main.png`, one `#` dropped from a title, a unit's route
+pointing at its topic) are in rung 1 **because** the oracle demanded them.
+
+Upstream does this too: `tests/unit/course-rules/gen-conformance.test.ts` checks the validator against
+what the generator leaves out.
+
+---
+
+## The rest of the gate
+
+```json
+"scripts": { "test": "node --test tests/*.test.ts" }
+```
+
+| File | Tests |
+| --- | --- |
+| `tests/course-builder.test.ts` | longest prefix, front matter, ordering, skipped folders, lab step ids, `assertNever` |
+| `tests/conformance.test.ts` | agreement with the upstream oracle |
+| `tests/rung-fence.test.ts` | what rung 1 may use |
+
+`npm test` is the **Single Gate**: 11 tests, green means done. Tests write courses into a temporary folder
+with `mkdtempSync`, so they need no files of their own.
+
+---
+
+## The Rung Fence
+
+```ts
+// variants/rung-1-seed/tests/rung-fence.test.ts
+const ALLOWED = { dependencies: [], devDependencies: [], peerDependencies: [], optionalDependencies: [] };
+
+const FORBIDDEN = [
+  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/,
+    what: "network access", why: "... The first network call is the reader loading tutors.json in rung 5 (Reader)." },
+  { pattern: /"node:child_process"|"node:worker_threads"/, what: "other processes or threads", ... },
+  { pattern: /\.html\b|<html|<body/i, what: "HTML output", why: "A website arrives in rung 2 (Lite)." },
+];
+```
+
+Three tests: no dependency, only `node:` and relative imports, nothing a later rung introduces.
+
+---
+
+## A fence failure teaches
+
+Ask an agent on rung 1 to "also write an index page", and it adds `index.html`:
+
+```
+Rung Fence, rung 1 (Seed): src/main.ts uses HTML output (".html").
+A website arrives in rung 2 (Lite). Remove it from this rung.
+
+Lifting the fence is a person's decision: see AGENTS.md, "Ask a human first".
+```
+
+The message names the rule, the file, what was found, and the rung where it belongs. That is L4.
+The agent's right move is to stop and say so, not to edit the fence.
+
+---
+
+## The working agreement
+
+`variants/rung-1-seed/AGENTS.md` is a Short Manifest (L2), under 500 words:
+
+- **Verify**: `npm test`. If the fence or the conformance test fails, change the code, not the test
+- **Where things go**: a new kind goes in `src/model.ts`, "then the `case` the compiler asks for"
+- **Rung Fence**: what the fence checks, in three lines
+- **Ask a human first**: any dependency, the fence, the fixture and its oracle, the conformance test,
+  `AGENTS.md` itself, the shape of `tutors.json`
+
+Only what a test cannot check stays in the prose.
+
+---
+
+## Summary
+
+- `main.ts` is the only file that knows about `process`; `buildCourse` is a plain function
+- the conformance test makes upstream the judge, field by field
+- the fence keeps rung 1 on Node alone, and says which rung brings what it refuses
+- `npm test` is the one gate
+
+Read the note "Making mistakes unrepresentable", then do Lab 2.

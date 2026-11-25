@@ -1,0 +1,210 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# From rung 7 to the real thing
+
+### Every rung, found again in tutors-mono-repo
+
+Week 12, the Summit. Talk 1
+
+---
+
+## You have climbed a straight line
+
+1 Seed, 2 Lite, 3 Layers, 4 Proven, 5 Reader, 6 Guarded, 7 Shipped.
+
+- Each rung was a copy of the one below, plus one capability
+- So rung 7 holds all seven: a generator, a site, layers, a specification, a reader, defences, a release
+- Each capability mirrors part of the real repository
+
+This talk maps each rung to its upstream home, then shows what the real repository adds that no rung covers.
+All paths are at the pinned commit `2b96b69` of tutors-sdk/tutors-mono-repo.
+
+---
+
+## This week's outcomes
+
+- **(Analyse)** Map each rung to the upstream areas it mirrors, and classify what the mono-repo adds
+- **(Evaluate)** Judge at which Assertion Ladder level upstream keeps a rule
+- **(Evaluate)** Choose a small improvement by its value, at a rung you have finished
+- **(Create)** Specify it first, in upstream's own style, and fence your agent
+- **(Create)** Implement it, run the gates, defend it on an A3
+
+Lean focus: **Kaizen upstream**. One small improvement to someone else's standard work.
+
+---
+
+## Rungs 1 to 3: the generator and its architecture
+
+| Rung | Variant | Upstream areas |
+| --- | --- | --- |
+| 1 Seed | `rung-1-seed` | `packages/jsr/gen`, `packages/jsr/model`, `packages/jsr/tutors` |
+| 2 Lite | `rung-2-lite` | `packages/jsr/tutors-lite` |
+| 3 Layers | `rung-3-layers` | `pnpm-workspace.yaml`, `packages/jsr/types`, the ports in `packages/jsr/course-rules`, `tests/architecture` |
+
+Upstream adds: `packages/jsr/create` (the scaffolder and `tutors validate`), `packages/jsr/tutors-cli` (one
+program for every tool), and dependency-cruiser rules in `.dependency-cruiser.cjs`.
+
+---
+
+## Rungs 4 to 7: specified, read, guarded, shipped
+
+| Rung | Variant | Upstream areas |
+| --- | --- | --- |
+| 4 Proven | `rung-4-proven` | `tests/`, `tests/bdd/features`, `guides/testing`, `stryker.config.json` |
+| 5 Reader | `rung-5-reader` | `apps/reader`, `packages/svelte/ui-*`, `packages/svelte/course` |
+| 6 Guarded | `rung-6-guarded` | `packages/jsr/identity`, `packages/svelte/utils/rbac`, `packages/svelte/ui-primitives/src/utils/sanitize.ts`, `SECURITY.md` |
+| 7 Shipped | `rung-7-shipped` | `.github/workflows`, `release/`, `Dockerfile`, tutors-release-harness |
+
+Each variant's `RUNG.md` lists the exact files. The reading note has the full map.
+
+---
+
+## Supabase: the data behind signed-in use
+
+- `supabase/migrations/`: nine SQL migrations at the pinned commit
+- `guides/MIGRATIONS.md`: expand and contract, so a rolling release never breaks the version still running;
+  "a merged migration is never edited, deleted or renamed"
+- `pnpm check:migrations` checks a new migration before CI does
+- Browser code reaches personal data only through `@tutors/data-api` (`packages/svelte/data-api`);
+  `tests/architecture/browser-data-access.test.ts` holds that line
+
+In anonymous mode (`PUBLIC_ANON_MODE=TRUE` in `.env.example`) none of this runs. That is why the quick start
+needs no backend.
+
+---
+
+## Realtime and live
+
+- `packages/jsr/realtime` (`@tutors/realtime`): the realtime **port**
+- `packages/svelte/realtime-supabase`: the one **adapter** that drives Supabase Realtime channels
+- `apps/live`: the live classroom
+- `tests/architecture/realtime-boundary.test.ts` fails if any other file opens a channel
+
+~~~ts
+const ALLOWED = ["packages/svelte/realtime-supabase/src/index.ts",
+                 "apps/reader/static/excalidraw-editor.html"];
+~~~
+
+This is rung 3's ports and adapters, at full size.
+
+---
+
+## Catalogue, time and the validator
+
+| App | What it is | What it shares with the ladder |
+| --- | --- | --- |
+| `apps/catalogue` | course catalogue and discovery | lists courses; its data comes from the backend |
+| `apps/time` | student activity and time, using `packages/jsr/time` | a JSR library, like rung 1's model |
+| `apps/validator` | checks a published `tutors.json` (rule V020) or a local course archive | the same `course-rules` behind `check-course.sh` since week 1 |
+
+In anonymous mode the catalogue, live and time apps start but show no courses or students. CONTRIBUTING.md:
+"An empty page is expected, not a broken setup."
+
+---
+
+## JSR publishing
+
+- `.github/workflows/jsr-publish.yml`: when a final release is published, every library in `packages/jsr`
+  whose `deno.json` version JSR does not serve yet is published, dependencies first (Rule 0775)
+- `deno publish` authenticates with GitHub's OIDC token, so no JSR token is stored, and JSR records Sigstore
+  provenance
+- That is how `tutors-create validate`, which every course's standard `netlify.toml` runs, reaches lecturers
+
+Your course in this module is validated by code that travelled this route.
+
+---
+
+## The release harness
+
+A separate repository, tutors-sdk/tutors-release-harness (pinned at 1.63.0):
+
+> Run the same scripted traffic through two identical stacks that differ only in the application image,
+> normalise the noise, diff everything observable, and fail unless each diff hunk is claimed by a changelog
+> entry or a Rule.
+
+- it verifies the cosign signature of every image it pulls from `quay.io/tutors-sdk/tutors-<app>`
+- being separate, it "cannot be quietly weakened by the PR it is judging" (its README)
+
+Rung 7's claims were promises that tests keep. Upstream's claims are differences that a harness matches.
+
+---
+
+## The release itself: standard work
+
+`release/SOP.md`: three roles, twelve steps, "one owner per step, and a done-when that is a file or a recorded
+action, never a feeling".
+
+| Lean idea | Where it lives |
+| --- | --- |
+| Jidoka (stop the line) | the harness gate; `release/claims.yaml` |
+| Standard work | the SOP itself |
+| Gemba (go and look) | the reviewer's glance, step 8 |
+| Kaizen | a stop opens a 5 Whys that ends in one countermeasure |
+
+Contributors own steps 3 and 4: the changelog line with its artefact hints, and the claims.
+
+---
+
+## Service level objectives
+
+- `release/slo.yaml`: indicative availability and latency targets per app, over a 28 day window
+- The reader is strictest: `reader-availability` has target `0.995`, "about 3h22m of errors in 28 days"
+- Grafana alerts are generated from the file (`pnpm slo:alerts`); `pnpm check:slo` fails if they drift: a
+  Closure Check, like rung 4's audit
+- The harness keeps its own floors (`slo/floors.yaml`) and "judges the stricter of the two, so lowering a
+  number here never loosens a release"
+
+Rung 7's budgets were build time and site size. These are promises about a running service.
+
+---
+
+## Supply chain: the OpenSSF Scorecard and friends
+
+- `.github/workflows/scorecard.yml`: weekly (`cron: "20 7 * * 1"`, Mondays 07:20 UTC) and on branch
+  protection changes
+- The README carries the Scorecard and OpenSSF Baseline badges; `docs/security/scorecard-baseline.md` records
+  the baseline
+- `codeql.yml` scans the code; `zizmor.yml` audits the workflows themselves
+- `image-build.yml` signs each image with cosign, keyless, from GitHub OIDC
+
+Rung 6 began this story with pinned dependencies. The real repository finishes it.
+
+---
+
+## Sizes, side by side
+
+| | Rung 7 | tutors-mono-repo |
+| --- | --- | --- |
+| apps | a cli and a reader | 5 (`reader`, `catalogue`, `live`, `time`, `validator`) |
+| packages | a handful of `@ladder/*` | 11 under `packages/jsr`, 14 under `packages/svelte` (`utils` holds 8 more) |
+| workflows | one template | 17 |
+| EARS Rules | a few dozen `R-NNN` ids | 441 Rules in 85 feature files |
+| Node | 22.18 or later | 26.13 or later |
+
+You will not hold all of it in your head. You do not need to. You need the rung your change sits on.
+
+---
+
+## What the ladder left out, on purpose
+
+Every `RUNG.md` has a "Deliberately left out" section. Read together, they are the list of what is new at the
+Summit:
+
+- state that outlives a page: accounts, enrolment, analytics, presence
+- more than one app, and the shared packages that make that bearable
+- operation: images, Kubernetes overlays in `deploy/`, dashboards in `observability/`, SLOs, a harness
+
+None of it changes the centre. A course folder still becomes `tutors.json`, and a reader still renders it.
+
+---
+
+## Summary
+
+- Every rung has a home in the real repository, and you know its shape
+- What is new at the Summit is mostly **scale** and **operation**: data, realtime, releases, SLOs
+- The same patterns hold it together: ports, Closure Checks, Ratchets, one gate, a Human Boundary
+- Next talk: how to change it safely, with an agent, one small improvement at a time

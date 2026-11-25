@@ -1,0 +1,8 @@
+node_modules/
+json/
+html/
+out/
+reports/
+.stryker-tmp/
+*.log
+*.tsbuildinfo

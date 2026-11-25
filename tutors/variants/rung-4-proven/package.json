@@ -1,0 +1,33 @@
+{
+  "name": "@ladder/rung-4-proven",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 4 (Proven): the rung 3 tools, specified by tests: EARS, BDD, contracts, conformance, properties and mutation",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "start": "node apps/cli/src/main.ts",
+    "typecheck": "tsc -p packages/model && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p .",
+    "test": "pnpm typecheck && vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:bdd": "vitest run tests/bdd",
+    "test:contract": "vitest run tests/contract",
+    "test:conformance": "vitest run tests/conformance",
+    "test:fuzz": "FUZZ_RUNS=${FUZZ_RUNS:-1000} vitest run tests/fuzz",
+    "test:ears:audit": "node scripts/checks/ears-audit.ts",
+    "test:mutation": "stryker run",
+    "check:mutation-floors": "node scripts/checks/mutation-floors.ts"
+  },
+  "devDependencies": {
+    "@amiceli/vitest-cucumber": "^8.0.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
+    "@types/node": "^22.20.7",
+    "fast-check": "^4.11.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.2"
+  }
+}

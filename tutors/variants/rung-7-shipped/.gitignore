@@ -1,0 +1,12 @@
+node_modules/
+json/
+html/
+out/
+reports/
+.stryker-tmp/
+*.log
+*.tsbuildinfo
+.svelte-kit/
+build/
+apps/reader/static/courses/
+test-results/

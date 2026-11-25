@@ -1,0 +1,14 @@
+{
+  "name": "@ladder/rung-1-seed",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 1 (Seed): a course folder in, tutors.json out",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test tests/*.test.ts"
+  }
+}

@@ -1,0 +1,232 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Layers and browser tests
+
+### Where a component lives, and how a user interface is proved
+
+Tutors Ladder, week 9. Rung 5 of 7: Reader. Upstream paths are at tutors-mono-repo `2b96b69`.
+
+---
+
+## Two questions for every component
+
+1. **Where does it live?** In one of three UI layers, and the layers point one way.
+2. **What proves it?** A scenario over the logic it shows, a browser test over the page it is on, or both.
+
+The first half of this talk is the first question, here and upstream. The second half is the second.
+
+---
+
+## Three UI packages, one direction
+
+Upstream `ARCHITECTURE.md`: "The one-directional dependency flow is: `ui-components` -> `ui-navigators` ->
+`ui-primitives`."
+
+| Package | Holds (`packages/svelte/...`) |
+| --- | --- |
+| `ui-primitives` | `Icon`, `Image`, `Menu`, `Sidebar`, `StudentCard`, `utils/sanitize.ts` |
+| `ui-navigators` | `TutorsShell`, `MainNavigator`, `SecondaryNavigator`, `CourseNavigation`, `footers/`, `search/` |
+| `ui-components` | `learning-objects/layout`, `structure`, `content`; `quiz/`, `time/` |
+
+Below them: `runes`, `course`, `themes`, `utils/i18n`, `utils/a11y`.
+
+---
+
+## The rule that keeps it, upstream
+
+`.dependency-cruiser.cjs`, proved able to fail by `tests/architecture/dependency-rules.test.ts`:
+
+```js
+name: "ui-primitives-no-data-features",
+comment: "UI primitives are low-level presentational components: they take users, events and
+  permissions as props or context, and never reach into the data and access packages
+  (community, connect, data-api, rbac) themselves. Theme and tour services stay allowed.",
+from: { path: "^packages/svelte/ui-primitives/" },
+to:   { path: "^packages/svelte/(community|connect|data-api|utils/rbac)/" }
+```
+
+The same test proves `layer-ui-primitives`, `layer-ui-navigators` and `layer-ui-components` each catch a
+fixture that reaches up.
+
+---
+
+## The same rule, at rung 5
+
+`tests/architecture/reader-layers.test.ts`
+
+```ts
+"lib/course":        { may: [], kit: false, job: "... plain TypeScript, so Vitest runs it without a browser ..." },
+"lib/runes":         { may: ["lib/course"], kit: false, ... },
+"lib/ui-primitives": { may: [], kit: false, job: "... like upstream's ui-primitives they import no data ..." },
+"lib/ui-navigators": { may: ["lib/ui-primitives", "lib/runes", "lib/course"], kit: true, ... },
+"lib/ui-components": { may: ["lib/ui-navigators", "lib/ui-primitives", "lib/runes", "lib/course"], kit: true, ... },
+routes:              { may: [all five], kit: true, job: "routes load a page's data and hand it to one component" },
+```
+
+Folders, not packages: a learner reads one app. The direction is upstream's. Each failure names the rule,
+the file, the reason and the fix (L4).
+
+---
+
+## Where does a new piece go?
+
+`AGENTS.md`, "Where things go":
+
+| You are adding | It belongs in |
+| --- | --- |
+| a page | `src/routes/(course-reader)/<kind>/...` |
+| finding things, deciding a 404 | `src/lib/course` |
+| a card, a layout, a content view | `src/lib/ui-components` |
+| breadcrumbs, a pager, search | `src/lib/ui-navigators` |
+| a small piece with no data | `src/lib/ui-primitives` |
+| shared state | `src/lib/runes` |
+
+This table is standard work for you and for your agent. The assignment's pager is a navigator with its
+logic in `lib/course`: two rows of the table.
+
+---
+
+## What upstream's layers carry that ours do not
+
+| Concern | Upstream | Rung 5 |
+| --- | --- | --- |
+| Themes | `packages/svelte/themes/src/services/themes.svelte.ts`: seven themes, a `data-theme` attribute, `localStorage.theme` | light and dark tokens in `app.css`; the fence forbids storage |
+| Interface text | `packages/svelte/utils/i18n/src/index.ts`: `t(key)`, six locales (`en fr de it es ga`), `locale` is a rune | English in the markup |
+| Accessibility | skip link and `main#main-content` in `TutorsShell`; focus after navigation; `aria-current="step"`; axe checks in `apps/reader/tests/e2e/accessibility.spec.ts` | the first four, in the same places; no axe |
+
+Drift to notice: `ARCHITECTURE.md` lists five languages; the code has six, with Irish.
+
+---
+
+## What proves a user interface?
+
+Rung 5 has five answers, cheapest first.
+
+| Check | Sees | Blind to |
+| --- | --- | --- |
+| `svelte-check` (L5) | wrong props, a missing colour, a lost `$derived` | behaviour |
+| architecture rules (L4) | a layer reaching up, `{@html}`, a stray `fetch` | behaviour |
+| scenarios and unit tests over `lib/course` (L3) | every rule you kept out of components | anything a component does |
+| mutation (L3, outside the gate) | tests that would not notice a change | components: only `lib/course` is mutated |
+| `pnpm test:e2e` (L3, outside the gate) | the page a student gets | why it is wrong |
+
+No single row is enough. The art is putting each rule where the cheapest check can see it.
+
+---
+
+## The browser tier
+
+`tests/e2e/serve.ts` serves `apps/reader/build` with a `200.html` fallback and launches Chromium.
+`tests/e2e/smoke.e2e.ts`:
+
+```ts
+test("a learner clicks from the home page to a lab step (R-018, R-019, R-021)", async () => {
+  await page.goto(reader.origin);
+  await page.getByRole("link", { name: "Open the course" }).click();
+  await page.getByRole("heading", { level: 1, name: "Ladder Sample Course" }).waitFor();
+  ...
+  await page.keyboard.press("ArrowRight");
+  await page.getByRole("heading", { level: 1, name: "Build" }).waitFor();
+  expect(errors).toEqual([]);
+});
+```
+
+- It finds things as a person does: by role and name. That is also an accessibility check.
+- Its title cites the requirements it exercises. The EARS audit checks those citations.
+- It is the `playwright` library run by Vitest; upstream's `@playwright/test` runner is left to the Summit.
+
+---
+
+## What only the browser sees
+
+Swap the arrow keys in `Lab.svelte` (`ArrowRight ? previous : ...`).
+
+| Check | Result |
+| --- | --- |
+| `pnpm test` | green: 409 passed |
+| `pnpm test:e2e` | red: timed out waiting for the heading "Build" |
+
+R-019 ("link to the step before it and the step after it") is still true of `liveLab`. The component simply
+used it the wrong way round.
+
+This is a **defect that escapes**: every in-gate check green, the student's page wrong. In Lean terms it is
+the most expensive defect, found by the customer. The browser tier is there to find it first.
+
+---
+
+## Why e2e is outside the gate
+
+- It needs a build and a browser; the gate must run anywhere, quickly.
+- So `AGENTS.md` makes it standard work: run `pnpm test:e2e` whenever you change what a learner sees.
+- That is an L2 instruction about when to run an L3 check. It can be forgotten.
+
+Where would you move it? Upstream runs its browser suite on every pull request (`ui-contract` in
+`.github/workflows/ci.yml`). Rung 7 (Shipped) gives this ladder a CI to do the same.
+
+---
+
+## Upstream: Rules a browser proves
+
+`guides/testing/EARS-METHODOLOGY.md`, "Browser-proved Rules". A feature tagged `@ui`:
+
+```gherkin
+@rule-0035 @ears-event-driven
+Rule: When a student moves between lab steps by the pager, the step list, the arrow keys or browser
+      history, the reader shall mark only the current step in the step list.
+
+  Scenario: Step list follows the pager, links, keys and history
+```
+
+is proved by the Playwright test with **the same title**, tagged with the Rule id
+(`apps/reader/tests/e2e/reading.spec.ts`):
+
+```ts
+test("Step list follows the pager, links, keys and history", { tag: "@rule-0035" }, async ({ page }) => {
+```
+
+`pnpm test:ears:audit` fails a scenario with no such test (`unproved-scenario`) and a test with no such
+scenario (`orphan-ui-test`). Closure, again, across a new pair of lists.
+
+---
+
+## Two ways to specify a UI rule
+
+| | Rung 5 | Upstream `@ui` |
+| --- | --- | --- |
+| The Rule's scenario runs | in Node, over `lib/course` | in Chromium, over the page |
+| The browser test | a smoke test that cites R-ids | one test per scenario, same title |
+| Fast and precise when it fails | yes | less so |
+| Sees layout, focus, colour, keys | no | yes |
+
+Rung 5's choice fits a small reader with little that only a browser can see. The price is the row "What
+only the browser sees". The second reading note works through when to choose which.
+
+---
+
+## Mutation: is the suite paying attention?
+
+`pnpm test:mutation` changes `lib/course` over a hundred times and counts the changes no test noticed.
+
+| File | Score | Floor |
+| --- | --- | --- |
+| `course-service.ts` | 96.77 | 96 |
+| `lo-tree.ts` | 100 | 100 |
+| `live-lab.ts` | 100 | 100 |
+
+The two survivors in `course-service.ts` are equivalent mutants; `RUNG.md` says why. Components are not
+mutated: one more reason to keep rules out of them. A new file in `lib/course` needs a line in
+`stryker.config.json` and a floor, or the gate fails. The assignment asks for both.
+
+---
+
+## What to take away
+
+- Three UI layers, one direction, a rule with a reason; the same here and upstream.
+- Put each rule where the cheapest check can see it: types, then architecture, then a scenario.
+- A scenario over logic cannot see what a component does with it. A browser test can.
+- Upstream binds `@ui` scenarios to Playwright tests by title and Rule id, and audits the binding.
+- Value is what the student gets on the screen. Check there before you call it done.

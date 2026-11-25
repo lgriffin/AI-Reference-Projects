@@ -1,0 +1,216 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Contributing with an agent, under the ladder
+
+### The repository's guardrails, your own fence, and Kaizen upstream
+
+Week 12, the Summit. Talk 2
+
+---
+
+## The Summit has no Rung Fence
+
+- Every variant fenced your agent to its rung
+- tutors-mono-repo has no such fence: an agent can reach every package, workflow and baseline
+- It has strong guardrails of its own, mostly at L3 and L4
+- At the pinned commit it has **no `AGENTS.md` and no `CLAUDE.md`**: its one agent file is the skill
+  `.claude/skills/ears-gherkin-dev/SKILL.md`
+
+So you bring two things: the repository's gates, and a fence of your own.
+
+---
+
+## Kaizen upstream
+
+Kaizen: small, continuous improvement of the standard work, by the people who do the work.
+
+- **Small.** One logical change. The pull request template says so: "Small PRs are reviewed faster"
+- **Pulled.** It starts from a need somebody has: an issue, a line of documentation that misled you
+- **To the standard work.** Upstream's standard work is `CONTRIBUTING.md`, the guides, the gates, the SOP.
+  You are improving someone else's, so you follow theirs while you do it
+
+A large feature nobody asked for is overproduction, however good the code.
+
+---
+
+## What the repository gives an agent to read (L2)
+
+| File | What it tells |
+| --- | --- |
+| `CONTRIBUTING.md` | setup, the three local checks, what CI checks, EARS Rules, changelog hints |
+| `docs/COURSE-PAGE-WALKTHROUGH.md` | one page from URL to pixels (also an L1 worked path) |
+| `guides/testing/TESTING-OVERVIEW.md` | the test tiers and every baseline |
+| `.claude/skills/ears-gherkin-dev/SKILL.md` | eight steps for a behavioural change, spec first |
+| `.github/PULL_REQUEST_TEMPLATE.md` | the checklist your pull request fills in |
+
+None is a short manifest loaded at the start of every session. Your session manifest fills that gap.
+
+---
+
+## Specify first, in upstream's own style
+
+Upstream has no `REQUIREMENTS.md`. The requirement **is** the `Rule:` title in a feature file:
+
+~~~gherkin
+  @rule-0777 @ears-ubiquitous
+  Rule: Tutors shall run the generator for tutors build, tutors-lite for tutors website, ...
+
+    Scenario: An unknown command shows the usage
+      When the tutors program is given "bulid"
+      Then it shows the usage, naming "bulid" as unknown
+~~~
+
+(`tests/bdd/features/developer/tutors-cli.feature`.) Ids are four digits; `pnpm test:ears:audit --next-id`
+gives the next free one. The skill tells an agent: "Show the Rule to the human and wait for a yes: the
+requirement is the thing they are approving."
+
+---
+
+## The audit teaches (L4)
+
+A Rule written badly on purpose, checked with `pnpm test:ears:audit --strict`:
+
+~~~
+obligation-keyword: Rule title uses "should"; the obligation keyword is "shall".
+shall-count: Rule title has 2 "shall"; a requirement has exactly one.
+system-name: The word before "shall" must be a system name: tutors, the reader,
+  the catalogue, the live dashboard, the time dashboard, the data API.
+~~~
+
+Each line names the rule and the fix. You met this audit's small cousin on rung 4.
+
+---
+
+## Checked (L3): ratchets
+
+"Baselines may only shrink" (`guides/testing/TESTING-OVERVIEW.md`):
+
+- a problem that is not in the baseline fails the build
+- a baseline line that no longer occurs **also** fails the build
+- so fixing something means deleting its line
+
+`tests/architecture/known-violations.txt` holds the dependency-cruiser violations that predate the rules;
+`tests/architecture/dependency-rules.test.ts` reads it. The overview lists nine such baselines.
+
+---
+
+## Checked: floors and hints
+
+| Check | Surprise (from CONTRIBUTING.md) |
+| --- | --- |
+| coverage floors (`tests/suite-health/coverage-floors.json`) | fail when coverage drops, **and** when it sits 2 or more points above a floor |
+| mutation floors (`tests/mutation/nightly-mutation-floors.json`) | a new library module with no floor fails |
+| changelog hint (`.github/workflows/changelog-hint.yml`) | a dependency change needs `sbom` in the pull request title |
+
+An agent that "improves" tests can turn CI red. Read the message: it names the file to change.
+
+---
+
+## The Single Gate and the Human Boundary
+
+- **Single Gate**: a pull request merges with one approving review and a green **CI success** check, which
+  needs every job in `.github/workflows/ci.yml`. Locally: `pnpm lint`, `pnpm test`, `pnpm check`
+- **Human Boundary**: `.github/CODEOWNERS` puts `.github/`, `release/claims.yaml`, `release/SOP.md` and
+  `SECURITY.md` behind the maintainers
+- A broad release claim needs `approvedBy`: "a person, never a bot" (`release/README.md`)
+- The glance, step 8 of the SOP, is one person looking at the artefact itself
+
+---
+
+## The value stream of a pull request
+
+issue → claim → branch → Rule → code → local checks → pull request → CI → review → merge → release
+
+- **Value** is added where the change gets better: the Rule, the code, the review
+- **Waiting** is everything between: for a reply on the issue, for workflow approval on a first pull
+  request, for review ("within 5 business days"), for the next release
+- You control little of the waiting, and all of the **rework**: a pull request that fails CI, or needs three
+  review rounds, goes round the loop again
+
+The ladder's habits (specify first, one gate, small change) are how you send it round once.
+
+---
+
+## Your fence: a session manifest
+
+A short file you give your agent at the start of every session. It is your L2, and it borrows the ladder's
+fence.
+
+- **Task**: the issue, the expected result, how to check it
+- **Rung**: the rung the change sits on, and the upstream areas that rung mirrors
+- **May touch**: the files the issue names, their tests, at most one feature file
+- **Must not touch**: other packages, workflows, baselines (except deleting a fixed line), floors, claims
+- **Gate**: the commands to run before saying "done"
+- **Ask a human first**: any new dependency, any edited test, the Rule, anything under CODEOWNERS
+
+You check it with `git diff --stat` before every commit: a Rung Fence held by a person.
+
+---
+
+## Choosing an improvement at your rung
+
+| The change touches | Its rung |
+| --- | --- |
+| docs only | weeks 1 and 2 |
+| `packages/jsr/gen`, `model`, `tutors` | 1 Seed |
+| `packages/jsr/tutors-lite` | 2 Lite |
+| `.dependency-cruiser.cjs`, `packages/jsr/types`, `tests/architecture` | 3 Layers |
+| `tests/`, `tests/bdd/features`, `guides/testing` | 4 Proven |
+| `apps/reader`, `packages/svelte/ui-*` | 5 Reader |
+| `utils/rbac`, `identity`, `sanitize.ts` | 6 Guarded |
+| `.github/workflows`, `release/`, `Dockerfile`, `deploy/` | 7 Shipped |
+| `supabase/`, realtime, `apps/live` | Summit only: leave it for now |
+
+---
+
+## A first candidate you already know
+
+`docs/COURSE-PAGE-WALKTHROUGH.md`, section 2, names `apps/reader/src/routes/+layout.server.ts`.
+
+The file in the repository is `apps/reader/src/routes/+layout.ts`.
+
+- small, real, and at your rung
+- search the open issues and pull requests **first**: someone may have reported or fixed it
+- and ask the Assertion Ladder question: why did no check catch it? The walkthrough is at L2. Could the rule
+  "the walkthrough names only files that exist" climb to L3?
+
+---
+
+## The A3: one page that argues for the change
+
+| Section | The question it answers |
+| --- | --- |
+| Value | Who is better off, and how would they notice? |
+| Current state | What happens today? Show it, with a command and its output |
+| Root cause | Why? Ask until you reach something you can change |
+| Countermeasure | The smallest change that removes the cause, and the level it now sits at |
+| Evidence | The Rule, the gate output, the diff, the pull request |
+
+Week 11's readiness A3 decided whether to ship. This one decides whether to merge. It is the capstone's
+written part.
+
+---
+
+## The loop
+
+1. Choose a small improvement and say whose need it meets
+2. If behaviour changes: the EARS Rule first, approved by you
+3. Write the session manifest; start the agent with it
+4. Let the agent change code; run the gates
+5. Read every line of the diff; cut what you cannot explain
+6. Open the pull request with the template filled in honestly
+7. Write the A3. Then Kaizen: what would you change in the loop itself?
+
+---
+
+## Summary
+
+- The real repository guards itself mostly at L3 and L4
+- You add the L2 an agent lacks, and a fence of your own
+- Pick work at your rung, pulled by a need; keep it small
+- Specify first, in the repository's own style
+- The lab takes you through one contribution; the capstone asks you to defend one

@@ -1,0 +1,195 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Closure and test-first
+
+### Two lists that cannot drift apart
+
+Week 6, rung 4 of 7 (Proven), talk 2
+
+---
+
+## One sentence, three places
+
+```
+REQUIREMENTS.md
+| R-010 | Event-driven | When a lab has more than one step, the site shall link each step page ... | lite |
+
+tests/bdd/features/site/static-site.feature
+  @R-010 @ears-event-driven
+  Rule: When a lab has more than one step, the site shall link each step page ...
+    Scenario: The middle step links both ways
+
+tests/bdd/steps/site/static-site.steps.ts
+  Rule("When a lab has more than one step, the site shall link each step page ...", ({ RuleScenario }) => {
+```
+
+The `Rule:` title is the requirement, word for word. The scenarios are its proof. The steps bind it.
+
+---
+
+## Closure: every arrow must hold
+
+```
+REQUIREMENTS.md       every id ─────────► at least one Rule with a scenario
+tests/bdd/features    every Rule ───────► exactly one known id, its sentence word for word, its pattern's tag
+tests/bdd/steps       every feature ────► loaded by a steps file
+any test title        "R-008: ..." ─────► an id that exists
+```
+
+`pnpm test:ears:audit` (and the gate, through `tests/suite-health/requirements.test.ts`) fails when any
+arrow breaks. Two lists that must agree, checked so they cannot drift: a **Closure Check**.
+
+---
+
+## What a broken arrow says
+
+```
+rule-title-drift: tests/bdd/features/site/static-site.feature:38: the Rule's title is not R-010's
+sentence. One sentence, one source: copy it from REQUIREMENTS.md:21 word for word.
+    REQUIREMENTS.md: When a lab has more than one step, the site shall link each step page ...
+    feature:         When a lab has more than one step, the site shall link every step page ...
+
+ears-tag: tests/bdd/features/site/static-site.feature:38: R-010 is Event-driven, so its Rule takes
+exactly @ears-event-driven; it has @ears-ubiquitous.
+
+unknown-id: tests/bdd/features/site/static-site.feature:38: @R-099 is not in REQUIREMENTS.md. State the
+requirement there first, with --next-id, then prove it here.
+
+unknown-citation: tests/unit/lite/html.test.ts: cites R-077, which is not in REQUIREMENTS.md.
+```
+
+Every one names the file, the line and the fix: L4.
+
+---
+
+## The audit and the runner guard different things
+
+Change one word of R-010's `Rule:` title:
+
+| Check | Fails with | Guards |
+| --- | --- | --- |
+| `pnpm test:ears:audit` | `rule-title-drift` | the **sentence**: one source, word for word |
+| `pnpm test:bdd` (vitest-cucumber) | `FeatureUknowRuleError: Rule: ... does not exist` | the **binding**: feature and steps agree |
+
+Neither alone is enough. The audit cannot run a scenario; the runner cannot read `REQUIREMENTS.md`.
+
+---
+
+## Inside the audit
+
+```ts
+// variants/rung-4-proven/scripts/checks/ears-audit.ts
+export const PATTERNS: Record<string, { tag: string; opening: RegExp; form: string }> = {
+  Ubiquitous: { tag: "@ears-ubiquitous", opening: /^The\b/, form: "The <system> shall <response>." },
+  "Event-driven": { tag: "@ears-event-driven", opening: /^When\b[^,]*,/, form: "When <trigger>, ..." },
+  "State-driven": { tag: "@ears-state-driven", opening: /^While\b[^,]*,/, ... },
+  Optional: { tag: "@ears-optional", opening: /^Where\b[^,]*,/, ... },
+  "Unwanted behaviour": { tag: "@ears-unwanted", opening: /^If\b[^]*,\s*then\b/, ... },
+};
+export const SYSTEMS: Record<string, string> = { "the generator": "gen", "the site": "lite", "the command": "cli" };
+```
+
+Pure functions: `parseRequirements`, `auditRequirements`, `auditFeatures`, `auditCitations`, `nextId`.
+`tests/suite-health/requirements.test.ts` runs each on negative fixtures, then on the real files.
+
+---
+
+## Ids are identities
+
+- Take the next one: `pnpm test:ears:audit --next-id` prints `R-013`.
+- It is one past the highest ever used, **retired ones included**.
+- Retired ids live in `tests/bdd/retired-requirement-ids.txt` and are never reused (`retired-id`).
+- Changing a requirement's wording keeps its id. A different requirement gets a new id.
+
+Upstream: four-digit `@rule-NNNN` tags, one counter for the repository, `tests/bdd/ears-retired-rule-ids.txt`.
+`--next-id` printed `0786` at `2b96b69`. A release claim cites a rule by id, so an id must never move.
+
+---
+
+## Test-first, enforced
+
+Add a requirement and nothing else:
+
+```
+| R-013 | Ubiquitous | The command shall write tutors.json beside the pages it writes. | cli |
+```
+
+```
+unproved-requirement: REQUIREMENTS.md:24 R-013: no Rule tagged @R-013 has a scenario. Add one to the
+feature for its layer in tests/bdd/features.
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+A requirement without proof is a wish, and the gate refuses wishes. A scenario without a requirement cites
+nothing (`unknown-id`). Either way, the sentence comes first.
+
+---
+
+## Standard work: "Behaviour starts as a sentence"
+
+```markdown
+<!-- variants/rung-4-proven/AGENTS.md -->
+1. Take an id: `pnpm test:ears:audit --next-id`.
+2. Add the EARS sentence to `REQUIREMENTS.md`, with its pattern and layer.
+3. Copy it, word for word, as a `Rule:` ... with a scenario. Bind the steps. See it fail.
+4. Implement it in the layer the row names. See it pass.
+5. Add a unit or property test for the new code, so the mutation run can see it ... Hold every floor.
+```
+
+And under "Ask a human first": "Changing or retiring a requirement in `REQUIREMENTS.md`."
+
+---
+
+## Upstream's standard work
+
+`.claude/skills/ears-gherkin-dev/SKILL.md` walks an agent through the same loop: write the Rule, show it to
+the human and **wait for a yes**, prove it red, implement, prove it green, audit. It also says: "Do not add
+cucumber-js or a second runner."
+
+`guides/testing/EARS-METHODOLOGY.md` is the long form: patterns, system names, ids, audit codes, the
+`@active`/`@inactive` rule and the release harness that cites rules by id.
+
+```
+deno run -A scripts/checks/ears-audit.ts
+OK: 85 feature file(s), 441 Rule(s), 0 new violation(s), 0 baselined, 0 stale baseline entries.
+```
+
+---
+
+## Lean: standard work and the waste it removes
+
+| Without it | Waste | Removed by |
+| --- | --- | --- |
+| requirements in a doc, tests in a folder, drifting | defects, relearning | the closure audit |
+| behaviour added because an agent thought it useful | extra features (overproduction) | no id, no Rule, no merge |
+| a sentence argued about after the code exists | rework | a person approves the sentence first |
+| "what does R-010 mean?" | relearning | one sentence, one source, word for word |
+
+Standard work is not a cage. It is the baseline you improve: in the lab you will propose one change to it.
+
+---
+
+## Which levels guard the rules
+
+| Rule | Level |
+| --- | --- |
+| every requirement is proved; every citation is known | L4, the closure audit in the gate |
+| a Rule's title is its sentence, word for word | L4, `rule-title-drift` |
+| each sentence has EARS form, a system, a layer | L4, `shall-count`, `ears-form`, ... |
+| a scenario's steps match its feature | L3, vitest-cucumber's own errors |
+| the pattern fits the meaning | L2 and a person: `AGENTS.md`, "Ask a human first" |
+| behaviour starts as a sentence a person approves | Human Boundary |
+
+---
+
+## Take away
+
+- One sentence, one id, one source; repeat it, never paraphrase it
+- The closure audit keeps requirements and proof together, in the gate
+- Ids are identities: never reused
+- Test-first is enforced: no proof, no green
+- Standard work is the baseline for improvement, not the end of it

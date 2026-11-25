@@ -1,0 +1,20 @@
+{
+  "name": "@ladder/rung-3-layers",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 3 (Layers): the rung 2 tools as a layered pnpm workspace with ports",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "start": "node apps/cli/src/main.ts",
+    "typecheck": "tsc -p packages/model && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p .",
+    "test": "pnpm typecheck && node --test \"packages/*/tests/*.test.ts\" \"apps/*/tests/*.test.ts\" \"tests/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.7",
+    "typescript": "^6.0.3"
+  }
+}

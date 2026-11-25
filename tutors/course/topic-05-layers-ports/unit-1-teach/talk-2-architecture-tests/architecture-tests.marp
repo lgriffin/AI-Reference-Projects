@@ -1,0 +1,216 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Architecture tests that teach
+
+### Two walls, an honest double, and Five Whys
+
+Week 5, rung 3 of 7 (Layers), talk 2
+
+---
+
+## Six rules, two weeks
+
+| Rule | Week | Checks |
+| --- | --- | --- |
+| Layering | 4 | workspace imports are in the layer's `may` list |
+| Package boundary | 4 | a relative import never leaves its own `src/` |
+| Model | 4 | `model` is types only and imports nothing |
+| Closure | 4 | `package.json` declares exactly what the source imports |
+| **Port** | **5** | no `node:`, `process.`, `console.`, `fetch(`, `require(` or `Deno.` outside `apps/cli` |
+| **Honest Double** | **5** | every `implements FileSystemPort` class runs the contract |
+
+All six live in `variants/rung-3-layers/tests/architecture/architecture.test.ts`.
+
+---
+
+## The Port rule
+
+```ts
+/** The platform: only the composition root may touch it. Everything else is handed in through a port. */
+const PLATFORM = /from "node:[^"]+"|\bprocess\.|\bconsole\.|\bfetch\(|\brequire\(|\bDeno\./;
+
+if (layer !== "@ladder/cli") {
+  test("leaves the platform to the composition root", () => {
+    const found = source.match(new RegExp(PLATFORM, "g")) ?? [];
+    none(found.map((use) => `${file} uses ${use}`),
+      `Port rule: only apps/cli touches node: modules, process, the console or the network. ...`);
+  });
+}
+```
+
+One regular expression, run on every file of every layer but the composition root.
+
+---
+
+## Two walls for one rule
+
+`packages/gen/src/course-builder.ts` gains `import { readFileSync } from "node:fs";`
+
+**Wall 1, the compiler (L5).** `packages/gen/tsconfig.json` has `"types": []`:
+
+```
+packages/gen/src/course-builder.ts(6,30): error TS2591: Cannot find name 'node:fs'. Do you need to
+install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types
+field in your tsconfig.
+```
+
+**Wall 2, the test (L4).**
+
+```
+Port rule: only apps/cli touches node: modules, process, the console or the network. gen receives the
+world through ports: gen reads files through FileSystemPort (its `fs` argument) and reports through
+BuildOptions.warn; lite returns pages as data for apps/cli to write. The package's tsconfig.json has no
+Node types, so tsc rejects this too.
+    packages/gen/src/course-builder.ts uses from "node:fs"
+```
+
+---
+
+## Why both walls?
+
+- The compiler **stops** the mistake, but its advice is wrong here: "add 'node' to the types field" would
+  tear the wall down. That is why `tsconfig.json` is behind "Ask a human first".
+- The test **explains** the mistake and names the port to use, but it cannot see a platform global it does
+  not list.
+- `console.log` in `gen`: TS2584, "Cannot find name 'console'", and the Port rule.
+- `fetch(...)` in `gen`: the Port rule **and** the Rung Fence ("The first network call is the reader
+  loading tutors.json in rung 5 (Reader).").
+
+Two levels guarding one rule is not waste. It is defence in depth, each wall covering the other's blind spot.
+
+---
+
+## The Honest Double rule
+
+```ts
+test("every FileSystemPort adapter runs the port contract", () => {
+  const contract = readFileSync(join(ROOT, "apps/cli/tests/file-system-port.contract.test.ts"), "utf8");
+  const adapters = modules.flatMap(({ source, file }) =>
+    [...source.matchAll(/class (\w+) implements FileSystemPort/g)].map((m) => ({ name: m[1]!, file })));
+  assert.ok(adapters.length >= 2, "expected NodeFileSystem and MemoryFileSystem to implement FileSystemPort");
+  none(adapters.filter(({ name }) => !contract.includes(`["${name}",`)).map(...),
+    "Honest Double rule: every FileSystemPort adapter runs the same contract, ...");
+});
+```
+
+A **Closure Check** over adapters: the classes that implement the port equal the classes the contract runs.
+And `adapters.length >= 2` makes sure the rule itself has something to check.
+
+---
+
+## A rule that cannot fail proves nothing
+
+Delete `"@ladder/lite"` from `LAYERS` and import `@ladder/gen` into `lite`:
+
+```
+# tests 27
+# pass 27
+# fail 0
+```
+
+Green, and `lite` is no longer checked at all. A rule is only as good as the evidence that it **can** fail.
+Rung 3 gathers that evidence by hand: in labs 4 and 5 you break every rule on purpose.
+
+---
+
+## Upstream: negative fixtures
+
+```ts
+// tests/architecture/dependency-rules.test.ts (tutors-mono-repo 2b96b69)
+it.each([
+  ["layer-foundation", "packages/jsr/model/src/reaches-up.ts", "packages/svelte/runes/src/index.ts"],
+  ["layer-core", "packages/svelte/course/src/tree.ts", "packages/svelte/themes/src/index.ts"],
+  ...
+])("%s catches %s -> %s", ...);
+```
+
+A tiny fake workspace in `tests/architecture/fixtures/workspace` breaks every rule on purpose, on every run.
+
+```
+node_modules/.bin/vitest run tests/architecture/dependency-rules.test.ts -t "negative fixtures"
+      Tests  24 passed | 2 skipped (26)
+```
+
+---
+
+## Upstream: the ratchet
+
+```
+# tests/architecture/known-violations.txt (tutors-mono-repo 2b96b69)
+# This file may only shrink: the test fails on new violations and on entries
+# that no longer occur. Format: `rule: from -> to`.
+layer-core: packages/svelte/course/src/course/services/lo-tree.ts -> packages/svelte/themes/src/index.ts
+```
+
+`scripts/checks/lib/ratchet.ts` returns `added` (new violations: fail) and `stale` (fixed but still listed:
+fail). An old codebase adopts a rule without fixing everything first, and can never slide back.
+
+Rung 3 started clean, so it has no baseline: every violation fails.
+
+---
+
+## Lean: Five Whys on a red build
+
+The red build: `not ok 40 - every FileSystemPort adapter runs the port contract` (`ZipFileSystem`).
+
+1. **Why is it red?** `ZipFileSystem` implements the port but is not in `ADAPTERS`.
+2. **Why is it not there?** The author did not know the contract existed.
+3. **Why not?** `AGENTS.md` says "a new source of files: a `FileSystemPort` adapter, added to the contract
+   test", but the author worked from the port file, not `AGENTS.md`.
+4. **Why does the port file not say so?** Its header names the adapters but not the contract.
+5. **Why does that matter?** The rule is told (L2) in one place and checked (L3) in another; the place
+   people **look** says neither.
+
+Countermeasure: one line in `file-system-port.ts`'s header pointing at the contract. Standard work, improved.
+
+---
+
+## What Five Whys is and is not
+
+- It asks about the **process**, not the person: "why did the system let this happen?"
+- It stops at something you can change: a message, a manifest line, a check, a habit.
+- It often ends at a missing level on the Assertion Ladder: told but not checked, checked but not explained.
+- It is not a hunt for one true cause. Two branches are fine; follow the one you can act on.
+
+You will run one on your own red build in Lab 5.
+
+---
+
+## Rung 3 on the Assertion Ladder
+
+| Rule | Level |
+| --- | --- |
+| Every kind has a builder, an order, a card and pages | L5, exhaustive switches in `pnpm typecheck` |
+| Only `apps/cli` touches the platform | L5 (`types: []`) and L4 (Port rule) |
+| Dependencies inward; boundary; model | L4, teaching failures |
+| `package.json` matches imports | L3, Closure rule |
+| The double tells the truth | L3, the contract; L4, the rule that every adapter runs it |
+| No runtime dependency, network or client script | L4, `tests/rung-fence.test.ts` |
+| `LAYERS`, `tsconfig.json`, the port's methods, a new package | Human Boundary, `AGENTS.md` |
+
+---
+
+## The assignment: a validate package
+
+- A new package, `@ladder/validate`, with two of upstream's rules, V001 and V003, from
+  `packages/jsr/course-rules`.
+- It reads courses only through `FileSystemPort`, and uses `gen`'s `folderKind`.
+- **You** decide its layer, write its `job` sentence in `LAYERS`, add it to the fence and the gate: Human
+  Boundary changes, in their own commit, before the code.
+- Grading: `LADDER_ASSIGNMENT=1 node --test tests/assignment/*.test.ts`, seven tests.
+
+---
+
+## Summary
+
+- the Port rule keeps the platform at the edge; the compiler is a second wall
+- the Honest Double rule makes the contract unavoidable for every adapter
+- a rule that cannot fail proves nothing: break each one on purpose, or keep negative fixtures
+- Five Whys turns a red build into one improvement to the standard work
+- next week: rung 4, where the tests become the specification
+
+Read "Ports, adapters and honest doubles", then do Lab 5 and Assignment 3.

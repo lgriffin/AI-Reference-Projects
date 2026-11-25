@@ -1,0 +1,48 @@
+{
+  "name": "@ladder/rung-7-shipped",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 7 (Shipped): the rung 6 workspace as a versioned, gated, containerised release with checked claims, specified first in EARS and BDD",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "start": "node apps/cli/src/main.ts",
+    "course": "node apps/cli/src/main.ts --json-only ../fixtures/ladder-sample-course apps/reader/static/courses/ladder-sample-course && node apps/cli/src/main.ts --json-only tests/fixtures/hostile-course apps/reader/static/courses/hostile-course 2>/dev/null && node apps/cli/src/main.ts --json-only --private tests/fixtures/private-course apps/reader/static/courses/private-course",
+    "dev": "pnpm course && pnpm --filter @ladder/reader dev",
+    "build": "pnpm course && pnpm --filter @ladder/reader build",
+    "typecheck": "tsc -p packages/model && tsc -p packages/identity && tsc -p packages/rbac && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p . && pnpm --filter @ladder/reader check",
+    "test": "pnpm typecheck && vitest run && pnpm build",
+    "test:unit": "vitest run tests/unit",
+    "test:bdd": "vitest run tests/bdd",
+    "test:contract": "vitest run tests/contract",
+    "test:conformance": "vitest run tests/conformance",
+    "test:fuzz": "FUZZ_RUNS=${FUZZ_RUNS:-1000} vitest run tests/fuzz",
+    "test:e2e": "pnpm build && vitest run --config vitest.config.e2e.ts tests/e2e",
+    "test:assignment": "LADDER_ASSIGNMENT=1 vitest run tests/assignment",
+    "test:ears:audit": "node scripts/checks/ears-audit.ts",
+    "test:mutation": "stryker run",
+    "check:mutation-floors": "node scripts/checks/mutation-floors.ts",
+    "audit:supply-chain": "node scripts/supply-chain.ts",
+    "audit:online": "node scripts/supply-chain.ts --online",
+    "release:version": "node scripts/release-version.ts",
+    "release:claims": "node scripts/check-release-claims.ts",
+    "release:slo": "pnpm build && node scripts/check-slo.ts",
+    "release:readiness": "node scripts/release-readiness.ts",
+    "release:value-stream": "node scripts/value-stream.ts",
+    "container:smoke": "node scripts/container-smoke.ts"
+  },
+  "devDependencies": {
+    "@amiceli/vitest-cucumber": "^8.0.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
+    "@types/node": "^22.20.7",
+    "fast-check": "^4.11.0",
+    "playwright": "1.63.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.2",
+    "yaml": "2.9.1"
+  }
+}

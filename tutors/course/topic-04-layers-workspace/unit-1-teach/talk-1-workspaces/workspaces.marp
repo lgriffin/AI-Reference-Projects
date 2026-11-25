@@ -1,0 +1,253 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Workspaces and direction
+
+### The same tools, in packages that only point inward
+
+Week 4, rung 3 of 7 (Layers), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed | `rung-1-seed` | 1, 2 |
+| 2 Lite | `rung-2-lite` | 3 |
+| **3 Layers** | **`rung-3-layers`** | **4 (this week), 5** |
+| 4 Proven | `rung-4-proven` | 6, 7 |
+| 5 Reader, 6 Guarded, 7 Shipped | | 8 to 11 |
+| Summit | tutors-mono-repo | 12 |
+
+Rung 3 starts from a copy of rung 2. This week: workspaces, packages, direction. Next week: ports.
+
+---
+
+## Nothing new for the user
+
+```
+pnpm install
+pnpm test
+pnpm start ../fixtures/ladder-sample-course out
+wrote 8 pages and tutors.json to .../out
+```
+
+The same 8 pages and the same `tutors.json` as rung 2. Rung 3 changes **structure**, not behaviour:
+
+- four packages instead of six files in one folder
+- the generator reads a course through a **port**, not through `node:fs`
+- rules about which code may import which, as **tests**
+- the compiler joins the Single Gate
+
+Everything new is for the next contributor.
+
+---
+
+## The workspace
+
+```yaml
+# variants/rung-3-layers/pnpm-workspace.yaml
+packages:
+  - "packages/*"
+  - "apps/*"
+```
+
+```
+rung-3-layers/
+  package.json             the root: scripts and dev tools (typescript, @types/node)
+  packages/model/          @ladder/model   the learning-object types
+  packages/gen/            @ladder/gen     course folder to Course, through FileSystemPort
+  packages/lite/           @ladder/lite    Course to pages, as data
+  apps/cli/                @ladder/cli     the command: wires an adapter to gen and lite
+  tests/                   rules about the whole workspace
+```
+
+Upstream: `pnpm-workspace.yaml` lists `packages/jsr/*`, `packages/svelte/*`, `packages/svelte/utils/*` and `apps/*`.
+
+---
+
+## A package is a name and an entry point
+
+```json
+// variants/rung-3-layers/packages/gen/package.json
+{
+  "name": "@ladder/gen",
+  "type": "module",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@ladder/model": "workspace:*" }
+}
+```
+
+- `workspace:*`: "the copy in this workspace", never a published version
+- `exports`: the **only** way in. Other packages import `@ladder/gen`, which is `src/index.ts`
+- `pnpm install` links it: `packages/gen/node_modules/@ladder/model -> ../../../model`
+
+No build step. Node runs the TypeScript sources directly, as in rungs 1 and 2.
+
+---
+
+## The index is the package's public surface
+
+```ts
+// variants/rung-3-layers/packages/gen/src/index.ts
+/** @ladder/gen: a course folder, read through a FileSystemPort, becomes a Course. */
+export { buildCourse, buildLo, assertNever, parseMarkdown, stripFrontMatter } from "./course-builder.ts";
+export type { BuildOptions } from "./course-builder.ts";
+export { joinPath } from "./file-system-port.ts";
+export type { DirEntry, FileSystemPort } from "./file-system-port.ts";
+export { folderKind, folderKinds, preOrder } from "./lo-kinds.ts";
+export { MemoryFileSystem } from "./memory-file-system.ts";
+```
+
+`readFolder`, `children` and `buildLab` are not exported. They can change without telling anyone.
+A relative import into another package's `src/` would skip this surface, so a rule forbids it.
+
+---
+
+## Dependency direction
+
+```
+            apps/cli   (the composition root)
+            /      \
+           v        v
+   @ladder/gen    @ladder/lite
+           \        /
+            v      v
+         @ladder/model   (types only, imports nothing)
+```
+
+| Package | May import | Because |
+| --- | --- | --- |
+| `model` | nothing | it is the shared vocabulary; every layer can depend on it |
+| `gen` | `model` | it knows nothing of HTML or the command line |
+| `lite` | `model` | it never reads a course folder, so it can render **any** `tutors.json` |
+| `cli` | `gen`, `lite`, `model` | it wires the layers together |
+
+Arrows point inward. `gen` and `lite` never see each other.
+
+---
+
+## Why `lite` must not import `gen`
+
+If `lite` imported `gen`, it would need a course **folder** to render anything. Because it does not:
+
+```ts
+// what rung 5's reader could do, with no generator at all
+const course: Course = await (await fetch("https://reference-course.netlify.app/tutors.json")).json();
+const pages = buildSite(course);
+```
+
+`lite` renders what upstream's generator wrote, or what a test built by hand, or what a browser fetched.
+A dependency you do not take is a choice you keep open.
+
+That is also why `preOrder` and `folderKinds` moved from `model` to `gen`: only the generator needs them.
+
+---
+
+## Model is types only
+
+```ts
+// variants/rung-3-layers/packages/model/src/index.ts
+/**
+ * The learning objects of a Tutors course, as tutors.json holds them. Types only: this package has no
+ * run-time code and imports nothing, so every other package can depend on it and it depends on none.
+ */
+export type Course = CompositeBase & { type: "course" };
+...
+export type Lo = Course | Topic | Unit | Side | Talk | Lab | Note | Web | Archive;
+```
+
+Upstream has the same idea in `packages/jsr/types`: "No runtime dependencies, and nothing imported from
+outside the package (Rule 0130), so a theme, a UI primitive, a server route or the CLI can use it without
+pulling in Svelte, Supabase or markdown-it." (its `README.md`)
+
+---
+
+## The platform at the edge
+
+Only `apps/cli` touches `node:` modules, `process` or the console. Two walls keep it there:
+
+```jsonc
+// variants/rung-3-layers/packages/gen/tsconfig.json
+// No Node types and no DOM: a node: import, process or fetch here does not compile.
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "types": [] }, "include": ["src"] }
+```
+
+```jsonc
+// variants/rung-3-layers/apps/cli/tsconfig.json
+// The composition root: the one place with Node's types, so the one place that may use node:fs and process.
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "types": ["node"] }, "include": ["src"] }
+```
+
+and the Port rule in the architecture test (talk 3). `gen` reports through `BuildOptions.warn`, and `lite`
+returns pages as data.
+
+---
+
+## The compiler joins the gate
+
+```json
+// variants/rung-3-layers/package.json
+"scripts": {
+  "start": "node apps/cli/src/main.ts",
+  "typecheck": "tsc -p packages/model && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p .",
+  "test": "pnpm typecheck && node --test \"packages/*/tests/*.test.ts\" \"apps/*/tests/*.test.ts\" \"tests/**/*.test.ts\""
+},
+"devDependencies": { "@types/node": "^22.20.7", "typescript": "^6.0.3" }
+```
+
+One `tsc -p` per package, each with its own `types`. From this rung, L5 is part of the Single Gate: a
+missing `case` fails `pnpm test`, not only your editor.
+
+---
+
+## Upstream's layers
+
+```
+ARCHITECTURE.md, "Architectural Layers" (tutors-mono-repo 2b96b69)
+
+  Applications Layer      (reader, catalogue, live, time)       consumes all Svelte packages
+          |
+          v
+  Svelte Packages Layer   UI components, themes, services       consumes JSR packages, utils
+          |
+          v
+  JSR Packages Layer      core models, time, generation tools   no dependencies
+```
+
+"Lower layers never depend on higher layers. `pnpm test:runway` fails on any new upward import."
+
+`.dependency-cruiser.cjs` refines it into seven layers: foundation, core, feature, ui-primitives,
+ui-navigators, ui-components, apps.
+
+---
+
+## Two workspaces upstream
+
+| Workspace | File | Holds | Links packages by |
+| --- | --- | --- | --- |
+| pnpm | `pnpm-workspace.yaml` | every package and app | `"@tutors/themes": "workspace:*"` in `package.json` |
+| Deno | `deno.json`, `"workspace": [...]` | the eleven `packages/jsr/*` packages | `"jsr:@tutors/tutors-model-lib@^5.3.0"` in each `deno.json` |
+
+The JSR packages are published to jsr.io and run on Deno and Node. Inside the repository, Deno's workspace
+resolves a member's `jsr:` import to the local copy: the stack trace of a `tutors build` run shows the
+clone's own `packages/jsr/gen/src/...` files.
+
+Rung 3 needs only one workspace, so it uses pnpm, as the Svelte side of upstream does.
+
+---
+
+## Summary
+
+- a workspace is packages with names, entry points and `workspace:*` dependencies
+- dependencies point inward to `model`, which is types only
+- only the composition root touches the platform
+- `tsc` per package, in the gate, makes the walls real
+- upstream keeps the same rule, at a bigger scale, with two workspaces
+
+Next: talk 2, how the diagram becomes a rule that fails with a reason.

@@ -1,0 +1,224 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# The threat model of a course platform
+
+### Who can hurt a Tutors course, and how
+
+Week 10, rung 6 of 7 (Guarded), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed to 5 Reader | | 1 to 9 |
+| **6 Guarded** | **`rung-6-guarded`** | **10 (this week, the only week on rung 6)** |
+| 7 Shipped | `rung-7-shipped` | 11 |
+| Summit | tutors-mono-repo | 12 |
+
+Rungs 1 to 5 trusted the course. Rung 6 does not. Everything rung 5 does still works; it is now safe to
+point at a course you did not write.
+
+---
+
+## Why a course platform needs a threat model
+
+- Tutors turns **someone else's Markdown** into pages that thousands of students open
+- A course folder is built by a generator, on a laptop or in CI, **with your permissions**
+- Courses can be **private** (`auth: 1`) and readers can sign in with GitHub
+- Every build installs hundreds of packages from the npm registry
+
+A threat model answers four questions (the Threat Modeling Manifesto): what are we building, what can go
+wrong, what are we going to do about it, and did we do a good enough job?
+
+---
+
+## The assets
+
+| Asset | Why it matters |
+| --- | --- |
+| Readers' browsers | script in a course page runs with the reader's session |
+| The author's machine and CI | the generator reads files; a course can ask it to read the wrong ones |
+| Private course content | `auth: 1` courses are for enrolled readers only |
+| Student data | upstream stores activity, calendars and submissions in Supabase |
+| The release | what `pnpm install` brings in ships to every user |
+
+---
+
+## The actors
+
+| Actor | Trusted to | Not trusted to |
+| --- | --- | --- |
+| A **course author** | write course content | run script in readers' browsers |
+| A **reader** (anonymous or a student) | read what the policy allows | see private courses, or other students' data |
+| An **educator** | lock content, see analytics for their course | do the same for another course |
+| A **package maintainer** | publish a version | change a version we already pinned |
+
+The author is the surprising one. A course can be forked, copied from a colleague, or written by a student.
+
+---
+
+## Trust boundaries
+
+```
+course folder ──gen──► tutors.json ──lite / reader──► HTML in a browser
+   (author)         (CI or laptop)                    (reader's session)
+
+npm registry ──pnpm install──► node_modules ──build──► release
+```
+
+Each arrow crosses a boundary: something untrusted goes in on the left, something trusted comes out on the
+right. Every defence this week stands on one of these arrows.
+
+---
+
+## Threat 1: hostile course content (stored XSS)
+
+```markdown
+Click [the reading list](javascript:alert%28document.domain%29) to start.
+
+<img src=x onerror=alert(1)>
+```
+
+- **Stored**, because the payload lives in the course and runs for **every** reader
+- Rung 2's escaping stops the second line. Nothing in rungs 2 to 5 stops the first
+- Upstream's answer: DOMPurify on rendered HTML (`packages/svelte/ui-primitives/src/utils/sanitize.ts`),
+  and rule V016 warns authors about `<script>`, `on...=` and `javascript:` in slides (`STRIPPED` in
+  `packages/jsr/course-rules/src/rich.ts`)
+
+---
+
+## Threat 2: the course reads outside its folder
+
+```bash
+ln -s ~/.ssh/config course.md      # or a page linking ../../../answers/solutions.md
+```
+
+- The generator runs as **you**. A link can make it read, and publish, any file you can read
+- Rung 5 skips links when it lists a folder, but `course.md` is asked for by name, and followed
+- Upstream rule V021 (`checkPortable` in `packages/jsr/course-rules/src/warnings.ts`) warns when a page uses
+  a file outside its own folder. Upstream calls it portability; it is also containment
+
+---
+
+## Threat 3: readers who should not read
+
+From `guides/RBAC.md` upstream, "Auth Levels":
+
+| `auth` in `properties.yaml` | Behaviour |
+| --- | --- |
+| `0` | Public, no authentication required |
+| `1` | Must authenticate via GitHub. Whitelist and enrollment checks apply. |
+
+- A **static** copy of a private course has no sign-in at all
+- Upstream's data layer had its own gap: `supabase/migrations/20260924_enable_rls_public_tables.sql` records
+  14 tables with Row-Level Security off, "so the anon key every browser holds could read, change, delete
+  and truncate them"
+
+---
+
+## Threat 4: the supply chain
+
+- A dependency from a **git URL or tarball** can change under the same name
+- A **missing lockfile** means each install may resolve something new
+- A **known advisory** in a dependency ships with the release
+- A **workflow** with broad token permissions can be turned against the repository
+
+Upstream answers each: `pnpm install --frozen-lockfile` and a `dependency-audit` job in
+`.github/workflows/ci.yml`, CodeQL, zizmor, OpenSSF Scorecard and an OpenVEX file.
+
+---
+
+## A threat becomes a sentence
+
+Rung 4 taught five EARS patterns. Security uses one above all: **unwanted behaviour**.
+
+> If *what an attacker supplies*, then the *system* shall *what happens instead*.
+
+`REQUIREMENTS.md`, R-024:
+
+> If a path is absolute, climbs out with "..", or passes through a link that leads outside the course
+> folder, then the generator shall refuse to read it with a PathEscapeError.
+
+Eleven of rung 6's fifteen new requirements (R-022 to R-036) have this shape. Each has a `Rule:` whose
+Given is an attack.
+
+---
+
+## What upstream says it does: SECURITY.md
+
+- Report privately to **security@tutors.dev**; acknowledgement within 48 hours, triage within 7 days, a
+  fix for critical issues aimed at within 30 days, a 90-day coordinated-disclosure window
+- Measures it lists: DOMPurify against XSS, environment validation, security headers, dependency auditing
+
+Rung 6 has a `SECURITY.md` too, modelled on it: how to report, what the variant defends against, and what
+it does not.
+
+---
+
+## A claim is not a check
+
+`SECURITY.md` says all deployed apps "enforce security headers including Content-Security-Policy".
+`tests/security/known-response-gaps.txt`, which may only shrink, says:
+
+```
+# No app sends a Content-Security-Policy. Writing one needs an inventory of what the
+# reader loads (Iconify, KaTeX, Mermaid, Adobe PDF embed, YouTube/Panopto/Vimeo frames,
+# Supabase realtime) and a report-only rollout, so it is not guessed here.
+missing-header: reader: Content-Security-Policy
+```
+
+The test is the truth (L3). The prose drifted (L2). That is the Assertion Ladder's point, in security.
+
+---
+
+## Upstream's own posture: docs/security
+
+`docs/security/scorecard-baseline.md`, OpenSSF Scorecard run on the repository:
+
+- **Aggregate score: 6.4 / 10**
+- Low: Code-Review 3 ("4 of 13 changesets were approved before merge"), SAST 1, Branch-Protection 0
+- Remediations in order: branch protection on `main`, static analysis on every commit, review before merge
+
+A baseline that names its own gaps is a good security document. Evaluating from evidence (module outcome
+M7) starts with documents like this one.
+
+---
+
+## The rung 6 threat table
+
+| Threat | Requirement | Rung 6 defence |
+| --- | --- | --- |
+| Script in course content | R-022, R-023, R-033, R-034 | escaping, a URL allow-list, a CSP in the site and the reader |
+| Reading outside the course | R-024, R-025, R-027 | `containedPath` in every adapter; V021 warnings |
+| A private course published openly | R-026, R-028 to R-032 | a pure policy; `--private`; a notice in the reader |
+| A bad dependency | R-035, R-036 | lockfile, registry sources, expiring allowances |
+
+Out of scope for this rung: response headers, sessions and cookies, the database. They are the Summit's.
+
+---
+
+## Lean: defects that escape
+
+- A defect caught by the gate costs minutes. One that reaches a student's browser is an **escape**
+- In security an escape has a name, a vulnerability, and a cost nobody can cap
+- Lean's answer is **poka-yoke** (mistake-proofing): make the mistake impossible, or catch it where it is
+  made. On the Assertion Ladder: L5, Prevented
+- A threat model is where you decide which mistakes deserve a poka-yoke
+
+Next talk: the defences, and which of them are poka-yokes.
+
+---
+
+## Summary
+
+- Name the assets, the actors and the boundaries before writing a defence
+- In Tutors the **author is untrusted** and the **generator runs as you**
+- A threat becomes an "If ..., then ... shall ..." sentence, and then a scenario whose Given is an attack
+- Upstream documents its policy (`SECURITY.md`) and its posture (`docs/security`); its tests show where the
+  two differ

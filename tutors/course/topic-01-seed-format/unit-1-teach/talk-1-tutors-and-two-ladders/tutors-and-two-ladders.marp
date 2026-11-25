@@ -1,0 +1,240 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Tutors and the two ladders
+
+### A generator, a reader, and a straight line from a seed to the real thing
+
+Week 1, Rung 1 of 7: Seed. Talk 1
+
+---
+
+## Two components
+
+Tutors is a set of open source components for building learning experiences on open web standards.
+Two of them matter most:
+
+- **Generator**: turns a folder of learning content into a Tutors course
+- **Reader**: presents that course as a web experience you can browse
+
+Source: the README of `tutors-sdk/tutors-reference-course`.
+
+---
+
+## One file joins them
+
+```
+my-course/  --generator-->  json/tutors.json  --reader-->  pages
+```
+
+- `tutors.json` is the whole course: every topic, lab, talk and note, with the Markdown inlined
+- The reader never reads a Markdown file from disk; it fetches `tutors.json`
+- The types live in `packages/jsr/model/src/types/learning-objects.ts`; the top one is `Course`
+
+Source: `docs/COURSE-PAGE-WALKTHROUGH.md` in tutors-mono-repo.
+
+---
+
+## The upstream repositories
+
+| Repository | What it holds |
+| --- | --- |
+| `tutors-sdk/tutors-mono-repo` | the generator, the reader, four more apps and every shared package |
+| `tutors-sdk/tutors-reference-course` | a course that uses every learning-object kind |
+| `tutors-sdk/tutors-release-harness` | runs a release candidate beside production and fails on any unclaimed difference |
+
+This module pins each to one commit. `tutors/LADDER.md` lists them (mono-repo `2b96b69`).
+
+---
+
+## The mono-repo today
+
+- **5 apps** under `apps/`, all SvelteKit: `reader`, `catalogue`, `live`, `time`, `validator`
+- **11** Deno packages under `packages/jsr/`: `model`, `gen`, `tutors`, `tutors-lite`, `course-rules`,
+  `identity`, `realtime`, ...
+- **21** Svelte packages under `packages/svelte/`, from `runes` and `course` to `ui-components`
+- **19** folders under `tests/`, **224** test files, **85** BDD feature files, **441** distinct EARS rule ids
+- **17** GitHub workflows
+
+Counted from the clone at `2b96b69` with `ls`, `git ls-files` and `grep`. Recount when you pull: it grows.
+
+---
+
+## Value first: the Tutors value stream
+
+```
+lecturer writes   ->  validator   ->  generator    ->  host        ->  reader      ->  student reads
+a folder              checks it       tutors.json      (Netlify)       fetches it      and learns
+```
+
+| Customer | What they value |
+| --- | --- |
+| Student | the right content, on time, readable on any screen |
+| Lecturer | publish by renaming folders and pushing; a clear message when something is wrong |
+| Contributor | a change they understand, a gate that says "done", no surprises |
+
+Each rung improves one step of this stream. Rung 1 is the generator step. (Lean: value and the customer.)
+
+---
+
+## What it takes to run
+
+- Node.js 26.13.0 or later (`engines` in `package.json`; `.nvmrc`)
+- pnpm 11.24.0 (`packageManager` in `package.json`)
+- Deno 2.9.6 (`.dvmrc`), for `packages/jsr/`
+- Two runtimes, a layered architecture, hundreds of EARS rules, mutation floors, a release harness
+
+All of it is there for a reason. None of it is where a newcomer should start.
+
+---
+
+## The capability ladder: one straight line
+
+| Rung | Variant | Capability delivered |
+| --- | --- | --- |
+| **1** | `rung-1-seed` | **Course folder in, `tutors.json` out** |
+| 2 | `rung-2-lite` | A static HTML website |
+| 3 | `rung-3-layers` | The same tools as a layered pnpm workspace with ports |
+| 4 | `rung-4-proven` | Tests as specification: EARS, BDD, contracts, mutation |
+| 5 | `rung-5-reader` | An interactive SvelteKit reader, specified first |
+| 6 | `rung-6-guarded` | Safe content, private courses, a secure supply chain |
+| 7 | `rung-7-shipped` | A versioned, gated, containerised release |
+| Summit | tutors-mono-repo | The real thing |
+
+Each variant starts from a **copy of the rung below** and adds one major capability.
+
+---
+
+## The expertise each rung adds
+
+| Rung | New expertise |
+| --- | --- |
+| 1 Seed | TypeScript on Node, the file system, the course format, discriminated unions |
+| 2 Lite | Markdown rendering, HTML templates, escaping, exhaustive rendering |
+| 3 Layers | Workspaces, dependency direction, ports and adapters, architecture tests |
+| 4 Proven | EARS, Given/When/Then, honest doubles, golden files, property and mutation testing |
+| 5 Reader | Svelte 5 runes, SvelteKit routing and load, components, browser tests |
+| 6 Guarded | XSS and sanitising, CSP, path containment, identity, RBAC, supply chain |
+| 7 Shipped | CI, SemVer, changelogs, containers, release claims, SLOs |
+
+---
+
+## Why testing sits at rung 4
+
+```
+1 Seed -> 2 Lite -> 3 Layers -> 4 Proven -> 5 Reader -> 6 Guarded -> 7 Shipped -> Summit
+                                   |
+                     from here on, every new capability is
+                     specified first: EARS rules + Given/When/Then
+```
+
+- Rungs 1 to 3 build the tools and their shape
+- Rung 4 turns the tests into a specification you can read
+- Rungs 5 to 7 each arrive as requirements and scenarios **before** code
+
+---
+
+## Twelve weeks, one rung every one to three weeks
+
+| Weeks | Rung | Weeks | Rung |
+| --- | --- | --- | --- |
+| **1-2** | **1 Seed** | 8-9 | 5 Reader |
+| 3 | 2 Lite | 10 | 6 Guarded |
+| 4-5 | 3 Layers | 11 | 7 Shipped |
+| 6-7 | 4 Proven | 12 | Summit |
+
+One lab a week. Every lab ends with **Build beyond**: you are expected to take each variant further than it
+goes. The last week of a rung carries its coding assignment and exit criteria.
+
+---
+
+## The second ladder: six levels for a rule
+
+| Level | Name | What the contributor experiences |
+| --- | --- | --- |
+| L0 | Implied | nothing; it guesses |
+| L1 | Shown | a pattern to imitate |
+| L2 | Told | a rule it may follow, forget or misread |
+| L3 | Checked | a red suite |
+| L4 | Explained | a red suite whose message names the rule, the offender and the fix |
+| L5 | Prevented | the wrong form does not compile |
+
+Pick the weakest level that still covers the rule's risk. Then stop. Source: `docs/assertion-ladder.md`.
+
+---
+
+## The rung patterns
+
+| Level | Pattern | In one line |
+| --- | --- | --- |
+| L1 | Worked Slice | one complete feature, small enough to read whole |
+| L2 | Short Manifest | one file under 500 words, read at the start of every session |
+| L3 | Executable Rule | a test that fails when the rule is broken |
+| L4 | Teaching Failure | the failure names the rule, the offender and the remedy |
+| L5 | Unrepresentable Mistake | types that make the wrong form fail to compile |
+| all | Single Gate | one command runs every check; green means done |
+| all | Human Boundary | a short list of changes that need a person first |
+
+---
+
+## Two patterns this module adds
+
+**Rung Fence**: an executable rule that lists what the rung may use, fails naming the rung that introduces
+anything else, and is changed only by a person.
+
+**Rung Delta**: each variant's `RUNG.md` names the capability added, the expertise it needs and the upstream
+files it mirrors.
+
+Every variant has both, plus `AGENTS.md` (L2) and one gate (`npm test` or `pnpm test`).
+
+---
+
+## A Rung Fence at work
+
+You are on rung 1 and ask an agent to "load the course from a URL". It adds `fetch(...)`. `npm test`:
+
+```
+Rung Fence, rung 1 (Seed): src/main.ts uses network access ("fetch(").
+The generator reads a folder and writes a file; it never needs the network.
+The first network call is the reader loading tutors.json in rung 5 (Reader).
+Remove it from this rung.
+
+Lifting the fence is a person's decision: see AGENTS.md, "Ask a human first".
+```
+
+L3, because it fails. L4, because it says why and what to do.
+
+---
+
+## Working with an agent safely
+
+1. **Start each session from the manifest.** Ask the agent to read `AGENTS.md` and `RUNG.md` first.
+2. **Name the rung in your request.** "On rung 1, add ..." beats "add ...".
+3. **Run the gate before you read the diff.** Red means it left the rung or broke a rule.
+4. **Read what it wrote.** If you cannot explain a line, ask, or take that part out.
+5. **Never let the agent edit the fence or the tests to go green.** That is the Human Boundary.
+
+---
+
+## Climbing means lifting the fence on purpose
+
+- read the next week's talks and the next variant's `RUNG.md`
+- the next variant is a copy of this one with one capability added
+- **you**, not the agent, widen the fence by the next rung's allowance
+- commit that change on its own, so the climb is visible in history
+
+A fence you lift by accident is not a fence. Building **beyond** a variant inside its fence is welcome.
+
+---
+
+## Summary
+
+- Tutors is a generator and a reader joined by `tutors.json`
+- The capability ladder is **what** you build: one straight line, seven rungs, then the Summit
+- The Assertion Ladder is **how** each rung stays safe: L0 to L5, a fence, one gate
+- This week and next you are on **rung 1, Seed**
+
+Next: the course as data.

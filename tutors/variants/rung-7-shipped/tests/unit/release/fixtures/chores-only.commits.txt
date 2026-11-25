@@ -1,0 +1,5 @@
+chore: bump typescript
+---
+ci: pin actions/checkout by SHA
+---
+test(lite): one more escaping case

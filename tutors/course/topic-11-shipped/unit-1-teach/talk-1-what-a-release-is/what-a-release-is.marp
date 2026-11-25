@@ -1,0 +1,287 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# What a release is
+
+### From "the gate is green" to "this is 1.1.0, built from this commit"
+
+Week 11, rung 7 of 7 (Shipped), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed to 6 Guarded | | 1 to 10 |
+| **7 Shipped** | **`rung-7-shipped`** | **11 (this week, the only week on rung 7)** |
+| Summit | tutors-mono-repo | 12 |
+
+Rung 6 made the workspace safe. Rung 7 makes it something you can hand to a stranger and stand behind.
+Nothing rung 6 built or guarded changes.
+
+---
+
+## What rung 7 adds
+
+| Command | The question it answers |
+| --- | --- |
+| `pnpm start --version` | which release, from which commit, is this? |
+| `pnpm release:version --from v1.0.0` | which version is next, and what changed for users? |
+| `pnpm release:claims` | does every promise have a test? |
+| `pnpm release:slo` | is the build within its budgets? |
+| `pnpm container:smoke` | does the image run, not as root, and say who it is? |
+| `pnpm release:value-stream` | how long does a release take, and where does the time go? |
+| `pnpm release:readiness` | is this commit ready to tag, on one page? |
+
+Eight requirements, R-037 to R-044. One dev dependency (`yaml`). None of the commands tags.
+
+---
+
+## Upstream's principles
+
+From `guides/Release-Strategy.md` in tutors-mono-repo:
+
+1. **Main is always releasable.** Every commit *could* ship.
+2. **Small, frequent merges** over large batch integrations.
+3. **Semver controls the contract.** "The version number is the release's API, not a marketing decision."
+4. **Harden through the RC process**, not through branch isolation.
+5. **Tags are immutable release artifacts.** Never moved or deleted; a fix is a new version.
+
+Lean reads these as one idea: keep the batch small, so the lead time is short and a defect is cheap to find.
+
+---
+
+## Branches and tags upstream
+
+| Name | What it is | Lifetime |
+| --- | --- | --- |
+| `main` | the trunk; every PR targets it | permanent |
+| `feature/*`, `fix/*`, `chore/*` | one concern each | days |
+| `release/vX.Y.Z` | cut from `main`; only fixes land | kept, never pushed after ship |
+| `vX.Y.Z-rc.N` | a release candidate, tagged by CI | immutable |
+| `vX.Y.Z` | the release, tagged **by hand** | immutable |
+
+```
+main ─────●─────●─────●──────────────●────
+                       \             /
+                        release/v16.0.0
+                        │  rc.1  rc.2  │
+                        ●────●────●────● ── tag v16.0.0
+```
+
+---
+
+## The candidate is what ships
+
+`.github/workflows/release-dispatch.yml`, on every push to `release/**`: tag `vX.Y.Z-rc.N`, build the
+images, hand them to the release harness, post its verdict on the release PR.
+
+The harness judged the candidate's images. So `vX.Y.Z` must ship *those* images, not a rebuild.
+`scripts/promote-image.ts` promotes only when the registry has the candidate, the git tree matches, the
+image's `revision` label is the candidate's commit, and `cosign verify` passes. Otherwise it says, loudly:
+
+> REBUILT — this image is not the one the release harness judged
+
+Deploy is a pull request that pins digests (`pnpm deploy:pin`), and writes `release/deployed.json`.
+
+---
+
+## Why it is automated: two stories
+
+From upstream's own files:
+
+- **17.0.0** was tagged and nobody ran `deploy:pin`. The harness kept judging `main` against 16.2.2.
+  Countermeasure: `deploy-pin-pr.yml` opens the pin pull request by itself (since 15 October 2026).
+- **17.1.0** reached tutors.dev on 3 November 2026 with no `v17.1.0` tag, so that night's harness judged
+  17.0.0. The strategy now says: without the tag there is no pin pull request.
+
+Neither answer is "be more careful". Each is a workflow or a written step: the system changed.
+
+---
+
+## Rung 7's release: one version, derived
+
+SemVer for what ships. The root and every app share one version, as upstream's root and `apps/*` all carry
+`17.1.0`.
+
+```ts
+// variants/rung-7-shipped/scripts/lib/conventional.ts
+export function bumpOf(commit: Commit): Bump {
+  if (commit.breaking) return "major";
+  if (commit.type === "feat") return "minor";
+  if (commit.type === "fix" || commit.type === "perf") return "patch";
+  return "none";
+}
+```
+
+`feat(cli)!: ...` or a `BREAKING CHANGE:` footer is breaking. R-039 states the rule; nobody edits a
+`version` by hand.
+
+---
+
+## From commits to a changelog
+
+```
+$ pnpm release:version --from v1.0.0 --date 2026-11-25
+warning: "Update notes" (aa1f783) is not a Conventional Commit ("type(scope): description"),
+so it cannot move the version or reach the changelog. ...
+current version: 1.0.0
+bump: minor: 1 feat, 1 fix or perf
+next version: 1.1.0
+
+## [1.1.0] - 2026-11-25
+
+### Added
+
+- **cli:** print the usage with --help (f6b0309)
+
+### Fixed
+
+- **cli:** name the option the command does not know (ae3d15e)
+```
+
+A draft. Upstream's `scripts/release-changelog.ts` drafts too; a person curates.
+
+---
+
+## Keep a Changelog
+
+```markdown
+## [Unreleased]
+
+## [1.1.0] - 2026-11-25
+
+### Added
+### Changed      ← breaking changes, marked
+### Fixed        ← fix and perf
+### Security     ← fix(security)
+```
+
+`docs`, `test`, `ci` and `chore` never reach it. A changelog is for the people who use a release, in their
+words. It is where the **value** of a release is written down, and the A3 reads it back.
+
+Run `--write` twice over the same commits and the second run is refused: a version is released once.
+
+---
+
+## Build identity
+
+Upstream answers `GET /version` from one file, `packages/svelte/utils/runtime/src/version.ts`. Rung 7 has
+the same shape as a file in every site, and on the command line:
+
+```
+$ pnpm start --version
+tutors-ladder 1.1.0 (commit dab0743, built unknown)
+$ cat out/version.json
+{ "app": "tutors-ladder", "version": "1.1.0", "revision": "dab07436…", "built": "unknown" }
+```
+
+- R-037 and R-038: printed by `--version`, written to `version.json` and to **no other file**
+- so two builds of one commit differ in one file, and a test holds that
+- the **Build identity rule** (architecture test): `GIT_SHA` is read in one file, `apps/cli/src/build-identity.ts`
+
+---
+
+## What can change under a release
+
+Three things move without a commit of yours. Rung 7 pins each, and a test reads the pin.
+
+| What moves | The pin | The test |
+| --- | --- | --- |
+| a dependency | the lockfile, with integrity hashes (rung 6) | `pnpm audit:supply-chain` |
+| a base image tag | `FROM node:22.23.5-alpine@sha256:1314fb30…` | `tests/release/dockerfile.test.ts` |
+| a CI action tag | `uses: actions/checkout@3d3c42e5… # v7` | `tests/release/workflow.test.ts` |
+
+A tag is a name someone else can move. A digest or a commit SHA is the bytes themselves.
+
+---
+
+## The image
+
+```dockerfile
+FROM ${REGISTRY}/node:22.23.5-alpine@sha256:1314fb30… AS build     # builds the fixture site
+FROM ${REGISTRY}/busybox:1.37.0@sha256:a7dbc319…      AS runtime   # serves it
+USER 10001:10001
+```
+
+`pnpm container:smoke` builds it, runs it read-only with every capability dropped, and asks it five things:
+
+```
+container smoke: PASSED: every check passed
+  ok user is 10001:10001, not root
+  ok revision label is dab0743
+  ok /version.json answers 1.1.0 at dab0743
+  ok /index.html is served, with its Content Security Policy
+  ok /tutors.json is served and parses
+```
+
+No Docker? It says `SKIPPED` and why. A check that did not run is never reported as passed (R-043).
+
+---
+
+## CI: one job to require
+
+`.github/workflows/ladder-ci.yml` is a template: it does nothing where it sits, in a subfolder.
+
+```
+test ─┐
+e2e ──┤
+mutation ─┼──► gate   ← the one job branch protection requires
+release-checks ─┤
+container ─┘
+```
+
+- every action pinned to a 40-character SHA, the version in a comment
+- `permissions: contents: read`, nothing more
+- the `gate` job needs every other job, as upstream's `CI success` does
+
+Three tests read the file, so the template cannot drift into something unsafe before anyone activates it.
+
+---
+
+## The standard work: ten steps
+
+`release/SOP.md`: an owner and a done-when for each step.
+
+| Steps | What | Lean idea |
+| --- | --- | --- |
+| 1 to 3 | conventional commits, derive the version, **curate** the changelog | standard work, gemba |
+| 4 to 8 | gate and browser tier, mutation and supply chain, claims, SLOs, container | jidoka: any failure stops the line |
+| 9 | the Reviewer reads the readiness A3 and the value stream | visual management |
+| 10 | **a person tags** | the Human Boundary |
+
+Upstream's sheet has twelve steps and three roles. Ours keeps the roles and drops what a static site does
+not have: candidates, a harness, a deploy pin, a watch window.
+
+---
+
+## Why no script tags
+
+- A tag cannot be undone: upstream's fifth principle
+- So the decision belongs to a person who has read the evidence
+- The Rung Fence makes it more than a sentence:
+
+```
+Rung Fence, rung 7 (Shipped): scripts/release-version.ts uses git push or git tag ("tag").
+Tagging and pushing a release is a person's act (release/SOP.md, step 10: the Human Boundary).
+A script prints the command; a person runs it.
+```
+
+Release tools (`semantic-release`, `@changesets/*`) would do steps 1, 2 and 10 in one dependency that holds
+your token. They arrive at the Summit, as a person's decision.
+
+---
+
+## Takeaways
+
+- A release is a **commit with a name**. SemVer says what kind of change it is; the tag never moves.
+- The version and the changelog draft are **derived** from Conventional Commits; a person curates the words.
+- A build says **who it is** in one place: `--version`, `version.json`, upstream's `/version`.
+- What can move under a release is **pinned**, and a test reads each pin.
+- The release is **standard work**: ten steps, stop-the-line rules, and a tag only a person makes.
+
+Next: what a release promises, and how each promise is checked.
