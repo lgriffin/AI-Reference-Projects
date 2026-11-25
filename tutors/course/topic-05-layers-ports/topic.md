@@ -22,13 +22,13 @@ criteria.
 By the end of this week you will be able to:
 
 1. **(Understand)** Explain how `FileSystemPort`, `MemoryFileSystem`, `NodeFileSystem` and the composition
-   root in `apps/cli/src/run.ts` fit together, and why the port belongs to `gen`.
+   root in `apps/cli/src/run.ts` fit together, and why the port belongs to `gen`. (M5)
 2. **(Analyse)** Diagnose a Port rule failure, and explain why the compiler (L5) and the architecture test
-   (L4) each catch something the other cannot.
-3. **(Analyse)** Use Five Whys to trace a red architecture or contract test to a root cause you can change.
+   (L4) each catch something the other cannot. (M4)
+3. **(Analyse)** Use Five Whys to trace a red architecture or contract test to a root cause you can change. (M4, M8)
 4. **(Evaluate)** Judge whether a test double is honest by running one contract against it and the real
-   adapter, and decide where a new adapter belongs.
-5. **(Create)** Add a workspace package with its own layer, reason and fence entry (the assignment).
+   adapter, and decide where a new adapter belongs. (M5)
+5. **(Create)** Add a workspace package with its own layer, reason and fence entry (the assignment). (M3, M5; A3)
 
 ## Lean focus: Five Whys on a red build
 

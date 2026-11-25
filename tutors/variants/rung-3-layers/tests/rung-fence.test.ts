@@ -22,7 +22,9 @@ const ALLOWED_DEV = ["typescript", "@types/node"];
 const LATER: [pattern: RegExp, rung: string][] = [
   [/^(vitest|@vitest\/|@stryker-mutator\/|fast-check|@amiceli\/)/, "in rung 4 (Proven), the next rung: tests as specification, with EARS, Given/When/Then, properties and mutants"],
   [/^(@cucumber\/|jest|mocha|ava$|tap$)/, "on no rung: rung 4 (Proven) chose vitest and @amiceli/vitest-cucumber, as upstream does"],
-  [/^(svelte|svelte-check|@sveltejs\/|vite|@vitejs\/|playwright|@playwright\/)/, "in rung 5 (Reader)"],
+  [/^(svelte|svelte-check|@sveltejs\/|vite|@vitejs\/)/, "in rung 5 (Reader)"],
+  [/^playwright$/, "in rung 5 (Reader), which drives Chromium for its smoke test"],
+  [/^(@playwright\/|@axe-core\/)/, "at the Summit (upstream's Playwright runner and axe checks in apps/reader/tests/e2e)"],
   [/^(markdown-it|marked|remark|micromark|@marp-team\/)/, "only at the Summit (every rung keeps lite's small Markdown renderer; upstream renders with markdown-it)"],
   [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "at the Summit (rung 6 Guarded sanitises by allow-list and fakes identity without a library)"],
   [/^(@changesets\/|semantic-release|release-please)/, "in rung 7 (Shipped)"],

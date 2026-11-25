@@ -1,0 +1,9 @@
+{
+  "name": "@ladder/lite",
+  "version": "1.0.0",
+  "description": "Course to static HTML pages, as data.",
+  "type": "module",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@ladder/model": "workspace:*" }
+}

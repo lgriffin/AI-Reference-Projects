@@ -1,0 +1,15 @@
+{
+  "$comment": "Mutation score floor per mutated file: the measured Stryker score, rounded down. pnpm check:mutation-floors fails below a floor, and once a score rises staleMargin points above one; raise floors with --update. Every file in stryker.config.json's mutate list needs a floor. Mirrors upstream tests/mutation/mutation-floors.json.",
+  "staleMargin": 2,
+  "files": {
+    "packages/gen/src/course-builder.ts": 94,
+    "packages/lite/src/site-builder.ts": 92,
+    "packages/gen/src/lo-kinds.ts": 100,
+    "packages/gen/src/memory-file-system.ts": 100,
+    "packages/lite/src/html.ts": 100,
+    "packages/lite/src/markdown.ts": 87,
+    "apps/reader/src/lib/course/course-service.ts": 96,
+    "apps/reader/src/lib/course/live-lab.ts": 100,
+    "apps/reader/src/lib/course/lo-tree.ts": 100
+  }
+}

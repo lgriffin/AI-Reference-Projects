@@ -1,0 +1,219 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# From rule to scenario
+
+### Given, When, Then, bound to real code
+
+Week 7, rung 4 of 7 (Proven), talk 1
+
+---
+
+## Where we are on the ladder
+
+| Rung | Variant | Weeks |
+| --- | --- | --- |
+| 1 Seed, 2 Lite, 3 Layers | | 1 to 5 |
+| **4 Proven** | **`rung-4-proven`** | 6, **7 (this week, the last on rung 4)** |
+| 5 Reader | `rung-5-reader` | 8, 9 |
+| 6 Guarded, 7 Shipped, Summit | | 10 to 12 |
+
+Last week: the sentence. This week: its proof, and the proof of the proof.
+
+---
+
+## BDD in one slide
+
+**Behaviour-Driven Development** (Dan North, 2006): describe behaviour in the language of the people who
+want it, as examples, before the code.
+
+- a **feature** groups the behaviour of one part of the product
+- a **Rule** states one requirement (Gherkin 6 added `Rule:`)
+- a **scenario** is one example that proves it: **Given** a context, **When** something happens, **Then**
+  an outcome you can observe
+
+The examples are executable. A step definition binds each line to code.
+
+---
+
+## The anatomy of a feature
+
+```gherkin
+# variants/rung-4-proven/tests/bdd/features/site/static-site.feature
+@developer
+Feature: A Course becomes a static website
+  As a student reading a course without a server
+  I want a page for each thing I read, linked the way upstream's tutors-lite links them
+  So that I can read the course from a folder of HTML
+
+  @R-010 @ears-event-driven
+  Rule: When a lab has more than one step, the site shall link each step page to the step before it
+        and the step after it.
+
+    Scenario: The middle step links both ways
+      Given a course with a lab whose steps are "Intro, Setup, Build"
+      When the site is built
+      Then the step page "Setup.html" links to the previous page "index.html" and the next page "Build.html"
+      And the step page "index.html" has no previous link
+      And the step page "Build.html" has no next link
+```
+
+---
+
+## A Rule cites its requirement
+
+- `@R-010`: the id, exactly one, from `REQUIREMENTS.md`
+- `@ears-event-driven`: the pattern, exactly the one the row names
+- the `Rule:` title: the sentence, word for word
+
+The closure audit checks all three. A scenario outside any Rule fails it too (`scenario-outside-rule`): it
+would prove nothing anyone asked for.
+
+Upstream is the same shape, with four-digit ids:
+
+```gherkin
+@rule-0265 @ears-event-driven
+Rule: When a lecturer builds a lab, tutors shall write one step per markdown file in file-name order, ...
+```
+
+---
+
+## Good scenarios
+
+| Do | Because |
+| --- | --- |
+| one behaviour per scenario | a failure names one thing |
+| Given says only what matters to this Rule | the rest is in a helper (`tests/bdd/support/course.ts`) |
+| When is one action | the thing the requirement's trigger names |
+| Then says what is observable | a page, a field, a status, a message |
+| use the domain's words | "a lab whose steps are", not "a JSON array of length 3" |
+| one example that would fail if the rule were broken | otherwise it proves nothing |
+
+From EARS: a state or feature becomes a Given; an event a When; an unwanted condition a When that goes
+wrong.
+
+---
+
+## Step definitions
+
+```ts
+// variants/rung-4-proven/tests/bdd/steps/site/static-site.steps.ts
+const feature = await loadFeature("tests/bdd/features/site/static-site.feature");
+
+describeFeature(feature, ({ Rule }) => {
+  Rule("When a lab has more than one step, the site shall link each step page ...", ({ RuleScenario }) => {
+    RuleScenario("The middle step links both ways", ({ Given, When, Then, And }) => {
+      Given("a course with a lab whose steps are {string}", (_ctx, names: string) => {
+        const steps: Lab["los"] = list(names).map((name) => ({ type: "step", id: name, ... }));
+        course = courseOf({ ...lo("book-1"), type: "lab", los: steps });
+      });
+      When("the site is built", built);
+      Then("the step page {string} links to the previous page {string} and the next page {string}", ...);
+```
+
+`{string}` captures quoted text. `list("Intro, Setup, Build")` splits it.
+
+---
+
+## vitest-cucumber is strict, both ways
+
+| You do | It fails with |
+| --- | --- |
+| add a Rule to the feature, not to the steps | `RuleNotCalledError: Rule: ... was not called` |
+| change a Rule's title in the feature only | `FeatureUknowRuleError: Rule: ... does not exist` |
+| add a step line with no binding | an error naming the missing step |
+
+Every Given, When and Then is its own vitest test, so `pnpm test:bdd` counts steps: 61 for 12 Rules. Steps
+call **product code** (`buildCourse`, `buildSite`, `run`), never a fixture's own answer.
+
+---
+
+## Specify first: the loop from now on
+
+1. **Take an id.** `pnpm test:ears:audit --next-id` prints `R-013`.
+2. **Write the sentence** in `REQUIREMENTS.md`. A person says yes.
+3. **Write the Rule and a scenario.** The audit is satisfied; vitest-cucumber is not.
+4. **Bind the steps. See red.** It must fail for the right reason.
+5. **Make it green** in the layer the row names.
+6. **Pin the code** with a unit or property test, and hold the mutation floors.
+7. **Reflect.** Kaizen.
+
+This is standard work. Every lab from week 7 to week 11 opens with steps 1 to 4.
+
+---
+
+## Red, for the right reason
+
+```
+ FAIL  tests/bdd/steps/site/static-site.steps.ts > Feature: A Course becomes a static website >
+   Rule: When a lab has more than one step, the site shall label each step page with its position,
+   such as Step 2 of 3. > Scenario: Each step knows where it is >
+   Then the step page "Setup.html" says "Step 2 of 3"
+AssertionError: expected '<!doctype html>\n<html lang="en">\n<h…' to contain 'Step 2 of 3'
+      Tests  1 failed | 63 passed (64)
+```
+
+Not a typo, not a crash in the Given: the Then fails because the behaviour is missing. A scenario you have
+never seen fail has not shown that it can.
+
+---
+
+## Background, outlines, and lists
+
+Upstream's `tests/bdd/features/generator/course-json.feature`:
+
+```gherkin
+  Background:
+    Given the synthetic corpus course has been generated
+
+  @rule-0267 @ears-event-driven
+  Rule: When a course folder holds properties.yaml, calendar.yaml or enrollment.yaml, tutors shall copy ...
+    Scenario Outline: Course YAML is copied as written
+      Then "<key>" in the tutors.json equals the course's "<file>"
+      Examples:
+        | key        | file            |
+        | properties | properties.yaml |
+```
+
+A `Background` is a Given every scenario shares. An outline runs one scenario per row. Rung 4 passes lists
+as one quoted string instead, which keeps each scenario readable on one line.
+
+---
+
+## The scenario proves; it does not pin
+
+The scenario for R-013 passes. Then Stryker mutates the new line, `lab.los.length > 1` to `false`, and the
+mutant **survives**. Why?
+
+- vitest-cucumber makes each step a separate test
+- Stryker reruns only the tests that ran the mutated line: the **When**, without its **Then**
+- so `vitest.config.mutation.ts` leaves the BDD steps out, as upstream's does
+
+The scenario proves the requirement in `pnpm test`. A **unit test** pins the code under mutation. Talk 2.
+
+---
+
+## Lean: specify first removes rework
+
+| Without specify first | The waste |
+| --- | --- |
+| code written, then argued about | **rework** |
+| a test written after, from the code's own output | a **hidden defect**: the test agrees with the bug |
+| behaviour nobody asked for | **extra features** |
+| "what was this supposed to do?" six months on | **relearning** |
+
+The sentence is approved before the code; the scenario is red before the code; the closure keeps them
+together after.
+
+---
+
+## Take away
+
+- feature, Rule, scenario, step: each has one job
+- a Rule repeats its requirement word for word, tagged with its id and pattern
+- write the scenario before the code, and see it fail for the right reason
+- the scenario proves the rule; a unit or property test pins the code
+- Specify first is the standard work for weeks 7 to 11

@@ -21,13 +21,13 @@ edges: ports, adapters and the Honest Double.
 By the end of this week you will be able to:
 
 1. **(Understand)** Explain what `pnpm-workspace.yaml`, a package's `exports` and a `workspace:*` dependency
-   each do, using rung 3's own files.
-2. **(Apply)** Install and run the rung 3 workspace, and trace how `@ladder/gen` resolves `@ladder/model`.
+   each do, using rung 3's own files. (M5)
+2. **(Apply)** Install and run the rung 3 workspace, and trace how `@ladder/gen` resolves `@ladder/model`. (M3)
 3. **(Analyse)** Diagnose a Layering, Package boundary, Model or Closure failure from its message, and choose
-   the fix that respects the layer's reason rather than the quickest green.
-4. **(Analyse)** Compare rung 3's four layers with upstream's `ARCHITECTURE.md` and `.dependency-cruiser.cjs`.
+   the fix that respects the layer's reason rather than the quickest green. (M5)
+4. **(Analyse)** Compare rung 3's four layers with upstream's `ARCHITECTURE.md` and `.dependency-cruiser.cjs`. (M4, M5)
 5. **(Evaluate)** Write the dependency-direction rule as an informal EARS sentence and judge which Assertion
-   Ladder level guards it.
+   Ladder level guards it. (M5)
 
 ## Lean focus: the waste of handoffs and coupling
 

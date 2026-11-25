@@ -23,15 +23,15 @@ tests the tests.
 By the end of this week you will be able to:
 
 1. **(Understand)** Explain the five EARS patterns and the complex form, and say which situation each one
-   fits, with an example from rung 4 or upstream for each.
+   fits, with an example from rung 4 or upstream for each. (M6)
 2. **(Apply)** Write a requirement with an id, a pattern, one "shall", a known system and an observable
-   response, and pass it through `pnpm test:ears:audit`.
+   response, and pass it through `pnpm test:ears:audit`. (M6)
 3. **(Analyse)** Trace a requirement from `REQUIREMENTS.md` to its `Rule:`, its steps and its code, and
-   diagnose each closure finding from its message.
+   diagnose each closure finding from its message. (M4, M6)
 4. **(Evaluate)** Critique a requirement for the faults the audit catches (`shall-count`, `vague-language`,
    `system-name`, `ears-form`, `layer-mismatch`) and for the faults only a person can see (the wrong
-   pattern, an unobservable response, a rule about the code rather than the product).
-5. **(Create)** Formalise your informal "Name the rule" sentences from weeks 1 to 5 as EARS requirements.
+   pattern, an unobservable response, a rule about the code rather than the product). (M6)
+5. **(Create)** Formalise your informal "Name the rule" sentences from weeks 1 to 5 as EARS requirements. (M6)
 
 ## Lean focus: standard work for requirements
 
