@@ -33,43 +33,60 @@ receiving code they cannot yet understand. Climbing a rung means lifting the fen
 
 ## The rungs
 
+The ladder is one straight line. Each variant starts from a copy of the rung below and adds one major
+capability. Testing sits at rung 4, straight after Layers, so that every later rung is specified first: its new
+capability arrives as EARS requirements and Given/When/Then scenarios in a growing `REQUIREMENTS.md`, held
+together by the closure audit.
+
 | Rung | Variant | Track | Capability delivered | New expertise | Mirrors upstream |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `variants/rung-1-seed` | CLI | Course folder in, `tutors.json` out | TypeScript on Node, file system, the course format, discriminated unions | `packages/jsr/gen`, `packages/jsr/model`, `packages/jsr/tutors` |
 | 2 | `variants/rung-2-lite` | UI (static) | A static HTML website from `tutors.json` | Markdown rendering, HTML templates, escaping, exhaustive rendering | `packages/jsr/tutors-lite` |
 | 3 | `variants/rung-3-layers` | Architecture | The same tools as a layered pnpm workspace with ports | Workspaces, dependency direction, ports and adapters, architecture tests | `pnpm-workspace.yaml`, `packages/jsr/types`, `course-rules` ports, `tests/architecture` |
-| 4 | `variants/rung-4-reader` | UI (app) | An interactive Svelte 5 reader for `tutors.json` | Svelte 5 runes, SvelteKit routing, components, Vite | `apps/reader`, `packages/svelte/ui-*` |
-| 5 | `variants/rung-5-proven` | Testing | Tests as specification: EARS, BDD, contracts, conformance, mutation | EARS, Given/When/Then, honest doubles, golden files, mutation testing | `tests/`, `guides/testing`, `stryker.config.json` |
-| 6 | `variants/rung-6-guarded` | Security | Safe content, private courses, a secure supply chain | XSS and sanitising, path containment, identity ports, RBAC, CSP, supply chain | `packages/jsr/identity`, `packages/svelte/utils/rbac`, `docs/security`, `SECURITY.md` |
+| 4 | `variants/rung-4-proven` | Testing | Tests as specification: EARS, BDD, closure, contracts, conformance, properties, mutation | EARS, Given/When/Then, honest doubles, golden files, property-based and mutation testing, Vitest | `tests/`, `guides/testing`, `stryker.config.json` |
+| 5 | `variants/rung-5-reader` | UI (app) | An interactive SvelteKit / Svelte 5 reader, specified in EARS and BDD | Svelte 5 runes, SvelteKit routing and load, components, Vite, browser tests | `apps/reader`, `packages/svelte/ui-*` |
+| 6 | `variants/rung-6-guarded` | Security | Safe content in the site and the reader, private courses, a secure supply chain | XSS and sanitising, CSP, path containment, identity ports, RBAC, supply chain | `packages/jsr/identity`, `packages/svelte/utils/rbac`, `docs/security`, `SECURITY.md` |
 | 7 | `variants/rung-7-shipped` | Releasing | A versioned, gated, containerised release with checked claims | CI, SemVer, changelogs, containers, release claims, SLOs | `.github/workflows`, `release/`, `Dockerfile`, tutors-release-harness |
 | Summit | tutors-mono-repo | All | The real thing | Everything above, plus Supabase, realtime and the release harness | the whole repository |
 
-Rungs 1 to 3 form one line: each starts from a copy of the rung below. Rungs 4 to 7 each start from a copy of
-rung 3, so they can be taken in any order after Layers. The Summit's capstone assignment composes them into one
-variant, `variants/summit-composed`, before the learner moves to the real mono-repo.
+## The 12 week module (`course/`)
 
-## Course map (`course/`)
+One topic per week. Each week opens by saying which rung of the ladder the class is on, gives a teaching
+element with depth (talks plus a grounded reading note with worked examples from the variants and upstream),
+and has exactly one lab. The class moves to the next variant every one to three weeks, by complexity. Every
+lab ends with a "Build beyond" step, because students are expected to take each variant further than it goes.
+The last week of each rung also carries that rung's coding assignment and its exit criteria.
 
-| Topic folder | Rung | Track |
-| --- | --- | --- |
-| `topic-01-ladder` | Orientation | Tutors, the two ladders, setup, your first course |
-| `topic-02-seed` | 1 | CLI |
-| `topic-03-lite` | 2 | UI (static) |
-| `topic-04-layers` | 3 | Architecture |
-| `topic-05-reader` | 4 | UI (app) |
-| `topic-06-proven` | 5 | Testing |
-| `topic-07-guarded` | 6 | Security |
-| `topic-08-shipped` | 7 | Releasing |
-| `topic-09-summit` | Summit | Contributing to tutors-mono-repo with an agent, under the ladder |
+| Week | Topic folder | Rung | Teaching focus |
+| --- | --- | --- | --- |
+| 1 | `topic-01-seed-format` | 1 Seed | Tutors, the two ladders, the course format as data, a first CLI |
+| 2 | `topic-02-seed-types` | 1 Seed | Discriminated unions, exhaustiveness and `never`, conformance to an oracle |
+| 3 | `topic-03-lite` | 2 Lite | Static sites, a Markdown subset, escaping by construction |
+| 4 | `topic-04-layers-workspace` | 3 Layers | Workspaces, packages, dependency direction |
+| 5 | `topic-05-layers-ports` | 3 Layers | Ports and adapters, architecture tests, the Honest Double |
+| 6 | `topic-06-proven-ears` | 4 Proven | Requirements with EARS, the closure audit, test-first |
+| 7 | `topic-07-proven-bdd` | 4 Proven | BDD with Given/When/Then, properties, mutation testing |
+| 8 | `topic-08-reader-routes` | 5 Reader | SvelteKit routing and load, `tutors.json` as the contract |
+| 9 | `topic-09-reader-components` | 5 Reader | Svelte 5 runes, components, browser tests |
+| 10 | `topic-10-guarded` | 6 Guarded | Threat model, XSS, CSP, containment, identity, RBAC, supply chain |
+| 11 | `topic-11-shipped` | 7 Shipped | Releases, claims and evidence, SLOs, containers, CI |
+| 12 | `topic-12-summit` | Summit | From rung 7 to tutors-mono-repo; contributing with an agent under the ladder |
 
-Each rung topic holds:
+Concepts are reinforced, not taught once. EARS is previewed in weeks 1 to 5 (each lab's "Name the rule" step
+writes the week's rule as an informal "shall" sentence), taught in week 6, and from week 7 on every lab begins
+with "Specify first": an EARS requirement and a scenario for the week's capability, added to the variant's
+`REQUIREMENTS.md` and features. The same holds for the Assertion Ladder: each week's reading note says which
+rungs (L0 to L5) guard that week's rules.
 
-- `<topic>.md`, the topic descriptor (`# Title` then a summary);
-- `unit-1-<name>/` with a unit descriptor, two or three `talk-*` folders (each a `talk.md` and one Marp deck
-  `<name>.marp` with `marp: true`, theme `default`), and `note-assertion/` mapping the rung's rules to L0 to L5;
-- `unit-2-<name>/` with a unit descriptor, `book-lab-*/` (a lab: `00.Lab-NN-<Title>.md`, `01.<Title>.md`,
-  ...), `book-assignment-*/` (a coding assignment with acceptance criteria and a grading test), and
-  `web-*/` links (`weburl`, `https://` only) to the upstream files the rung mirrors and to external resources.
+Each week topic holds:
+
+- `<topic>.md`, the topic descriptor: `# Week N: <Title>`, then a line `Rung R of 7: <Name>` and a summary;
+- `unit-1-teach/` with a unit descriptor, one or two `talk-*` folders (each a `talk.md` and one Marp deck
+  `<name>.marp` with `marp: true`, theme `default`), and one or more `note-*` reading notes with depth;
+- `unit-2-practice/` with a unit descriptor, exactly one `book-lab-weekNN-*/` lab (`00.Lab-NN-<Title>.md`,
+  `01.<Title>.md`, ...; step 01 is "Where we are on the ladder"; the last step is "Build beyond"), in a rung's
+  final week one `book-assignment-*/`, and `web-*/` links (`weburl`, `https://` only) to the upstream files
+  mirrored and to official learning resources.
 
 ## Variant conventions
 
@@ -101,4 +118,4 @@ Each rung topic holds:
 
 A folder per rung stands in for a tag, because this repository holds the whole ladder. When the ladder moves to
 its own repository, each rung becomes a tag (`rung-1-seed` to `rung-7-shipped`) on a history that adds one rung
-per commit; rungs 4 to 7 become branches from `rung-3-layers` until they are composed.
+per commit.
