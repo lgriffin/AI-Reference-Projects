@@ -22,7 +22,7 @@ const ALLOWED_DEV = ["typescript", "@types/node"];
 const LATER: [pattern: RegExp, rung: string][] = [
   [/^(svelte|@sveltejs\/|vite|@vitejs\/|markdown-it|marked|remark|micromark|@marp-team\/)/, "rung 4 (Reader)"],
   [/^(vitest|@vitest\/|@stryker-mutator\/|fast-check|@cucumber\/|@amiceli\/|playwright|@playwright\/)/, "rung 5 (Proven)"],
-  [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "rung 6 (Guarded)"],
+  [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "the Summit (rung 6 Guarded sanitises by allow-list and fakes identity without a library)"],
   [/^(@changesets\/|semantic-release|release-please)/, "rung 7 (Shipped)"],
 ];
 const arrivesIn = (name: string) => LATER.find(([pattern]) => pattern.test(name))?.[1] ?? "a later rung, which names it in its RUNG.md";

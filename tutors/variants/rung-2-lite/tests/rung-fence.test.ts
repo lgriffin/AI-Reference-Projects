@@ -45,7 +45,7 @@ test("package.json declares only the dependencies this rung allows", () => {
       violations.push(
         `Rung Fence, ${RUNG}: package.json declares "${name}" in ${section}. Rung 2 has no dependencies and needs no install. ` +
           "Its Markdown renderer is the small one in src/markdown.ts on purpose: a full Markdown library arrives in rung 4 (Reader), " +
-          "TypeScript as a dev dependency in rung 3 (Layers), and a sanitiser in rung 6 (Guarded). Extend src/markdown.ts instead.",
+          "TypeScript as a dev dependency in rung 3 (Layers), and URL sanitising by allow-list in rung 6 (Guarded). Extend src/markdown.ts instead.",
       );
     }
   }

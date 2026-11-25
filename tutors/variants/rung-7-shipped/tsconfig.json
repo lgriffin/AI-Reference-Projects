@@ -1,0 +1,6 @@
+// Tests, release scripts and the whole workspace, with Node's types. Each package's own tsconfig.json is stricter about what it may see.
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "types": ["node"] },
+  "include": ["packages/*/tests", "apps/*/tests", "scripts", "tests"]
+}

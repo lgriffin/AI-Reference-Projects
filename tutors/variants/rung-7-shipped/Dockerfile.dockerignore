@@ -1,0 +1,8 @@
+# BuildKit reads <Dockerfile>.dockerignore beside the Dockerfile, so this applies although the build
+# context is the parent folder (tutors/variants). Send only what the build stage copies.
+*
+!fixtures/ladder-sample-course
+!rung-7-shipped/packages
+!rung-7-shipped/apps
+**/node_modules
+**/tests

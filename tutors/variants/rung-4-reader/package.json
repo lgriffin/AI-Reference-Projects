@@ -1,0 +1,26 @@
+{
+  "name": "@ladder/rung-4-reader",
+  "version": "1.0.0",
+  "description": "Tutors ladder, rung 4 (Reader): an interactive Svelte 5 reader for tutors.json, on the rung 3 workspace",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "start": "node apps/cli/src/main.ts",
+    "course": "node apps/cli/src/main.ts --json-only ../fixtures/ladder-sample-course apps/reader/static/courses/ladder-sample-course",
+    "dev": "pnpm course && pnpm --filter @ladder/reader dev",
+    "build": "pnpm course && pnpm --filter @ladder/reader build",
+    "typecheck": "tsc -p packages/model && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p . && pnpm --filter @ladder/reader check",
+    "test": "pnpm typecheck && node --test \"packages/*/tests/*.test.ts\" \"apps/*/tests/*.test.ts\" \"tests/**/*.test.ts\" && pnpm build",
+    "test:e2e": "pnpm build && node --test \"apps/reader/tests/e2e/*.e2e.ts\"",
+    "test:assignment": "ASSIGNMENT=1 node --test \"tests/assignment/*.test.ts\" && pnpm build && ASSIGNMENT=1 node --test \"tests/assignment/*.e2e.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.7",
+    "playwright": "1.63.0",
+    "typescript": "^6.0.3"
+  }
+}

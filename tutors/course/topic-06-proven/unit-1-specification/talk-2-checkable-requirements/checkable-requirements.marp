@@ -1,0 +1,189 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Requirements you can check
+
+### EARS, Given/When/Then, closure
+
+Tutors Ladder, rung 5 (Proven), talk 2
+
+---
+
+## A requirement nobody can check
+
+> The generator should handle lab folders properly.
+
+- "should": is it required or not?
+- "handle", "properly": what would you observe?
+- Which code does it bind? Which test proves it?
+
+An agent reading this will do something. You cannot tell whether it did the right thing.
+
+---
+
+## EARS: five sentence shapes
+
+| Pattern | Reads |
+| --- | --- |
+| Ubiquitous | The \<system\> shall \<response\>. |
+| Event-driven | When \<trigger\>, the \<system\> shall \<response\>. |
+| State-driven | While \<state\>, the \<system\> shall \<response\>. |
+| Optional | Where \<feature\>, the \<system\> shall \<response\>. |
+| Unwanted behaviour | If \<condition\>, then the \<system\> shall \<response\>. |
+
+Easy Approach to Requirements Syntax. One "shall". A named system. Something you can observe.
+
+---
+
+## The same rule, in EARS
+
+```
+R-004 | Event-driven |
+When a lab folder holds markdown files, the generator shall write one step per file,
+in file-name order, whose id is the file name between its first and last dot. | gen
+```
+
+- The trigger: a lab folder with markdown files
+- The system: the generator, which lives in `packages/gen`
+- The response: something a test can compare exactly
+
+`variants/rung-5-proven/REQUIREMENTS.md` holds twelve of these, each naming its layer.
+
+---
+
+## Given / When / Then
+
+```gherkin
+@R-004 @ears-event-driven
+Rule: When a lab folder holds markdown files, the generator shall write one step per file, ...
+
+  Scenario: The steps of a lab
+    Given a course with a lab "topic-1/book-1" holding the files "02.Build.md, 00.Lab-1-Intro.md, 01.Set.Up.md"
+    When the course is built
+    Then the lab "book-1" has the steps "Lab-1-Intro, Set.Up, Build"
+    And each step of the lab "book-1" has the lab's route followed by its id
+```
+
+The `Rule:` title is the requirement, word for word. The scenarios are its proof.
+
+---
+
+## Binding the steps
+
+```ts
+// tests/bdd/steps/generator/course-folder.steps.ts
+const feature = await loadFeature("tests/bdd/features/generator/course-folder.feature");
+
+describeFeature(feature, ({ BeforeEachScenario, Rule }) => {
+  Rule("When a lab folder holds markdown files, the generator shall write ...", ({ RuleScenario }) => {
+    RuleScenario("The steps of a lab", ({ Given, When, Then, And }) => {
+      Given("a course with a lab {string} holding the files {string}", givenLab);
+      When("the course is built", build);
+      Then("the lab {string} has the steps {string}", (_ctx, id, steps) => { ... });
+```
+
+vitest-cucumber fails if a Rule, scenario or step exists on one side only.
+
+---
+
+## Upstream does the same
+
+```gherkin
+# tests/bdd/features/generator/course-json.feature
+@rule-0265 @ears-event-driven
+Rule: When a lecturer builds a lab, tutors shall write one step per markdown file in
+      file-name order, each with the lab's route followed by the step's short title.
+```
+
+```ts
+// tests/bdd/steps/generator/course-json.steps.ts
+const feature = await loadFeature("tests/bdd/features/generator/course-json.feature");
+describeFeature(feature, ({ Background, Rule }) => { ...
+```
+
+Same library, same shape. Upstream ids are `@rule-NNNN`; rung 5 uses `@R-NNN` and a table.
+
+---
+
+## Closure: two lists that must agree
+
+```
+REQUIREMENTS.md            every id ──────► at least one Rule with a scenario
+tests/bdd/features         every Rule ────► exactly one known id, its sentence word for word
+any test title             "R-008: ..." ──► an id that exists
+```
+
+If any arrow breaks, `pnpm test:ears:audit` names it:
+
+```
+unproved-requirement: REQUIREMENTS.md:24 R-013: no Rule tagged @R-013 has a scenario.
+  Add one to the feature for its layer in tests/bdd/features.
+rule-title-drift: tests/bdd/features/site/static-site.feature:48: the Rule's title is
+  not R-011's sentence. One sentence, one source: copy it from REQUIREMENTS.md:22 word for word.
+```
+
+---
+
+## Checking the sentence itself
+
+`scripts/checks/ears-audit.ts` reads each requirement and fails on:
+
+| Code | Example |
+| --- | --- |
+| `shall-count` | two "shall"s: split it |
+| `obligation-keyword` | "should", "must", "will" |
+| `vague-language` | "handle", "properly", "quickly" |
+| `system-name` | the word before "shall" is not the generator, the site or the command |
+| `ears-form` | Event-driven but does not start "When ...," |
+| `layer-mismatch` | about the site, but "Implemented in" says gen |
+| `ears-tag` | the Rule's `@ears-*` tag is not its pattern |
+
+---
+
+## How upstream audits rule ids
+
+`scripts/checks/ears-audit.ts` upstream checks every `Rule:` in 85 files:
+
+- `rule-id`: exactly one `@rule-NNNN` tag; `--next-id` prints the next free one (`0786` at `2b96b69`)
+- `rule-id-retired`: ids in `tests/bdd/ears-retired-rule-ids.txt` are never reused
+- `shall-count`, `obligation-keyword`, `vague-language`, `system-name`, `ears-form`, `ears-tag-*`
+- `dual-scenarios`: a state-driven or optional Rule needs an `@active` and an `@inactive` scenario
+- `unbound-feature`, `unbound-rule`: no steps file loads it
+- `unproved-scenario`, `orphan-ui-test`: for `@ui` Rules proved by Playwright
+
+It is pure functions; `tests/suite-health/ears-audit.test.ts` proves each code on fixtures.
+
+---
+
+## The house style it borrows from
+
+`AI-Reference-Projects/typescript` keeps requirements in a table too:
+
+```ts
+// typescript/tests/architecture/requirements.test.ts
+expect([...required].filter((id) => !cited.has(id)), "add a test whose title opens with each id").toEqual([]);
+expect([...cited].filter((id) => !required.has(id)), "state the rule in REQUIREMENTS.md first").toEqual([]);
+```
+
+Rung 5 joins the two ideas: the table, and Rules that repeat it word for word.
+
+---
+
+## Why this matters with an agent
+
+- The requirement is what a person approves. It is short enough to read.
+- The agent cannot add behaviour without a sentence, or a sentence without proof: the closure fails.
+- Upstream's `.claude/skills/ears-gherkin-dev/SKILL.md` makes this the workflow: write the Rule, show it to
+  the human and "wait for a yes", prove it red, implement, prove it green, audit.
+
+---
+
+## Take away
+
+- One sentence, one id, one source. Repeat it; never paraphrase it.
+- A Rule without a scenario is a wish. A scenario without a Rule cites nothing.
+- Check the shape of the sentence as well as the behaviour.
+- Next: how to tell whether the tests themselves can be trusted.

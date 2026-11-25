@@ -1,0 +1,67 @@
+# What a release of this workspace promises, and the test that is the evidence for each promise.
+#
+#   pnpm release:claims        # the Closure Check: every claim names a test that exists and runs
+#
+# A claim:
+#   id:        kebab-case, unique
+#   promise:   one sentence, in words a learner or maintainer would use
+#   evidence:  one or more test ids, "<file>#<test name>", the file relative to this folder
+#
+# The Single Gate (pnpm test) runs every test, so a clean check plus a green gate means every promise is
+# checked. A promise you cannot test is not a claim; say it in the changelog instead.
+#
+# Upstream's release/claims.yaml is a different list with the same discipline: the differences from
+# production a release intends, each citing its Rule or CHANGELOG entry (release/README.md there).
+claims:
+  - id: generator-conforms
+    promise: The generator writes the same course tree and fields as upstream's tutors build for the shared fixture.
+    evidence:
+      - "apps/cli/tests/conformance.test.ts#the course tree has the same shape, ids, types and titles as upstream"
+      - "apps/cli/tests/conformance.test.ts#every field this rung builds matches upstream, learning object by learning object"
+
+  - id: no-script
+    promise: The site has no script, inline or linked, and no inline event handler.
+    evidence:
+      - "apps/cli/tests/release.test.ts#the site has no script: no <script> element and no inline event handler"
+
+  - id: course-text-escaped
+    promise: Course text never reaches a page unescaped.
+    evidence:
+      - "packages/lite/tests/site-builder.test.ts#course text never reaches a page unescaped"
+      - "packages/lite/tests/markdown.test.ts#every piece of input is escaped: text, code, link text, URLs and alt text"
+
+  - id: build-identity
+    promise: The cli prints its version and commit, and the site answers them in version.json and nowhere else.
+    evidence:
+      - "apps/cli/tests/release.test.ts#--version prints the release version and the git commit"
+      - "apps/cli/tests/release.test.ts#the site writes version.json with the build identity, like upstream's GET /version"
+      - "apps/cli/tests/release.test.ts#the build identity appears in version.json and nowhere else"
+
+  - id: reproducible-site
+    promise: Two builds of the same course write the same bytes, apart from version.json.
+    evidence:
+      - "apps/cli/tests/release.test.ts#two builds of the same source write the same bytes, apart from version.json"
+
+  - id: version-and-changelog
+    promise: The release version is SemVer, shared by the root and every app, and CHANGELOG.md has its section.
+    evidence:
+      - "tests/release/release-files.test.ts#one SemVer version for the root and every app"
+      - "tests/release/release-files.test.ts#CHANGELOG.md has a section for the version being released"
+
+  - id: container-hardened
+    promise: The image is built from bases pinned by digest and runs as a user that is not root.
+    evidence:
+      - "tests/release/dockerfile.test.ts#every FROM pins its base image by digest"
+      - "tests/release/dockerfile.test.ts#the image runs as a numeric user that is not root"
+
+  - id: ci-pinned
+    promise: Every action in CI is pinned to a full commit SHA, with least-privilege permissions and one required job.
+    evidence:
+      - "tests/release/workflow.test.ts#every action is pinned to a full commit SHA, with its version in a comment"
+      - "tests/release/workflow.test.ts#permissions are declared and read-only"
+      - "tests/release/workflow.test.ts#one job is the Single Gate, and it needs every other job"
+
+  - id: site-within-budget
+    promise: The fixture site stays within the size budget in release/slo.yaml.
+    evidence:
+      - "scripts/tests/slo.test.ts#the real site is within every size budget in release/slo.yaml"

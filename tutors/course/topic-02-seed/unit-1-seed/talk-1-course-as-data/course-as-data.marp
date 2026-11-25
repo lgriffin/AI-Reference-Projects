@@ -1,0 +1,240 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# The course as data
+
+### How a folder becomes `tutors.json`
+
+Tutors Ladder, rung 1 (Seed), talk 1
+
+---
+
+## What rung 1 does
+
+```
+node src/main.ts ../fixtures/ladder-sample-course out/tutors.json
+```
+
+- reads a Tutors course **folder**
+- writes one **`tutors.json`**: the course, its topics, units and sides, and every talk, lab, note, web link
+  and archive inside them
+- three source files, no dependencies, nothing to install
+
+| File | Job |
+| --- | --- |
+| `src/model.ts` | the learning objects, as a discriminated union on `type` |
+| `src/course-builder.ts` | walks the folder and builds each kind |
+| `src/main.ts` | the command line |
+
+---
+
+## A course is a folder
+
+The shared fixture, `variants/fixtures/ladder-sample-course`:
+
+```
+course.md                          <- the course's title and summary
+properties.yaml
+topic-01-basics/
+  topic.md
+  side-resources/
+    side.md
+    archive-1-solutions/   archive.md  archive.zip
+  unit-1-intro/
+    unit.md
+    note-1-reading/        note.md
+    talk-1-welcome/        talk.md  talk.marp
+topic-02-practice/
+  topic.md
+  unit-1-lab/
+    unit.md
+    book-1-first-lab/      00.Lab-01-First-Steps.md  01.Setup.md  02.Build.md  img/main.png
+    web-1-tutors/          web.md  weburl
+```
+
+---
+
+## The folder's name is its kind
+
+| Folder starts with | Kind (`type`) | Holds |
+| --- | --- | --- |
+| `topic` | `topic` | units, sides and learning objects |
+| `unit`, `side` | `unit`, `side` | learning objects |
+| `talk` | `talk` | a `.md` and usually a Marp deck |
+| `book` or `lab` | `lab` | steps `00.Title.md`, `01.Title.md`, ... |
+| `note` | `note` | one `.md` |
+| `web` | `web` | a `.md` and a `weburl` file |
+| `archive` | `archive` | a `.md` and a `.zip` |
+
+A folder whose name starts with **no** kind is not content. It is left out, silently, with everything in it.
+Upstream rule V002 is the validator's answer to that silence.
+
+---
+
+## Longest prefix first
+
+`notebook-1` starts with `note`. It is still a notebook.
+
+```ts
+// variants/rung-1-seed/src/course-builder.ts
+const kindsLongestFirst = [...folderKinds].sort(([a], [b]) => b.length - a.length);
+
+export function folderKind(name: string): LoType | null | undefined {
+  return kindsLongestFirst.find(([prefix]) => name.startsWith(prefix))?.[1];
+}
+```
+
+Three answers: a `LoType`; `null` for a kind upstream builds and rung 1 skips; `undefined` for no kind.
+
+Upstream does the same in `findLastMatchingString`
+(`packages/jsr/gen/src/utils/file-utils.ts`), which sorts `loTypes` by length, longest first.
+
+---
+
+## The prefixes are a table, not code
+
+```ts
+// variants/rung-1-seed/src/model.ts
+export const folderKinds: [prefix: string, kind: LoType | null][] = [
+  ["topic", "topic"], ["unit", "unit"], ["side", "side"], ["talk", "talk"],
+  ["book", "lab"],    ["lab", "lab"],   ["note", "note"], ["web", "web"],
+  ["archive", "archive"],
+  ["notebook", null], ["github", null], ["tutorial", null], ["podcast", null],
+  ["whiteboard", null], ["panelnote", null], ["paneltalk", null],
+  ["panelvideo", null], ["quiz", null],
+];
+```
+
+Upstream: `simpleTypes` and `loCompositeTypes` in `packages/jsr/model/src/types/type-utils.ts`.
+`getLoType` in `packages/jsr/gen/src/services/resource-builder.ts` turns `book` into `lab`.
+
+---
+
+## Title, summary, body
+
+Every learning object takes three fields from its folder's first `.md` file:
+
+```ts
+// variants/rung-1-seed/src/course-builder.ts
+export function readMarkdown(file: string) {
+  const contentMd = stripFrontMatter(readFileSync(file, "utf8"));
+  const [first = "", ...rest] = contentMd.split("\n");
+  const title = (first.startsWith("#") ? first.slice(1) : first).trim(); // upstream drops one "#" only
+  const summary = rest.join("\n").trim().split("\n")[0]!.trim();
+  return { title, summary, contentMd };
+}
+```
+
+The first line is the title, the next non-blank line the summary. Upstream: `getMarkdown` in
+`packages/jsr/gen/src/utils/lr-utils.ts`, with the `front-matter` package.
+
+---
+
+## What each kind holds
+
+| Kind | Rung 1 reads | Upstream function in `course-builder.ts` |
+| --- | --- | --- |
+| `talk` | a `.marp` deck replaces `contentMd` | `buildTalk` |
+| `web` | `route` is the first line of `weburl` | `buildWeb`, `getWebLink` |
+| `archive` | `archiveFile` is the `.zip` | `buildArchive` |
+| `lab` | one `step` per `.md`, id from the file name | `buildLab` |
+| `unit`, `side` | `route` points at the parent topic | `buildUnit`, `buildSide` |
+
+A lab step `01.Setup.md` gets the id and `shortTitle` `Setup`: the text between the first and the last dot.
+
+---
+
+## An upstream quirk, kept on purpose
+
+```ts
+// variants/rung-1-seed/src/course-builder.ts, buildLab
+// Upstream quirk: a lab with img/main.* takes the first step's short title as its own title.
+const hasMainImage = folder.dirs.includes("img") && readdirSync(join(folder.path, "img")).some((f) => f.startsWith("main."));
+if (hasMainImage && lab.los[0]) lab.title = lab.los[0].shortTitle;
+```
+
+So the fixture's lab is titled `Lab-01-First-Steps`, not `Objectives`. That is why every lab in this
+course is named `00.Lab-NN-Title.md` and has an `img/main.png`.
+
+Rung 1 copies the behaviour, not a better idea of it. The oracle decides.
+
+---
+
+## Routes
+
+```json
+{
+  "type": "unit", "id": "unit-1-lab",
+  "route": "/topic/{{COURSEURL}}/topic-02-practice/",
+  "los": [
+    { "type": "lab", "id": "book-1-first-lab", "title": "Lab-01-First-Steps",
+      "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab",
+      "los": [ { "type": "step", "id": "Setup", "title": "Setup",
+                 "route": "/lab/{{COURSEURL}}/topic-02-practice/unit-1-lab/book-1-first-lab/Setup" } ] },
+    { "type": "web", "id": "web-1-tutors", "title": "Tutors", "route": "https://tutors.dev" }
+  ]
+}
+```
+
+`{{COURSEURL}}` is filled in by the reader. A web link's route is the external URL.
+
+---
+
+## Order inside a composite
+
+Children are sorted by kind, then kept in folder-name order (a stable sort):
+
+| `preOrder` | 0 | 1 | 2 | 3 | 4 | 7 | 8 | 9 | 11 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| kind | course | unit | side | topic | talk | lab | note | web | archive |
+
+Upstream's map in `type-utils.ts` has the gaps filled: `tutorial` 5, `book` 6, `github` 10, the panel
+kinds 12 to 14, `podcast` 15, `notebook` 16, `whiteboard` 17, `quiz` 18.
+
+---
+
+## Upstream in one picture
+
+```
+course folder
+   |  build(dir)              resource-builder.ts   a LearningResource per folder, typed by getLoType
+   v
+LearningResource tree
+   |  pruneTree               resource-builder.ts   drops folders of kind "unknown"
+   v
+   |  buildCourse(lr)         course-builder.ts     buildDefaultLo, then buildCompositeLo or buildSimpleLo
+   v
+Course
+   |  generateDynamicCourse   tutors.ts             JSON.stringify into json/tutors.json, netlify.toml, llms
+   v
+json/tutors.json
+```
+
+Rung 1 folds the first three steps into one recursive walk: `buildLo` reads a folder and builds it.
+
+---
+
+## What rung 1 leaves out
+
+- images, videos, PDFs, `frontMatter`, `hide`, `authLevel`
+- `properties.yaml`, `calendar.yaml`, `enrollment.yaml` (they need a YAML parser)
+- the kinds `notebook`, `github`, `tutorial`, `podcast`, `whiteboard`, the panel kinds and `quiz`:
+  recognised, then skipped with a line on stderr
+- Markdown to HTML: that is rung 2
+- copying assets, `netlify.toml`, `llms.txt`, validation
+
+Each is listed in `variants/rung-1-seed/RUNG.md`, "Deliberately left out". The assignment brings one kind back.
+
+---
+
+## Summary
+
+- A course is a folder; a folder's name says its kind, longest prefix first
+- Every learning object has a title, a summary, a body and a route
+- Each kind adds what its folder holds: a deck, steps, a URL, a zip
+- `tutors.json` is the whole course as one tree of data
+
+Next: how the model makes "every kind has a case" something the compiler checks.

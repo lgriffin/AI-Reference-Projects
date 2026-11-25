@@ -1,0 +1,236 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Claims, evidence and SLOs
+
+### What a release promises, and how each promise is checked
+
+Tutors Ladder, rung 7 (Shipped), talk 2
+
+---
+
+## A promise is not a check
+
+"The site has no script" in a README is **L2, Told**. Anyone can break it, and nothing turns red.
+
+The same sentence with a test behind it is **L3, Checked**. With a message that names the rule and the fix,
+**L4, Explained**.
+
+A release claim is the bridge: one promise, in words a person would use, tied to the test that keeps it.
+
+---
+
+## Rung 7's claims
+
+```yaml
+# variants/rung-7-shipped/release/claims.yaml
+claims:
+  - id: no-script
+    promise: The site has no script, inline or linked, and no inline event handler.
+    evidence:
+      - "apps/cli/tests/release.test.ts#the site has no script: no <script> element and no inline event handler"
+
+  - id: build-identity
+    promise: The cli prints its version and commit, and the site answers them in version.json and nowhere else.
+    evidence:
+      - "apps/cli/tests/release.test.ts#--version prints the release version and the git commit"
+      - "apps/cli/tests/release.test.ts#the build identity appears in version.json and nowhere else"
+```
+
+Nine claims: conformance with upstream, no script, escaping, build identity, reproducible pages, version
+and changelog, the container, CI pinning, the size budget.
+
+---
+
+## The Closure Check
+
+`pnpm release:claims` resolves every test id. Rename a test and:
+
+```
+release/claims.yaml: 2 problem(s). A release may not promise what no test checks.
+
+- Claim "no-script" cites the test "the site has no scripts" in apps/cli/tests/release.test.ts,
+  and no test there has that name. A test id is the exact name in test("...").
+  Did you mean: "the site has no script: no <script> element and no inline event handler", ...?
+- Claim "fast-pages" promises "Every page loads in under a second on a slow phone." but names no
+  evidence. A promise without a test is only told (L2), not checked (L3). Add a test that would
+  fail if the promise broke, and list it as evidence: "<file>#<test name>".
+```
+
+It also fails on a skipped test, a misspelt key, a duplicate id. The gate runs every test, so a clean
+check plus a green gate means every promise is checked.
+
+---
+
+## Upstream's claims mean something else
+
+`release/claims.yaml` in tutors-mono-repo lists the **differences from production a release intends**:
+
+```yaml
+claims:
+  - artefact: axe
+    scope: "reference:note"
+    rule: "0036"
+    reason: "code block copy buttons are named \"Copy code\" (button-name, critical) fixed by #313"
+```
+
+| Field | Meaning |
+| --- | --- |
+| `artefact` | what moved: `dom`, `screenshot`, `network`, `headers`, `axe`, `sbom`, `vulns`, ... |
+| `scope` | a glob: a page key, a route, `GET /api/presence` |
+| `reason` or `rule` | the CHANGELOG entry or EARS Rule behind it; "see PR" is rejected |
+| `approvedBy` | a person, required on a broad claim (`"*"`) |
+
+A claim there **waives a failure**, so CODEOWNERS gives it to the maintainers.
+
+---
+
+## The same discipline in two places
+
+| | Rung 7 | Upstream |
+| --- | --- | --- |
+| a claim says | "we promise this" | "we meant this difference" |
+| it cites | a test id, `<file>#<name>` | a Rule id or a CHANGELOG entry |
+| the check fails when | the test does not exist or is skipped | the Rule is defined by no feature in `tests/bdd/features` |
+| checked by | `scripts/check-release-claims.ts` | `scripts/checks/release-claims.ts` (`pnpm check:release-claims`) |
+| what judges the release | the Single Gate | the release harness |
+
+Both are **Closure Checks**: every reference must resolve, or the release stops.
+
+---
+
+## The release harness
+
+A separate repository, tutors-sdk/tutors-release-harness, "so that the PR being judged cannot weaken its
+judge".
+
+> Run the same scripted traffic through two identical stacks that differ only in the application image,
+> normalise the noise, diff everything observable, and fail unless each diff hunk is claimed by a
+> changelog entry or a Rule.
+
+- **A/A** (noise mode): two copies of the same image. Is the harness itself clean?
+- **A/B** (release mode): production beside the candidate. Is every difference claimed?
+- **Gate**: PASS, WARN (advisory, exit 0), FAIL (exit 1), or COULD NOT JUDGE (exit 2)
+
+---
+
+## The Gate first, then the score
+
+From the harness's `docs/lean.md`:
+
+- The **Gate** decides. The **Release Confidence Score** (0 to 100, eight weighted dimensions) is computed
+  only when the Gate is PASS or WARN. "A FAIL is a FAIL at RCS 99."
+- Bands are fixed: **Green** 90 or more, ship on the captain's say; **Amber** 75 to 89, ship only after the
+  reviewer's glance is verified; **Red** below 75, hold and open a 5 Whys.
+- Every dimension has a floor; below it the score is capped at 74.
+
+That is **Jidoka**: the line stops on a defect, and no number talks it back on.
+
+---
+
+## SLOs upstream
+
+`release/slo.yaml`: availability and latency per app, over 28 days.
+
+```yaml
+- id: reader-availability
+  app: reader
+  kind: availability
+  target: 0.995
+  description: Students reading a course. The strictest app; about 3h22m of errors in 28 days.
+```
+
+The harness keeps its own floors (`slo/floors.yaml`, reader availability `0.999`) and judges each
+candidate against **the stricter** of the two, "so lowering a number here never loosens a release". Its
+floors are a ratchet: raised by PR, never lowered to make a run pass.
+
+---
+
+## SLOs here: budgets
+
+A static site has no requests to fail. Its objectives are budgets on the build:
+
+```yaml
+# variants/rung-7-shipped/release/slo.yaml
+objectives:
+  - id: build-time
+    measure: build-ms
+    budget: 2000
+  - id: site-size
+    measure: site-bytes
+    budget: 25000
+```
+
+Over budget, `pnpm release:slo` teaches:
+
+```
+FAIL SLO "site-size" exceeded: the size of the whole site is 15.0 kB, over its budget of 9.8 kB by
+5.2 kB (54%). The largest files are tutors.json (5.0 kB), topic-01-basics/index.html (1.6 kB), ...
+Never raise a budget to make a release pass: a budget is a ratchet, as upstream's slo/floors.yaml
+in the release harness is.
+```
+
+---
+
+## The A3
+
+A Lean A3 is one sheet a team reads to see where it stands. The harness rebuilds one **every night**:
+"Daily A3 for the release reviewer" (`src/a3`), with a **readiness** page (is main ready to release, night
+by night) and a **scoreboard** (one append-only line per release, read for trends).
+
+Its sections: background, current condition, goal, root cause analysis, countermeasures, plan, follow-up.
+It judges nothing: "Every number names where it came from, and what the inputs cannot show is said to be
+not measured, never filled in."
+
+Run rules open a kaizen item: three declines running in a dimension, or two of three releases below 75.
+
+---
+
+## Rung 7's readiness A3
+
+`pnpm release:readiness` writes `out/readiness.md`:
+
+```
+# Release readiness: tutors-ladder 1.1.0
+**READY.** Nothing stands between this commit and a tag.
+
+## 1. Background: the value in this release      ← the changelog section
+## 2. Current condition                          ← each check: standard, now, source
+## 3. Goal
+## 4. Root cause analysis                        ← each gap; ask why until it is a process or a tool
+## 5. Countermeasures
+## 6. Plan: the standard work left (release/SOP.md)
+## 7. Follow-up
+```
+
+A smoke check that did not run reads "READY, with one check not run": not run is never passed.
+
+---
+
+## Lean, gently
+
+The five ideas upstream's `release/SOP.md` names, and where rung 7 keeps each:
+
+| Idea | Upstream | Rung 7 |
+| --- | --- | --- |
+| Jidoka, stop the line | the harness Gate | claims, SLO and smoke checks exit 1 |
+| Visual management | the RCS, the scoreboard | the readiness A3 |
+| Standard work | the twelve-step SOP | the eight-step `release/SOP.md` |
+| Gemba, go and look | the reviewer's glance, at most seven items | the Reviewer reads the A3 (step 7) |
+| Kaizen | 5 Whys in the harness's `kaizen/` register | the A3's root cause and countermeasures |
+
+"Human error" is never an answer; it is the prompt for the next why.
+
+---
+
+## Takeaways
+
+- A **claim** turns a sentence into a promise with evidence. The Closure Check makes evidence resolve.
+- Upstream's claims are **intended differences**; the harness fails on any difference nobody claimed.
+- An **SLO** is a number written down, checked each release, and moved only on purpose.
+- The **A3** shows where a release stands and why. It never decides; the checks do.
+
+Next: what can change under a release without a commit.

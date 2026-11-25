@@ -1,0 +1,21 @@
+# Service level objectives for a release of this workspace: budgets, each checked by pnpm release:slo.
+#
+#   measure:  one of MEASURES in scripts/lib/slo.ts (build-ms, site-bytes)
+#   budget:   the most a release may use, in the measure's unit (ms or bytes)
+#   why:      what the budget protects
+#
+# A budget is a ratchet. Lower it when the soak shows headroom; raise it only in its own pull request that
+# says what value the extra cost buys. Never raise one to make a release pass.
+#
+# Upstream's release/slo.yaml holds availability and latency targets per app over 28 days, and the release
+# harness judges each candidate against the stricter of it and its own floors (slo/floors.yaml there).
+version: 1
+objectives:
+  - id: build-time
+    measure: build-ms
+    budget: 2000
+    why: A contributor rebuilds the site many times an hour; a slow build is waste they pay every time.
+  - id: site-size
+    measure: site-bytes
+    budget: 25000
+    why: A learner on a slow connection downloads what we ship; size is the cost we pass on to them.

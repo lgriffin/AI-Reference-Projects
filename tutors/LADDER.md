@@ -45,7 +45,8 @@ receiving code they cannot yet understand. Climbing a rung means lifting the fen
 | Summit | tutors-mono-repo | All | The real thing | Everything above, plus Supabase, realtime and the release harness | the whole repository |
 
 Rungs 1 to 3 form one line: each starts from a copy of the rung below. Rungs 4 to 7 each start from a copy of
-rung 3, so they can be taken in any order after Layers; the Summit topic composes them in the real mono-repo.
+rung 3, so they can be taken in any order after Layers. The Summit's capstone assignment composes them into one
+variant, `variants/summit-composed`, before the learner moves to the real mono-repo.
 
 ## Course map (`course/`)
 
@@ -72,7 +73,7 @@ Each rung topic holds:
 
 ## Variant conventions
 
-- TypeScript on Node 22.18 or later, run with built-in type stripping (`node src/main.ts`), so only erasable
+- TypeScript on Node 22.18 or later (the upstream mono-repo itself needs Node 26.13 or later), run with built-in type stripping (`node src/main.ts`), so only erasable
   syntax: no `enum`, no `namespace`, no parameter properties, `import type` for types. Tests use `node --test`.
 - Rungs 1 and 2 have **no runtime dependencies** and need no install. Rung 3 introduces pnpm workspaces and
   TypeScript as a dev dependency for `tsc --noEmit`. Rungs 4 to 7 may add the dependencies their capability
@@ -92,7 +93,9 @@ Each rung topic holds:
 - `tutors/scripts/check-course.sh [folder]` validates a course with the upstream course rules and builds it
   with the upstream generator. Run it on `course/` and on the shared fixture. Zero errors is required;
   warnings are fixed unless explained here.
-- Each variant: `npm test` (rungs 1 and 2) or `pnpm test` (rung 3 and above) from its folder.
+- Each variant: `npm test` (rungs 1 and 2) or `pnpm install && pnpm test` (rung 3 and above) from its folder.
+- Assignment grading tests live in each variant's `tests/assignment/` and skip unless `LADDER_ASSIGNMENT=1`, so
+  the gate stays green until a learner takes the assignment on.
 
 ## Tags
 

@@ -1,0 +1,228 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Escape by default
+
+### The html template and SafeHtml
+
+Tutors Ladder, rung 2 (Lite), talk 3
+
+---
+
+## The problem
+
+Every page holds text the generator did not write: titles, summaries, step names, URLs, Markdown bodies.
+
+```
+# Arrays <and> objects        <- a title
+A "quick" look at 'quotes'     <- a summary
+```
+
+Put that text into HTML as it is, and the browser reads `<and>` as a tag and a `"` as the end of an
+attribute. With a little more effort, an author (or anyone who can edit a course) puts a script on every
+reader's page. This is cross-site scripting.
+
+The fix is old and simple: **escape** text before it becomes HTML. The hard part is never forgetting.
+
+---
+
+## Five characters
+
+```ts
+// variants/rung-2-lite/src/html.ts
+const ENTITIES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+/** Text as HTML: safe in element content and in quoted attribute values. */
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (char) => ENTITIES[char]!);
+}
+```
+
+| Character | Why |
+| --- | --- |
+| `<`, `>` | would start or end a tag |
+| `&` | would start an entity; escape it first so nothing is escaped twice |
+| `"`, `'` | would end a quoted attribute value |
+
+Safe in element content and in **quoted** attributes. Every attribute in rung 2 is quoted.
+
+---
+
+## Forgetting is the bug
+
+```ts
+const card = `<h3><a href="${dir}index.html">${lo.title}</a></h3>`;            // forgot
+const card = `<h3><a href="${dir}index.html">${escapeHtml(lo.title)}</a></h3>`; // remembered, this time
+```
+
+String concatenation makes the safe form the one you have to remember. Fifty templates later, one is
+forgotten, and no test notices until someone writes a title with a `<` in it.
+
+Make the safe form the default, and the unsafe form the one you have to ask for.
+
+---
+
+## The Auto-escaping Template
+
+```ts
+// variants/rung-2-lite/src/html.ts
+export class SafeHtml {
+  readonly value: string;
+  constructor(value: string) { this.value = value; }
+}
+
+type Value = string | number | SafeHtml | null | undefined | false | readonly Value[];
+
+function render(value: Value): string {
+  if (value instanceof SafeHtml) return value.value;          // already HTML: keep it
+  if (Array.isArray(value)) return value.map(render).join("");
+  if (value === null || value === undefined || value === false) return "";
+  return escapeHtml(String(value));                           // anything else: escape it
+}
+
+/** A tagged template: html`<h1>${title}</h1>` escapes `title` unless it is SafeHtml. */
+export function html(strings: TemplateStringsArray, ...values: Value[]): SafeHtml {
+  return new SafeHtml(strings.reduce((out, string, i) => out + render(values[i - 1]) + string));
+}
+```
+
+---
+
+## How a tagged template works
+
+```ts
+html`<h1>${title}</h1>`
+// calls html(["<h1>", "</h1>"], title)
+```
+
+The **literal** parts (`strings`) are written by the programmer, so they are trusted. The **values** are
+data, so each is escaped, unless it is already `SafeHtml`.
+
+```ts
+html`<h1>${"<b>x</b>"}</h1>`.value          // "<h1>&lt;b&gt;x&lt;/b&gt;</h1>"
+html`<p>${html`<b>${"&"}</b>`}</p>`.value   // "<p><b>&amp;</b></p>"   nested: kept, inner value escaped
+html`<ul>${["<a>", html`<li>b</li>`]}</ul>` // arrays: each item rendered by the same rule
+html`${null}${undefined}${false}${0}`       // "0": absent values vanish, so `cond && html`...`` works
+```
+
+Returning `SafeHtml`, not `string`, is what lets templates nest without escaping twice.
+
+---
+
+## The type does the remembering
+
+```ts
+function card(lo: Lo, dir: string): SafeHtml {
+  ...
+  return html`<li class="card">${kind}<h3><a href="${dir}index.html">${lo.title}</a></h3><p>${lo.summary}</p></li>`;
+}
+```
+
+`lo.title` is a `string`, so it is escaped. `kind` is `SafeHtml`, so it is kept. The programmer writes the
+template the obvious way and gets the safe result.
+
+`renderMarkdown` returns `SafeHtml`, because it escapes its input before it adds tags (talk 2). So a page
+body can be passed straight into `page(...)`.
+
+---
+
+## The one way around it
+
+`new SafeHtml(text)` trusts `text` completely. Used on course text, it undoes everything.
+
+So rung 2 has a rule, kept as a test (L3) with a teaching message (L4):
+
+```ts
+// variants/rung-2-lite/tests/html.test.ts
+test("only html.ts and markdown.ts make SafeHtml, because only they escape what they wrap", () => {
+  const makers = readdirSync(src).filter((file) => /new SafeHtml\(/.test(readFileSync(join(src, file), "utf8")));
+  assert.deepEqual(makers.sort(), ["html.ts", "markdown.ts"],
+    "Trusted HTML rule: `new SafeHtml(...)` skips escaping, so it may appear only in src/html.ts and src/markdown.ts. " +
+    "Build the HTML with the html`` template instead; it escapes every value for you.");
+});
+```
+
+And `AGENTS.md` puts "adding a file that makes `SafeHtml`" behind the Human Boundary.
+
+---
+
+## Escaping is tested on whole pages
+
+```ts
+// variants/rung-2-lite/tests/site-builder.test.ts
+test("course text never reaches a page unescaped", () => {
+  const evil = "<script>alert(1)</script>";
+  const course: Course = {
+    type: "course", id: "c", title: evil, summary: evil, contentMd: `# ${evil}\n\n${evil}`, route: "/",
+    los: [{ type: "topic", ..., los: [
+      { type: "note", ..., title: evil, summary: evil, contentMd: evil },
+      { type: "web", ..., route: `"><script>alert(1)</script>` },
+      { type: "archive", ..., archiveFile: evil },
+      { type: "lab", ..., los: [{ type: "step", ..., title: evil, contentMd: evil }] },
+    ] }],
+  };
+  for (const page of buildSite(course)) assert.doesNotMatch(page.html, /<script/, `${page.path} contains an unescaped <script>`);
+});
+```
+
+Every field of every kind, on every page. `AGENTS.md`: every new piece of course text gets a case here.
+
+---
+
+## The same note, two generators
+
+A note in a copy of the fixture ends with a script tag and a `<b>bold</b>` tag. Built by each:
+
+| | Upstream `tutors website` | Rung 2 |
+| --- | --- | --- |
+| the script tag | in the page, as a script | `&lt;script&gt;...`, shown as text |
+| the bold tag | bold | `&lt;b&gt;bold&lt;/b&gt;`, shown as text |
+
+Why upstream differs: markdown-it runs with `html: true`, and the Vento engine is set up with
+`autoescape: false` (`packages/jsr/gen/src/templates/template-engine.ts`). Raw HTML is a feature for
+authors; the reader (rung 4) sanitises what it shows (rung 6).
+
+You will build both in the lab and look.
+
+---
+
+## What escaping does not cover
+
+Escaping stops new tags and broken attributes. It does not judge a **URL**:
+
+```ts
+renderInline("[click](javascript:document.body.remove%28%29)")
+// '<a href="javascript:document.body.remove%28%29">click</a>'   escaped, valid, and still runs when clicked
+```
+
+That needs an allow-list of URL schemes, which is sanitising, not escaping. `RUNG.md` names the gap, and
+rung 6 (Guarded) closes it. A fence that refuses a sanitiser library on this rung names that rung too.
+
+---
+
+## The fence for a static site
+
+```ts
+// variants/rung-2-lite/tests/rung-fence.test.ts
+{ pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript",
+  why: "Rung 2 writes static pages. Interactive pages arrive with Svelte in rung 4 (Reader)." },
+```
+
+Rung 1's fence refused HTML; rung 2's allows it and refuses script instead. That one changed rule is the
+Rung Delta of the fence. No dependency is still the rule: "a full Markdown library arrives in rung 4
+(Reader), TypeScript as a dev dependency in rung 3 (Layers), and a sanitiser in rung 6 (Guarded)".
+
+---
+
+## Summary
+
+- escape five characters, always, before text becomes HTML
+- the `html` tagged template escapes every value unless it is `SafeHtml`
+- only `html.ts` and `markdown.ts` may make `SafeHtml`, and a test says so
+- escaping is tested on every page, for every field of every kind
+- URLs and raw HTML for authors are sanitising problems: rung 6
+
+Read the note "Assertion levels in rung 2", then do the lab.

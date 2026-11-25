@@ -1,0 +1,219 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# A Markdown subset
+
+### A renderer you can read whole
+
+Tutors Ladder, rung 2 (Lite), talk 2
+
+---
+
+## Why write one at all?
+
+Upstream renders Markdown with **markdown-it** and ten plugins (`packages/jsr/model/src/utils/markdown-utils.ts`):
+anchors, a table of contents, emoji, sub, sup, mark, footnotes, definition lists, a video player, a podcast
+player, KaTeX for math (`loadMath`), and a Shiki highlighter that a shell hands in (`initHighlighter`).
+
+Rung 2's fence forbids any dependency. A Markdown library arrives in rung 4 (Reader). So rung 2 has
+`src/markdown.ts`: about seventy lines that handle what Tutors courses mostly use, and show the rest as text.
+
+You will understand every line. That is the point of the rung.
+
+---
+
+## What it renders
+
+| Markdown | HTML |
+| --- | --- |
+| `# Title` to `###### Title` | `<h1>` to `<h6>` |
+| lines separated by a blank line | `<p>`, lines joined with a space |
+| `- a`, `* a`, `+ a` | `<ul><li>` |
+| `1. a`, `1) a` | `<ol><li>` |
+| a code fence with three backticks or tildes, with a language | `<pre><code class="language-ts">` |
+| `**bold**`, `*em*`, `_em_` | `<strong>`, `<em>` |
+| a code span in backticks | `<code>` |
+| `[text](url)`, `![alt](src)` | `<a href>`, `<img>` |
+
+Everything else is a paragraph of escaped text. Nothing is ever dropped.
+
+---
+
+## Blocks: one loop, one line at a time
+
+```ts
+// variants/rung-2-lite/src/markdown.ts
+export function renderMarkdown(markdown: string): SafeHtml {
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const out: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i]!;
+    if (line.trim() === "") i++;
+    else if (fence)                            { /* collect to the closing fence, escape it all */ }
+    else if (heading)                          { /* one line */ }
+    else if (BULLET.test(line) || NUMBERED.test(line)) { /* collect matching lines */ }
+    else                                       { /* a paragraph, until a blank line or a new block */ }
+  }
+  return new SafeHtml(out.join("\n"));
+}
+```
+
+Each branch starts at line `i`, consumes the lines it owns, and leaves `i` at the next unclaimed line.
+Adding a block (a table, a quote) means adding one branch, before the paragraph.
+
+---
+
+## Code fences come first
+
+```ts
+const FENCE = /^(```|~~~)\s*([\w+-]*)/;
+
+} else if (fence) {
+  const code: string[] = [];
+  for (i++; i < lines.length && !lines[i]!.startsWith(fence[1]!); i++) code.push(lines[i]!);
+  i++; // the closing fence
+  const language = fence[2] ? ` class="language-${escapeHtml(fence[2])}"` : "";
+  out.push(`<pre><code${language}>${escapeHtml(code.join("\n"))}</code></pre>`);
+}
+```
+
+Inside a fence nothing is Markdown: `**not bold**` stays as written, and every character is escaped. The
+closing fence must use the same marker it opened with.
+
+---
+
+## Paragraphs end where a block begins
+
+```ts
+const startsBlock = (line: string) => FENCE.test(line) || HEADING.test(line) || BULLET.test(line) || NUMBERED.test(line);
+
+const paragraph: string[] = [];
+for (; i < lines.length && lines[i]!.trim() !== "" && (paragraph.length === 0 || !startsBlock(lines[i]!)); i++)
+  paragraph.push(lines[i]!.trim());
+out.push(`<p>${renderInline(paragraph.join(" "))}</p>`);
+```
+
+A paragraph takes lines until a blank line or a line that starts another block. So a list straight after a
+sentence is still a list. CommonMark has the same idea, with many more cases.
+
+---
+
+## Inline: tokens first, emphasis second
+
+```ts
+/** Code spans, images and links: rendered whole, so emphasis never reaches inside a URL. */
+const TOKEN = /(`[^`]*`|!\[[^\]]*\]\([^)\s]*\)|\[[^\]]+\]\([^)\s]*\))/;
+
+export function renderInline(text: string): string {
+  return text.split(TOKEN).map((part, i) => {
+    if (i % 2 === 0) return emphasis(escapeHtml(part));          // plain text
+    if (part.startsWith("`")) return `<code>${escapeHtml(part.slice(1, -1))}</code>`;
+    const [, bang, label, url] = part.match(/^(!?)\[([^\]]*)\]\(([^)\s]*)\)$/)!;
+    return bang ? `<img src="${escapeHtml(url!)}" alt="${escapeHtml(label!)}">`
+                : `<a href="${escapeHtml(url!)}">${emphasis(escapeHtml(label!))}</a>`;
+  }).join("");
+}
+```
+
+`split` with a capturing group keeps the tokens at the odd indexes. Plain text is at the even ones.
+
+---
+
+## Why the order matters
+
+```ts
+assert.equal(renderInline("[x](https://a.dev/a_b_c)"), '<a href="https://a.dev/a_b_c">x</a>',
+  "emphasis never reaches inside a URL");
+assert.equal(renderInline("snake_case_name"), "snake_case_name");
+assert.equal(renderInline("`a *b* c`"), "<code>a *b* c</code>");
+```
+
+If emphasis ran first, `a_b_c` in a URL would become `a<em>b</em>c`, and a code span would lose its
+asterisks. Cutting the tokens out first means each rule sees only the text it owns.
+
+And `_em_` needs a non-word character on each side, so `snake_case_name` is left alone.
+
+---
+
+## Escape first, then add tags
+
+```ts
+function emphasis(escaped: string): string {
+  return escaped
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/(^|\W)_([^_]+)_(?=\W|$)/g, "$1<em>$2</em>");
+}
+```
+
+`emphasis` takes **escaped** text. Every `<`, `>`, `&` and quote of the input is already an entity, so the
+only tags in the output are the ones the renderer adds. That is why `renderMarkdown` may return `SafeHtml`.
+The next talk is about that promise.
+
+---
+
+## The tests are the specification
+
+```ts
+// variants/rung-2-lite/tests/markdown.test.ts
+test("headings, paragraphs and lists", () => {
+  assert.equal(md("# Title\n\nOne\ntwo\n\n## Next"), "<h1>Title</h1>\n<p>One two</p>\n<h2>Next</h2>");
+  assert.equal(md("- a\n- b\n\n1. c\n2. d"), "<ul><li>a</li><li>b</li></ul>\n<ol><li>c</li><li>d</li></ol>");
+});
+
+test("code fences keep their text and name their language", () => {
+  assert.equal(md("```ts\nconst a = 1;\n**not bold**\n```"),
+    '<pre><code class="language-ts">const a = 1;\n**not bold**</code></pre>');
+});
+```
+
+One input, one exact output. When you add tables in the assignment, the grading test is written the same way,
+with markdown-it's output as the oracle.
+
+---
+
+## What it leaves out, and what that costs
+
+| Left out | What an author sees |
+| --- | --- |
+| tables | the pipes, as a paragraph (the assignment fixes this) |
+| block quotes, horizontal rules | the `>` or `***`, as text |
+| nested lists | a flat list |
+| raw HTML in Markdown | the tags, escaped, as text |
+| setext headings, reference links, footnotes | the source, as text |
+| math, Mermaid, highlighting | the source, in a paragraph or a code block |
+
+Every gap shows the author's source, escaped. A gap is visible, never dangerous.
+
+---
+
+## Upstream allows raw HTML
+
+```ts
+// packages/jsr/model/src/utils/markdown-utils.ts (tutors-mono-repo 2b96b69)
+export const markdownIt: MarkdownItInstance = new MarkdownIt({
+  html: true, // Enable HTML tags in source
+  ...
+});
+```
+
+With `html: true`, a tag in a note reaches the page as a tag. Authors can use `<details>` or a coloured
+`<span>`. They can also, by accident or on purpose, put a script on the page.
+
+Rung 2 chose the other side of that trade. The talk on escaping shows the difference on the same note, and
+rung 6 (Guarded) shows how upstream's reader sanitises.
+
+---
+
+## Summary
+
+- a block loop and an inline tokenizer, about seventy lines, no dependency
+- tokens before emphasis, escaping before tags
+- anything unknown is shown as escaped text
+- the tests are exact input and output pairs
+
+Next: escaping by default, everywhere.

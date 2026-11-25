@@ -1,0 +1,224 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Identity, RBAC and the supply chain
+
+### Who is reading, what they may do, and what we install
+
+Tutors Ladder, rung 6 (Guarded), talk 3
+
+---
+
+## Authentication is not authorisation
+
+- **Authentication**: who is this? A verified identity, from a provider such as GitHub
+- **Authorisation**: what may they do? A policy over that identity and the thing they want
+
+Upstream keeps them in different packages, and so does rung 6:
+
+| Concern | Upstream | Rung 6 |
+| --- | --- | --- |
+| Verified identity | `packages/jsr/identity` | `packages/identity` |
+| Provider adapter | `packages/svelte/identity-sveltekit` (Better Auth) | none: a static site has no sign-in |
+| Roles and permissions | `packages/svelte/utils/rbac` | `packages/rbac` |
+
+---
+
+## Identity upstream: a port that imports nothing
+
+`packages/jsr/identity/src/index.ts`, whole:
+
+```ts
+/** Verified identity only; course roles, sharing and sentiment belong to their own services. */
+export interface Actor {
+  /** Provider namespace and its stable account id, for example github:12345. */
+  readonly subject: string;
+  readonly login: string;
+  readonly name: string | null;
+  readonly email: string | null;
+  readonly image: string | null;
+}
+/** Created for one request; resolves only the session verified by the active adapter. */
+export interface SessionPort { getActor(): Promise<Actor | null>; }
+export interface IdentityClient { signIn(returnTo: string): Promise<void>; signOut(returnTo: string): Promise<void>; }
+```
+
+---
+
+## Kept that way by a rule
+
+`.dependency-cruiser.cjs` upstream:
+
+```js
+{
+  name: "identity-contracts-self-contained",
+  comment: "Identity contracts import no framework, database, provider or other package.",
+  severity: "error",
+  from: { path: "^packages/jsr/identity/" },
+  to: { pathNot: "^packages/jsr/identity/" }
+},
+```
+
+and `identity-provider-only-in-adapter`: only `packages/svelte/identity-sveltekit/` may import Better Auth.
+Rung 6's architecture test has the same Identity rule, with a teaching message.
+
+---
+
+## Identity in rung 6
+
+`packages/identity/src/index.ts` keeps `Actor` and `SessionPort`, and adds two adapters:
+
+- `AnonymousSession`: nobody is signed in. The CLI uses it, because whoever holds the link to a static page
+  reads it signed out
+- `FakeSession`: for tests. It refuses an actor no real adapter could verify (a subject that is not
+  `provider:id`, an empty login) and freezes the one it holds
+
+Both run `packages/identity/tests/session-port.contract.test.ts` (Honest Double), and an architecture rule
+checks that every `SessionPort` adapter is listed there.
+
+---
+
+## RBAC upstream: roles, permissions, auth levels
+
+From `guides/RBAC.md` and `packages/svelte/utils/rbac/src/permissions.ts`:
+
+```ts
+const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
+  student: [],
+  educator: ["broadcast", "quiz:manage", "analytics:view", "content:lock"]
+};
+```
+
+- Educators are the GitHub logins in a course's `enrollment.yaml`; there is no admin role
+- `auth: 1` in `properties.yaml`: readers must sign in; a `whitelist` limits who
+- `turnsAway(course)` in `packages/svelte/connect/src/services/connect.svelte.ts` decides who is sent home
+
+---
+
+## RBAC in rung 6: a pure policy
+
+`packages/rbac/src/index.ts`:
+
+```ts
+export function canView(actor: Actor | null, access: CourseAccess): Decision {
+  const role = roleOf(actor, access);
+  if (isPublic(access)) return { allowed: true, role };
+  if (actor === null) return { allowed: false, role, reason: "sign-in-required" };
+  if (role === "educator" || access.whitelist.length === 0 || access.whitelist.includes(actor.login))
+    return { allowed: true, role };
+  return { allowed: false, role, reason: "not-enrolled" };
+}
+```
+
+The Purity rule: no async, no clock, no top-level state, no classes, `import type` only.
+So `packages/rbac/tests/policy.test.ts` can be a table of every role against every kind of course.
+
+---
+
+## Failing closed
+
+```ts
+// accessOf: anything that is not a whole number 0 or above reads as 1
+const level = typeof auth === "number" && Number.isInteger(auth) && auth >= 0 ? auth : 1;
+```
+
+`auth: yes`, `auth: "1"`, `auth: true` and `auth: -1` all make a course **private**. A typo should cost a
+sign-in, not leak a course.
+
+The CLI asks the policy about an anonymous reader. Refused, it writes nothing unless you pass `--private`,
+and then every page carries `noindex`, `<meta name="tutors-access" content="private">` and a visible notice.
+
+---
+
+## The data layer upstream: Row-Level Security
+
+`supabase/migrations/20260924_enable_rls_public_tables.sql`:
+
+```sql
+-- Supabase advisor rls_disabled_in_public (critical, 19 Sep 2026): 14 tables in
+-- tutors-prod had RLS off, so the anon key every browser holds could read,
+-- change, delete and truncate them. ...
+-- ponytail: USING (true) still lets anon touch any student's rows; per-user
+-- policies need server-side writes or a Supabase JWT minted from the session.
+```
+
+And `20261017000100_restrict_app_errors_reads.sql` drops anon SELECT on `app_errors`. RBAC in the app is
+only as strong as the policy in the database. Content locks moved to server-side writes for this reason
+(guides/RBAC.md, Rules 0630-0632).
+
+---
+
+## Supply chain in rung 6
+
+`scripts/supply-chain.ts`, offline in the Single Gate, online on demand:
+
+| Rule | Finding |
+| --- | --- |
+| a lockfile exists | `lockfile-missing` |
+| every dependency is `workspace:*` or a registry version range | `non-registry-source` |
+| every lockfile package has an `integrity: sha512-` and no tarball, repo or directory | `non-registry-source` |
+| every allowance has a reason and an unexpired date | `malformed-allowance`, `expired-allowance` |
+| `pnpm audit:online`: every advisory is allowed | `advisory` |
+
+Mirrors `scripts/checks/dependency-audit.ts` and `tests/security/audit-allowlist.json` upstream.
+
+---
+
+## Supply chain upstream: four tools
+
+| Tool | File | What it checks |
+| --- | --- | --- |
+| Dependency audit | `ci.yml` job `dependency-audit` | on a PR only new advisories fail; on main every advisory needs an unexpired allowance |
+| CodeQL | `.github/workflows/codeql.yml` | static analysis of JavaScript and TypeScript on every push and PR to main |
+| zizmor | `.github/workflows/zizmor.yml` | the workflows themselves: permissions, injection, unpinned actions |
+| OpenSSF Scorecard | `.github/workflows/scorecard.yml` | ~18 repository practices, weekly; baseline in `docs/security/scorecard-baseline.md` |
+
+Every third-party action is pinned by commit SHA. These three security workflows start from `permissions: {}`
+and grant each job only what it needs (`security-events: write`, `contents: read`).
+
+---
+
+## OpenVEX: saying "not affected" in a form a scanner reads
+
+`release/README.md` upstream:
+
+```json
+{
+  "vulnerability": { "name": "CVE-2026-1234" },
+  "products": [{ "@id": "pkg:npm/tar@7.4.3" }],
+  "status": "not_affected",
+  "justification": "vulnerable_code_not_in_execute_path",
+  "impact_statement": "tar is only used by the build; the runtime never extracts an archive"
+}
+```
+
+`release/openvex.json` starts with no statements. Add one only when evidence shows the code cannot be
+reached; `pnpm check:openvex` checks the file. An allowance with an expiry and a VEX statement with a
+justification are the same idea: **an exception must say why, and must be checkable**.
+
+---
+
+## The Human Boundary in security
+
+Rung 6's `AGENTS.md`, "Ask a human first", includes:
+
+- adding an entry to `security/audit-allowlist.json`
+- changing `CSP`, `safeUrl`'s schemes, `containedPath` or the RBAC policy's answers
+- deleting or weakening a security test, or a row of the XSS corpus
+
+An agent that meets a red security test reports it. It does not allow-list its way to green.
+
+---
+
+## Summary
+
+- Identity is a port that imports nothing; providers live in adapters
+- Authorisation is a pure policy you can test as a table, and it fails closed
+- The database needs its own policy (RLS); the app's checks are not enough
+- The supply chain is checked offline every time and online on demand; exceptions expire
+
+Next: the note on assertion levels, then attack the rung 3 site.
+
