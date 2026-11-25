@@ -1,7 +1,7 @@
 /** Helpers for comparing a Course with upstream's tutors.json. */
 
 /** The fields this rung builds. Upstream has more (img, video, frontMatter, ...); RUNG.md lists them. */
-export const FIELDS = ["type", "id", "title", "summary", "contentMd", "route", "archiveFile", "shortTitle"];
+export const FIELDS = ["type", "id", "title", "summary", "contentMd", "route", "archiveFile", "shortTitle", "properties"];
 
 type Json = { [key: string]: unknown };
 

@@ -1,0 +1,264 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# From static pages to an app
+
+### Routing, load functions and the `tutors.json` contract
+
+Tutors Ladder, week 8. Rung 5 of 7: Reader
+
+---
+
+## Where we are on the ladder
+
+| Rung | Course folder to... | Who renders |
+| --- | --- | --- |
+| 2 Lite | `tutors.json` and one HTML file per page | Node, at build time |
+| 3 Layers, 4 Proven | the same, layered, then specified and tested | Node, at build time |
+| **5 Reader** | `tutors.json` only | **the browser, when you click** |
+
+For the sample course the cli writes eight pages. The reader ships one page, `200.html`, and a script that
+draws whichever page the URL asks for.
+
+Rung 5 is a copy of rung 4. Everything rung 4 proved is still proved: 183 tests there, 409 here.
+
+---
+
+## Who is the customer now?
+
+The **student**, reading a course in a browser. What the student values:
+
+- the right page from any link, typed, bookmarked or shared;
+- no waiting between pages;
+- a clear answer when a link names nothing;
+- always knowing where they are in the course.
+
+Each becomes a requirement this week. Lean calls this **pull**: build what a customer's need asks for, when
+it asks, and nothing ahead of it.
+
+---
+
+## Two halves, one file between them
+
+```
+course folder ──► apps/cli (gen) ──► tutors.json ──► apps/reader (browser)
+                 build time            contract         run time
+```
+
+- `pnpm course` runs `node apps/cli/src/main.ts --json-only ...` (R-013) and writes
+  `apps/reader/static/courses/ladder-sample-course/tutors.json`.
+- The reader `fetch`es that file. It never sees `@ladder/gen` or `node:`.
+- The Layering rule says so: `@ladder/reader` may import `@ladder/model` and `@ladder/lite` only.
+
+---
+
+## Why a contract and not a function call
+
+Upstream works the same way (`docs/COURSE-PAGE-WALKTHROUGH.md`):
+
+> This file is the entire course ... The reader never reads a Markdown file from disk. `tutors.json` is
+> produced ahead of time by the generator in `packages/jsr/tutors`.
+
+- A lecturer publishes `tutors.json` to any host; one reader shows every course.
+- Generator and reader change on their own schedules, as long as the file keeps its shape.
+- So the shape is checked from both sides: `tests/conformance/tutors-json.test.ts` compares gen with
+  upstream's file; `tests/unit/reader/lo-tree.test.ts` and every reader scenario read **upstream's** file.
+
+---
+
+## Specified first
+
+Rung 4 made tests the specification. So the reader arrived as sentences, before code:
+
+| Id | The reader shall... |
+| --- | --- |
+| R-014 | fetch a course's `tutors.json` at most once and reuse it |
+| R-015, R-016 | treat an odd course id, or an answer that is not a course, as not found |
+| R-017 | give the course, each topic, talk, note and lab a page |
+| R-018, R-019 | open a lab at its first step; link to the steps either side |
+| R-020 | answer 404 with a message that names what is missing |
+| R-021 | show breadcrumbs from the course to the page |
+
+Each is a `Rule:` in `tests/bdd/features/reader/reader.feature`. The closure audit holds the two lists together.
+
+---
+
+## SvelteKit maps URLs to folders
+
+```
+apps/reader/src/routes/
+  +layout.ts                              ssr = false, for every page
+  +layout.svelte                          imports app.css
+  +page.svelte                            /
+  +error.svelte                           the 404 page
+  (course-reader)/
+    +layout.svelte                        the shell around course pages
+    found.ts                              a 404 message becomes error(404, ...)
+    course/[courseid]/+page.ts            /course/ladder-sample-course
+    topic/[courseid]/[...loid]/+page.ts   /topic/ladder-sample-course/topic-01-basics
+    lab/[courseid]/[...loid]/+page.ts     /lab/.../book-1-first-lab/Setup
+```
+
+- `[courseid]` is one segment; `[...loid]` is the rest of the path.
+- `(course-reader)` groups routes under a layout without adding to the URL.
+- Upstream: `apps/reader/src/routes/(course-reader)/`, the same names.
+
+---
+
+## A load function
+
+`apps/reader/src/routes/(course-reader)/topic/[courseid]/[...loid]/+page.ts`
+
+```ts
+export const load: PageLoad = async ({ params, url, fetch }) => {
+  const { tree, found: topic } = found(await requestLo("topic", params.courseid, url.pathname, fetch));
+  currentCourse.value = tree;
+  currentLo.value = topic;
+  return { topic };
+};
+```
+
+- Runs before the page renders, on every navigation to it.
+- `params.courseid` comes from the folder name `[courseid]`.
+- `fetch` is SvelteKit's; the course service takes it as an argument, so a scenario passes its own.
+- What it returns arrives in `+page.svelte` as `data`, typed by `./$types`.
+
+---
+
+## A route decides nothing
+
+```ts
+// lib/course/course-service.ts
+export type PageRequest<T> = { tree: CourseTree; found: T } | { notFound: string };
+
+// routes/(course-reader)/found.ts
+export function found<T>(request: PageRequest<T>): { tree: CourseTree; found: T } {
+  if ("notFound" in request) error(404, request.notFound);
+  return request;
+}
+```
+
+The course service answers with the page or with the 404 message (R-020). Only `found.ts` speaks SvelteKit.
+
+Why: a scenario and Stryker can reach plain TypeScript without a browser. A rule left inside a route is a
+rule nobody proves.
+
+---
+
+## The same load, upstream
+
+`apps/reader/src/routes/(course-reader)/topic/[courseid]/[...loid]/+page.ts` at `2b96b69`:
+
+```ts
+export const ssr = false;
+
+export const load: PageLoad = async ({ params, url, fetch }) => {
+  const topicId = url.pathname;
+  const topic = (await courseService.readTopic(params.courseid, topicId, fetch)) as Topic;
+  return { topic: topic };
+};
+```
+
+Same shape: a route folder, a `courseService` method, an index lookup, one component. One difference worth
+noticing: upstream's `readTopic` returns `topic ?? course`, so an unknown topic shows the course page. Rung 5
+answers 404 and names the topic (R-020).
+
+---
+
+## One course service, one fetch
+
+`apps/reader/src/lib/course/course-service.ts`
+
+```ts
+const courses = new Map<string, CourseTree>();
+
+export async function readCourse(courseId: string, fetch: Fetch): Promise<CourseTree | undefined> {
+  const cached = courses.get(courseId);
+  if (cached) return cached;                                   // R-014
+  const url = courseUrl(courseId);                             // R-015: /^[\w-]+$/ or nothing
+  const response = url ? await fetch(url) : undefined;
+  // A static host answers a missing file with its fallback page, so "ok" alone does not mean a course.
+  const json = response?.ok ? await response.json().catch(() => undefined) : undefined;
+  if (!isCourse(json)) return undefined;                       // R-016
+  ...
+}
+```
+
+The Loader rule (`tests/architecture/reader-layers.test.ts`) fails if any other reader file fetches.
+
+---
+
+## Decorating the tree
+
+`tutors.json` routes hold a placeholder: `/topic/{{COURSEURL}}/topic-01-basics`.
+
+`decorateCourseTree` in `src/lib/course/lo-tree.ts` (upstream: `decorateCourseTree` in
+`packages/svelte/course/src/course/services/lo-tree.ts`, `injectCourseUrl` in
+`packages/jsr/model/src/utils/lo-utils.ts`):
+
+- works on a copy, so the fetched JSON is left as it came;
+- replaces `{{COURSEURL}}` with the course id (R-017), and moves the course to `/course/<id>`;
+- builds `loIndex`, route to page, in reading order;
+- records each object's parent, for breadcrumbs (R-021).
+
+Then a page is one lookup: `findLo(tree, url.pathname)`.
+
+---
+
+## Static, with one fallback page
+
+`apps/reader/vite.config.ts`
+
+```ts
+sveltekit({
+  adapter: adapter({ pages: "build", assets: "build", fallback: "200.html" }),
+}),
+```
+
+`src/routes/+layout.ts`: `export const ssr = false;`
+
+- No page is rendered on a server, so the build is a folder of files.
+- A host answers every unknown path with `200.html`; the router draws the page in the browser.
+- That is why R-016 exists: ask such a host for a missing `tutors.json` and it answers 200, with HTML.
+- Upstream: `packages/svelte/app-config/src/svelte.js`, `staticAdapter()` with `STATIC_FALLBACK = '200.html'`.
+
+---
+
+## SvelteKit 3: two changes you will meet
+
+- **Config lives in Vite.** There is no `svelte.config.js`; options go to `sveltekit({...})` in
+  `vite.config.ts`. Upstream: `packages/svelte/app-config/src/vite.js`.
+- **`#lib`, not `$lib`.** The reader declares `"imports": { "#lib/*": "./src/lib/*" }` in its
+  `package.json`, as upstream's `apps/reader/package.json` does.
+
+Both are why examples written for SvelteKit 2 may not compile here. Your agent may have learned from those
+examples: `AGENTS.md` says so, and `svelte-check` in the gate catches it.
+
+---
+
+## Which Assertion Ladder rungs guard this week
+
+| Rule | Level | Where |
+| --- | --- | --- |
+| every reader requirement is proved | L3/L4 | the closure audit, `pnpm test:ears:audit` |
+| one place fetches | L4 | Loader rule |
+| `lib/course` is plain TypeScript, without SvelteKit | L4 | Plain logic and Framework rules |
+| the reader never imports `gen` or `node:` | L4 | Layering and Browser rules |
+| no server code, no storage | L4 | the Rung Fence |
+| a route's `data` matches its `load` | L5 | `./$types`, checked by `svelte-check` |
+| a route decides nothing | L2, L1 | `AGENTS.md`; five routes as worked examples |
+
+---
+
+## What to take away
+
+- The reader is an app; the generator is a tool; `tutors.json` is the contract between them.
+- A URL is a folder; a page is a `load` and a component; a route decides nothing.
+- One file fetches; every page is an index lookup in a decorated tree.
+- The build is static, with one fallback page, like upstream's static reader.
+- The reader was specified first, and so is everything you add: pull, not push.
+
+Next: the upstream reader's routes. Then the lab: specify a route, follow a URL, build the route.

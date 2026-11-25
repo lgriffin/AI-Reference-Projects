@@ -1,0 +1,113 @@
+# What a release of this workspace promises, and the tests that are the evidence for each promise.
+#
+#   pnpm release:claims        # the Closure Check: every claim names evidence that exists and runs (R-040)
+#
+# A claim:
+#   id:            kebab-case, unique
+#   promise:       one sentence, in words a learner, a lecturer or a maintainer would use
+#   requirements:  optional: the ids in REQUIREMENTS.md the promise rests on
+#   evidence:      one or more test ids, "<file>#<name>", the file relative to this folder:
+#                  a *.test.ts or *.e2e.ts file and the exact name in test("..."),
+#                  or a *.feature file and the exact title of a Scenario
+#
+# The Single Gate (pnpm test) runs every *.test.ts and every scenario; pnpm test:e2e runs every *.e2e.ts.
+# The SOP and CI run both, so a clean check plus a green gate and browser tier means every promise is
+# checked. A promise you cannot test is not a claim; say it in the changelog instead.
+#
+# Upstream's release/claims.yaml is a different list with the same discipline: the differences from
+# production a release intends, each citing its Rule or CHANGELOG entry (release/README.md there).
+claims:
+  - id: generator-conforms
+    promise: The generator writes the same course tree and fields as upstream's tutors build for the shared fixture.
+    requirements: [R-007]
+    evidence:
+      - "tests/conformance/tutors-json.test.ts#R-007: the course tree has the same shape, ids, types and titles as upstream"
+      - "tests/conformance/tutors-json.test.ts#R-007: every field this rung builds matches upstream, learning object by learning object"
+
+  - id: course-text-escaped
+    promise: Course text never reaches a page unescaped.
+    requirements: [R-008]
+    evidence:
+      - "tests/unit/lite/site-builder.test.ts#course text never reaches a page unescaped"
+
+  - id: no-inline-script
+    promise: No page runs inline script. Every static page carries a policy that allows no script at all, and the reader runs only its own files.
+    requirements: [R-023, R-034]
+    evidence:
+      - "tests/unit/lite/csp.test.ts#R-023: every page carries the policy as its first meta after the charset, and no script"
+      - "tests/bdd/features/site/safe-content.feature#The policy names nothing that could run"
+      - "tests/e2e/guarded.e2e.ts#the built page carries the policy, and the policy stops a script the page did not ship (R-034)"
+
+  - id: hostile-content-neutralised
+    promise: A link, an image or a web link that a course aims at script is shown as text, in the site and in the reader.
+    requirements: [R-022, R-033]
+    evidence:
+      - "tests/unit/lite/xss-corpus.test.ts#every corpus entry, in every field of every kind of learning object, leaves every page safe"
+      - "tests/e2e/guarded.e2e.ts#the hostile course runs no script: not from a link, an image, raw HTML or a web link (R-022, R-033, R-034)"
+
+  - id: private-needs-flag
+    promise: A private course is never built without --private, and every page of one built on purpose says so.
+    requirements: [R-028, R-029]
+    evidence:
+      - "tests/unit/cli/guarded-cli.test.ts#R-028, R-029: a private course is refused without --private, and built with every page marked when it is given"
+      - "tests/bdd/features/command/guarded-command.feature#A course whose properties.yaml says auth: 1"
+
+  - id: paths-contained
+    promise: The generator reads nothing outside the course folder it was given.
+    requirements: [R-024, R-027]
+    evidence:
+      - "tests/contract/file-system-port.contract.test.ts#R-024: refuses a path that climbs out or is absolute, for every method"
+      - "tests/unit/cli/guarded-cli.test.ts#R-027: a course.md that is a link to a file outside the course is refused, and nothing is written"
+
+  - id: reader-smoke
+    promise: In a real browser a learner can click from the reader's home page to a lab step.
+    requirements: [R-018, R-019, R-021]
+    evidence:
+      - "tests/e2e/smoke.e2e.ts#a learner clicks from the home page to a lab step (R-018, R-019, R-021)"
+
+  - id: supply-chain-pinned
+    promise: Every dependency comes from the registry, pinned in the lockfile with an integrity hash.
+    requirements: [R-035, R-036]
+    evidence:
+      - "tests/unit/scripts/supply-chain.test.ts#this workspace passes every offline supply-chain rule"
+
+  - id: build-identity
+    promise: The command prints its version and commit, and a site answers them in version.json and nowhere else.
+    requirements: [R-037, R-038]
+    evidence:
+      - "tests/unit/cli/release.test.ts#R-037: --version prints the release version and the git commit, and writes nothing"
+      - "tests/unit/cli/release.test.ts#R-038: the site writes version.json with the build identity, like upstream's GET /version"
+      - "tests/unit/cli/release.test.ts#R-038: the build identity appears in version.json and nowhere else"
+
+  - id: reproducible-site
+    promise: Two builds of the same course write the same bytes, apart from version.json.
+    requirements: [R-038]
+    evidence:
+      - "tests/unit/cli/release.test.ts#two builds of the same source write the same bytes, apart from version.json"
+
+  - id: version-and-changelog
+    promise: The release version is SemVer, shared by the root and every app, and CHANGELOG.md has its section.
+    requirements: [R-039]
+    evidence:
+      - "tests/release/release-files.test.ts#one SemVer version for the root and every app"
+      - "tests/release/release-files.test.ts#CHANGELOG.md has a section for the version being released"
+
+  - id: container-hardened
+    promise: The image is built from bases pinned by digest and runs as a user that is not root.
+    requirements: [R-043]
+    evidence:
+      - "tests/release/dockerfile.test.ts#every FROM pins its base image by digest"
+      - "tests/release/dockerfile.test.ts#the image runs as a numeric user that is not root"
+
+  - id: ci-pinned
+    promise: Every action in CI is pinned to a full commit SHA, with least-privilege permissions and one required job.
+    evidence:
+      - "tests/release/workflow.test.ts#every action is pinned to a full commit SHA, with its version in a comment"
+      - "tests/release/workflow.test.ts#permissions are declared and read-only"
+      - "tests/release/workflow.test.ts#one job is the Single Gate, and it needs every other job"
+
+  - id: site-within-budget
+    promise: The fixture site stays within the size budget in release/slo.yaml.
+    requirements: [R-041]
+    evidence:
+      - "tests/release/budgets.test.ts#the real site is within every size budget in release/slo.yaml that the gate can measure"

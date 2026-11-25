@@ -72,3 +72,14 @@ test("a lab step page lists every step, the current one in bold and the others a
   assert.match(second, /<ol><li><a href="index.html">One<\/a><\/li><li><strong>Two<\/strong><\/li><\/ol>/);
   assert.match(second, /<p><a href="index.html">Previous<\/a> <\/p>/, "the last step links back, and not on");
 });
+
+// Rung 6 (Guarded): a web link's address passes safeUrl (R-022). What Stryker runs for the web card.
+test("R-022: a web link whose address is script is a card with its title and no link; a safe one keeps its link", () => {
+  const web = (route: string): Course => ({
+    type: "course", id: "c", title: "C", summary: "", contentMd: "# C\n", route: "/",
+    los: [{ type: "web", id: "w", title: "Resources", summary: "Links", contentMd: "", route }],
+  });
+  const card = (route: string) => buildSite(web(route), { access: "public" })[0]!.html.match(/<li class="card">.*<\/li>/)![0];
+  assert.equal(card("javascript:alert(1)"), '<li class="card"><span class="kind">web</span><h3><span class="blocked" title="unsafe address removed">Resources</span></h3><p>Links</p></li>');
+  assert.equal(card("https://tutors.dev"), '<li class="card"><span class="kind">web</span><h3><a href="https://tutors.dev">Resources</a></h3><p>Links</p></li>');
+});

@@ -75,9 +75,9 @@ const FORBIDDEN: { pattern: RegExp; what: string; why: string; reader?: boolean 
   { pattern: /<script|\bon(click|load|error)=/i, reader: true, what: "client-side JavaScript", why: "The static pages stay static. Interactive pages live in apps/reader, in Svelte." },
   { pattern: /\b(localStorage|sessionStorage|indexedDB)\b|document\.cookie/, what: "browser storage", why: "The reader keeps nothing between visits: rung 6's session is a port with no sign-in behind it. Saved themes, real sign-in (Better Auth) and learning records (Supabase) arrive at the Summit." },
   {
-    pattern: /unsafe-inline|unsafe-eval|unsafe-hashes/,
+    pattern: /unsafe-inline|unsafe-eval/,
     what: "a CSP escape hatch",
-    why: "Both policies allow inline code only by hash: the site's one style (STYLE_HASH; tests/unit/lite/csp.test.ts prints the new hash when STYLE changes) and the reader's start-up script (SvelteKit hashes it). 'unsafe-inline' or 'unsafe-eval' would let injected markup run.",
+    why: "Both policies allow inline code only by hash: the site's one style (STYLE_HASH; tests/unit/lite/csp.test.ts prints the new hash when STYLE changes), the reader's start-up script (SvelteKit hashes it) and the one style attribute of SvelteKit's announcer (ANNOUNCER_STYLE_HASH in apps/reader/csp.ts). 'unsafe-inline' or 'unsafe-eval' would let injected markup run.",
   },
 ];
 

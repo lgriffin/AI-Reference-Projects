@@ -63,3 +63,24 @@ test("the course has no parent, and every lab step's route carries the course id
   assert.equal(lab?.type, "lab");
   if (lab?.type === "lab") assert.deepEqual(lab.los.map((step) => step.route), ["Lab-01-First-Steps", "Setup", "Build"].map((id) => `/lab/sample/topic-02-practice/unit-1-lab/book-1-first-lab/${id}`));
 });
+
+// Rung 6 (Guarded): every route passes safeUrl as tutors.json enters the reader (R-033).
+test("R-033: a route that is script becomes no route, on a card and on a lab step; safe routes are kept", () => {
+  const hostile: Course = {
+    type: "course", id: "c", title: "C", summary: "", contentMd: "", route: "/",
+    los: [
+      { type: "web", id: "w1", title: "W", summary: "", contentMd: "", route: "javascript:alert(1)" },
+      { type: "web", id: "w2", title: "W", summary: "", contentMd: "", route: "https://tutors.dev" },
+      { type: "web", id: "w3", title: "W", summary: "", contentMd: "", route: "JaVa\tScRiPt:alert(1)" },
+      { type: "lab", id: "l", title: "L", summary: "", contentMd: "", route: "/lab/{{COURSEURL}}/l", los: [{ type: "step", id: "s", shortTitle: "s", title: "S", contentMd: "", route: "vbscript:x" }, { type: "step", id: "t", shortTitle: "t", title: "T", contentMd: "", route: "/lab/{{COURSEURL}}/l/t" }] },
+    ],
+  };
+  const guarded = decorateCourseTree(hostile, "h");
+  const [w1, w2, w3, lab] = guarded.course.los;
+  assert.equal(w1!.route, "");
+  assert.equal(cardRoute(w1!), undefined);
+  assert.equal(cardRoute(w2!), "https://tutors.dev");
+  assert.equal(cardRoute(w3!), undefined);
+  assert.equal(cardRoute(lab!), "/lab/h/l");
+  assert.deepEqual(lab?.type === "lab" && lab.los.map((step) => step.route), ["", "/lab/h/l/t"]);
+});

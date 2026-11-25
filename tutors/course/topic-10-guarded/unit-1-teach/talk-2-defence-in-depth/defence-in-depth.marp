@@ -1,0 +1,291 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Defence in depth
+
+### Walls, policies and poka-yoke in rung 6
+
+Week 10, rung 6 of 7 (Guarded), talk 2
+
+---
+
+## Walls, one behind the other
+
+```
+course Markdown ──► escaping ──► sanitising ──► page ──► CSP in the browser
+                     (rung 2)     (rung 6)                (rung 6)
+course folder  ──► containedPath in every adapter ──► gen
+course settings ─► a pure policy that fails closed ──► who may read
+npm registry   ──► lockfile, registry sources, audit ──► what we install
+```
+
+Each wall assumes the one before it can fail. With depth, a bug in one wall is a finding, not a breach.
+
+---
+
+## Escaping is not sanitising
+
+**Escaping** changes how text is *written* so it stays text: `<` becomes `&lt;`.
+**Sanitising** decides whether a value is *allowed at all*.
+
+Rungs 2 to 5 escape everything. This still works:
+
+```html
+<a href="javascript:alert(document.domain)">the reading list</a>
+```
+
+No character in it needs escaping. The browser runs it when a reader clicks. Rung 5's
+`packages/lite/src/markdown.ts` says so: "sanitising links such as `javascript:` is rung 6 (Guarded)".
+
+---
+
+## Allow-list, never block-list
+
+`packages/lite/src/url.ts` (R-022):
+
+```ts
+const ALLOWED: Record<UrlUse, ReadonlySet<string>> = {
+  link: new Set(["http", "https", "mailto"]),
+  image: new Set(["http", "https"]),
+};
+
+export function safeUrl(url: string, use: UrlUse): string | null {
+  const read = url.replace(/[\u0000- \u007f-\u009f]/g, "").toLowerCase();
+  const scheme = read.match(/^([a-z][a-z0-9+.-]*):/)?.[1];
+  if (scheme !== undefined) return ALLOWED[use].has(scheme) ? url : null;
+  const colon = read.indexOf(":");
+  const pathStart = read.search(/[/?#]/);
+  if (colon !== -1 && (pathStart === -1 || colon < pathStart)) return null;
+  return url;
+}
+```
+
+A block-list of `javascript:` misses `JaVaScRiPt:`, `java\tscript:`, `vbscript:` and next year's trick.
+
+---
+
+## Read the address the way a browser does
+
+| Payload | Why a naive filter misses it |
+| --- | --- |
+| `JaVaScRiPt:alert(1)` | schemes are case-insensitive |
+| `java\tscript:alert(1)` | browsers delete tabs and newlines inside a URL |
+| `\u0001javascript:alert(1)` | and strip leading control characters |
+| `&#106;avascript:alert(1)` | an entity; escaping makes it harmless text, the allow-list refuses it anyway |
+| `data:image/svg+xml;base64,...` | an SVG can carry an `onload` |
+
+A refused address is shown as its text in `<span class="blocked">`, so the page still reads. The reader
+uses the same function, and checks every route as `tutors.json` enters (R-033).
+
+---
+
+## Proving a sanitiser: corpus, property, browser
+
+- **A corpus** (`tests/unit/lite/xss-corpus.test.ts`): 15 hostile addresses and 11 hostile texts, each with
+  the reason it is dangerous, through every Markdown construct and every field of every kind
+- **A property** (`tests/fuzz/safe-url.fuzz.test.ts`): fast-check builds addresses the way an attacker does;
+  a block-list is the negative fixture that proves the property can fail
+- **An independent oracle** (`tests/support/xss-oracle.ts`): Node's WHATWG `new URL(...)` decides the real
+  scheme, not lite's own code
+- **A browser** (`tests/e2e/guarded.e2e.ts`): the hostile course, opened in Chromium, runs no script
+
+---
+
+## A Teaching Failure from the corpus
+
+Take `safeUrl` out of `markdown.ts` and the gate says:
+
+```
+XSS corpus: "JaVaScRiPt:alert(1)" (schemes are case-insensitive) reached the page
+as href="JaVaScRiPt:alert(1" opens as javascript:.
+Course text must be escaped (html`` in packages/lite/src/html.ts) and every course
+URL must pass safeUrl (packages/lite/src/url.ts) before it reaches an href or src.
+```
+
+The payload, why it matters, what reached the page and the file to fix: L4, Explained. Nobody has to
+relearn this attack to fix it.
+
+---
+
+## The last wall: Content Security Policy
+
+`packages/lite/src/html.ts` (R-023):
+
+```
+default-src 'none'; img-src 'self' https:; style-src 'sha256-uFXD...';
+base-uri 'none'; form-action 'none'
+```
+
+- `default-src 'none'` and no `script-src`: **no script runs at all**, inline or loaded
+- the one inline `<style>` is allowed by its SHA-256 hash, never `'unsafe-inline'`
+- `base-uri 'none'` stops an injected `<base>` re-pointing every relative link
+
+A meta tag cannot set `frame-ancestors`; that needs a response header from the host.
+
+---
+
+## A CSP for an app that is a script
+
+The reader cannot say "no script". `apps/reader/csp.ts` (R-034):
+
+```ts
+export const READER_CSP = {
+  "default-src": ["none"],
+  "script-src": ["self"],
+  "style-src": ["self"],
+  "style-src-attr": ["unsafe-hashes", ANNOUNCER_STYLE_HASH],
+  "img-src": ["self", "https:"],
+  "connect-src": ["self"],
+  ...
+```
+
+SvelteKit hashes its own inline start-up script (`csp: { mode: "hash" }`). Its route announcer hides itself
+with a `style` attribute, allowed by one hash that a scenario recomputes from SvelteKit's source. Upstream
+has not shipped a CSP yet: the reader loads Iconify, KaTeX, Mermaid, embeds and Supabase realtime.
+
+---
+
+## Containment at the port
+
+`packages/gen/src/file-system-port.ts` (R-024): `containedPath` refuses `..`, `/abs`, `C:/abs`, `~/x` and
+NUL bytes. `NodeFileSystem` also resolves the real path:
+
+```ts
+const full = join(this.root, containedPath(path));
+const real = await realpath(full).catch(() => undefined);
+...
+if (real !== root && !real.startsWith(root + sep))
+  throw new PathEscapeError(path, "a link leads outside the course folder");
+```
+
+- The adapter is where a path meets real files, so a new caller cannot skip the check
+- The Containment rule: every class that `implements FileSystemPort` calls `containedPath`
+- `MemoryFileSystem` holds links too, and the same contract cases run on both: an **Honest Double**
+
+---
+
+## Authentication is not authorisation
+
+- **Authentication**: who is this? A verified identity, from a provider such as GitHub
+- **Authorisation**: what may they do? A policy over that identity and the thing they want
+
+| Concern | Upstream | Rung 6 |
+| --- | --- | --- |
+| Verified identity | `packages/jsr/identity` | `packages/identity` |
+| Provider adapter | `packages/svelte/identity-sveltekit` (Better Auth) | none: nothing here signs anyone in |
+| Roles and permissions | `packages/svelte/utils/rbac` | `packages/rbac` |
+
+Upstream's rule `identity-contracts-self-contained` (`.dependency-cruiser.cjs`): identity imports nothing.
+Rung 6's Identity rule says the same, with a teaching message.
+
+---
+
+## Authorisation as a pure policy
+
+`packages/rbac/src/index.ts` (R-030, R-031):
+
+```ts
+export function canView(actor: Actor | null, access: CourseAccess): Decision {
+  const role = roleOf(actor, access);
+  if (isPublic(access)) return { allowed: true, role };
+  if (actor === null) return { allowed: false, role, reason: "sign-in-required" };
+  if (role === "educator" || access.whitelist.length === 0 || access.whitelist.includes(actor.login))
+    return { allowed: true, role };
+  return { allowed: false, role, reason: "not-enrolled" };
+}
+```
+
+The Purity rule: no async, no clock, no state, `import type` only. So `tests/unit/rbac/policy.test.ts` can
+be a table of every role against every kind of course, and the table is the whole truth.
+
+---
+
+## Failing closed
+
+```ts
+// accessOf: anything that is not a whole number 0 or above reads as 1
+const level = typeof auth === "number" && Number.isInteger(auth) && auth >= 0 ? auth : 1;
+```
+
+`auth: yes`, `auth: "1"`, `auth: true` and `auth: -1` all make a course **private**. A typo should cost a
+sign-in, not leak a course.
+
+- The command refuses a private course unless you pass `--private` (R-028); then every page is marked
+- The reader answers an anonymous reader with a 403 notice (R-032). That is a **courtesy, not a lock**: the
+  files are still on the host. The host, and upstream's Row-Level Security, are the lock
+
+---
+
+## The supply chain
+
+`scripts/supply-chain.ts`, offline in the Single Gate (R-035, R-036), online on demand:
+
+| Rule | Finding |
+| --- | --- |
+| a lockfile exists | `lockfile-missing` |
+| every dependency is `workspace:*` or a registry version | `non-registry-source` |
+| every allowance has a reason and an unexpired date | `malformed-allowance`, `expired-allowance` |
+| `pnpm audit:online`: every advisory is allowed | `advisory` |
+
+Upstream: `scripts/checks/dependency-audit.ts`, `tests/security/audit-allowlist.json`, CodeQL, zizmor and
+Scorecard workflows that start from `permissions: {}`, and `release/openvex.json`. An allowance with an
+expiry and a VEX statement with a justification share one idea: **an exception says why, and can be checked**.
+
+---
+
+## Poka-yoke: mistake-proofing as L5
+
+Lean's answer to defects that escape: make the mistake impossible.
+
+| Poka-yoke in rung 6 | The mistake it removes |
+| --- | --- |
+| `buildSite(course, { access })`: `access` is required | building a private course as if it were public: `tsc` says `Expected 2 arguments, but got 1` |
+| `html` returns `SafeHtml`; only two files may construct one | forgetting to escape |
+| `Record<Role, readonly Permission[]>` | a new role with no permissions line |
+| the browser enforcing the CSP | any script that slipped past every test |
+
+A check (L3) finds a defect after it is made. A poka-yoke (L5) means it is never made.
+
+---
+
+## Not every rule can be L5
+
+| Rule | Level | Why not higher |
+| --- | --- | --- |
+| Every course URL passes the allow-list | L3/L4 | a type cannot know a string came from a course; the corpus and two architecture rules check it |
+| Allow-list, never block-list | L2 | a habit, in `AGENTS.md` |
+| No advisory without an allowance | L3, online only | a gate that turns red when the network does is a gate people learn to ignore |
+| A new allowance, a weaker CSP | a person | the Human Boundary: "Ask a human first" |
+
+Choosing the level is this week's Evaluate work: what does an escape cost, and what does the check cost?
+
+---
+
+## Five Whys on an XSS escape
+
+A `javascript:` link reached a rung 5 page.
+
+1. Why did it run? The page held it as an `href`.
+2. Why? `renderInline` wrote the author's address into the `href`.
+3. Why? It escaped the address, and escaping changes no character of it.
+4. Why was that thought enough? The only rule was R-008, "the site shall escape ...", and it passed.
+5. Why was there no rule about addresses? Nobody had named the author as an adversary.
+
+The root cause is a missing requirement, not a missing line. The countermeasure is R-022 and its corpus,
+then a CSP behind it. You do this for real in the lab.
+
+---
+
+## Summary
+
+| Wall | Stops | Proved by |
+| --- | --- | --- |
+| Escaping | text becoming markup | the corpus, text half; `SafeHtml` |
+| Sanitising | script-bearing addresses | the corpus, the property, the oracle |
+| CSP | whatever slips past both | hash checks, and Chromium |
+| Containment | reading outside the course | the port contract on both adapters |
+| Policy | readers who should not read | a table; fail closed |
+| Supply chain | what we did not mean to install | the audit, offline and online |

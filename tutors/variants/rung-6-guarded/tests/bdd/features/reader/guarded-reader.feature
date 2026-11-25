@@ -49,9 +49,10 @@ Feature: The reader is safe to point at a course you did not write
       Then the web link's card links to "https://tutors.dev"
 
   @R-034 @ears-ubiquitous
-  Rule: The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only the start-up script that SvelteKit names by its hash.
+  Rule: The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only what SvelteKit itself writes, each named by its hash.
 
     Scenario: The policy the build is given
       Then the reader's policy allows "script-src, style-src, connect-src" from "self" alone
       And the reader's policy starts from "default-src" "none"
       And the reader's build asks SvelteKit for a policy by "hash"
+      And the only style attribute the policy allows is the one on SvelteKit's route announcer

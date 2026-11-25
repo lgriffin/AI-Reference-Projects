@@ -1,11 +1,13 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
 import { AnonymousSession, FakeSession, githubActor } from "@ladder/identity";
 import type { SessionPort } from "@ladder/identity";
 import type { Course } from "@ladder/model";
-import { READER_CSP } from "../../../../apps/reader/csp.ts";
+import { ANNOUNCER_STYLE_HASH, READER_CSP } from "../../../../apps/reader/csp.ts";
 import { requestLo } from "../../../../apps/reader/src/lib/course/course-service.ts";
 import type { PageRequest } from "../../../../apps/reader/src/lib/course/course-service.ts";
 import { cardRoute, decorateCourseTree } from "../../../../apps/reader/src/lib/course/lo-tree.ts";
@@ -108,7 +110,7 @@ describeFeature(feature, ({ Rule }) => {
   });
 
   Rule(
-    "The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only the start-up script that SvelteKit names by its hash.",
+    "The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only what SvelteKit itself writes, each named by its hash.",
     ({ RuleScenario }) => {
       RuleScenario("The policy the build is given", ({ Then, And }) => {
         Then("the reader's policy allows {string} from {string} alone", (_ctx, names: string, source: string) => {
@@ -119,7 +121,16 @@ describeFeature(feature, ({ Rule }) => {
         });
         And("the reader's build asks SvelteKit for a policy by {string}", (_ctx, mode: string) => {
           // The built page is checked in Chromium by tests/e2e/guarded.e2e.ts; here, that the build is asked for it.
-          expect(readFileSync(join(ROOT, "apps", "reader", "vite.config.ts"), "utf8")).toContain(`csp: { mode: "${mode}", directives: { ...READER_CSP } }`);
+          expect(readFileSync(join(ROOT, "apps", "reader", "vite.config.ts"), "utf8")).toContain(`csp: { mode: "${mode}", directives: readerCspDirectives() }`);
+        });
+        And("the only style attribute the policy allows is the one on SvelteKit's route announcer", () => {
+          // A Closure Check between the policy and the framework: the hash is recomputed from SvelteKit's own source.
+          const kit = createRequire(join(ROOT, "apps", "reader", "package.json")).resolve("@sveltejs/kit/package.json");
+          const root = readFileSync(join(kit, "..", "src", "runtime", "components", "root.svelte"), "utf8");
+          const style = root.match(/id="svelte-announcer"[^>]*?style="([^"]+)"/s)?.[1] ?? "";
+          const actual = `sha256-${createHash("sha256").update(style).digest("base64")}`;
+          expect(ANNOUNCER_STYLE_HASH, `CSP rule: SvelteKit's announcer style changed, so set ANNOUNCER_STYLE_HASH = "${actual}" in apps/reader/csp.ts. Never fix this with 'unsafe-inline'.`).toBe(actual);
+          expect(READER_CSP["style-src-attr"]).toEqual(["unsafe-hashes", ANNOUNCER_STYLE_HASH]);
         });
       });
     },

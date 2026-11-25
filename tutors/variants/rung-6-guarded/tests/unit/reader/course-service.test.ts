@@ -5,7 +5,8 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { courseUrl, readCourse, readLab, readLo, requestLab, requestLo } from "../../../apps/reader/src/lib/course/course-service.ts";
+import { AnonymousSession, FakeSession, githubActor } from "@ladder/identity";
+import { courseUrl, readCourse, readLab, readLo, refusal, requestLab, requestLo } from "../../../apps/reader/src/lib/course/course-service.ts";
 import { ORACLE as ORACLE_FILE } from "../../support/paths.ts";
 
 const ORACLE = readFileSync(ORACLE_FILE, "utf8");
@@ -82,4 +83,29 @@ test("a course id the reader refuses is never fetched, and readLab of a missing 
   assert.equal(await readLab("../secrets", "/lab/x/y", fetch), undefined);
   assert.equal(await readLab("missing-lab-course", "/lab/missing-lab-course/y", fetch), undefined);
   assert.deepEqual(requests, ["/courses/missing-lab-course/tutors.json"]);
+});
+
+// Rung 6 (Guarded): the policy is asked before a page is handed out (R-032). What Stryker runs for refusal().
+const PRIVATE = { type: "course", id: "p", title: "P", summary: "", contentMd: "", route: "/", properties: { auth: 1 }, enrollment: { educators: ["ada"], whitelist: ["bob"] }, los: [] };
+const privateFetch = async (url: string) => ({ ok: url === "/courses/exam/tutors.json", json: async () => structuredClone(PRIVATE) });
+
+test("R-032: a private course answers an anonymous session with a notice, and none of its pages", async () => {
+  const notice = 'Private course: "exam" is not shown, because it is for signed-in readers, and this reader has no sign-in.';
+  assert.deepEqual(await requestLo("course", "exam", "/course/exam", privateFetch), { refused: notice });
+  assert.deepEqual(await requestLab("exam", "/lab/exam/x", privateFetch), { refused: notice });
+  assert.deepEqual(await requestLo("course", "exam", "/course/exam", privateFetch, new AnonymousSession()), { refused: notice });
+});
+
+test("R-032: a signed-in reader is refused unless enrolled, and an enrolled reader or an educator sees the course", async () => {
+  const as = (login: string) => new FakeSession(githubActor(login, 1));
+  assert.deepEqual(await requestLo("course", "exam", "/course/exam", privateFetch, as("eve")), { refused: 'Private course: "exam" is not shown, because you are not on its enrolment list.' });
+  assert.equal("found" in (await requestLo("course", "exam", "/course/exam", privateFetch, as("bob"))), true);
+  assert.equal("found" in (await requestLo("course", "exam", "/course/exam", privateFetch, as("ada"))), true);
+  assert.deepEqual(await requestLab("exam", "/lab/exam/x", privateFetch, as("bob")), { notFound: "Not found: a lab step at /lab/exam/x" });
+  const tree = (await readCourse("exam", privateFetch))!;
+  assert.equal(await refusal(tree, as("bob")), undefined);
+});
+
+test("R-020: a missing course is a 404, never a private notice", async () => {
+  assert.deepEqual(await requestLo("course", "nope", "/course/nope", privateFetch), { notFound: 'Not found: the course "nope"' });
 });

@@ -42,7 +42,7 @@ its pattern names. "Implemented in" names the layer that holds the code (README.
 | R-031 | Ubiquitous | The policy shall let a reader view a private course only when the reader is signed in and, where the course has a whitelist, is on it or is one of its educators. | rbac |
 | R-032 | Unwanted behaviour | If the policy refuses the reader in the session, then the reader shall answer 403 with a notice that the course is private and show none of its pages. | reader |
 | R-033 | Unwanted behaviour | If a route in tutors.json is an address the site would refuse to link to, then the reader shall show its learning object without a link. | reader |
-| R-034 | Ubiquitous | The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only the start-up script that SvelteKit names by its hash. | reader |
+| R-034 | Ubiquitous | The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only what SvelteKit itself writes, each named by its hash. | reader |
 | R-035 | Unwanted behaviour | If a dependency is neither a workspace package nor a registry version that the lockfile pins with an integrity hash, then the audit shall report it and exit with status 1. | scripts |
 | R-036 | Unwanted behaviour | If an audit allowance has no reason, no expiry date or an expiry date in the past, then the audit shall report it and exit with status 1. | scripts |
 

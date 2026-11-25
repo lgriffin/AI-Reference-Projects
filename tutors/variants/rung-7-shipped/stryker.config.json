@@ -1,0 +1,64 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "pnpm",
+  "plugins": [
+    "@stryker-mutator/vitest-runner"
+  ],
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.mutation.ts"
+  },
+  "mutate": [
+    "packages/gen/src/course-builder.ts",
+    "packages/gen/src/file-system-port.ts",
+    "packages/gen/src/lo-kinds.ts",
+    "packages/gen/src/memory-file-system.ts",
+    "packages/gen/src/portable.ts",
+    "packages/gen/src/settings.ts",
+    "packages/lite/src/html.ts",
+    "packages/lite/src/markdown.ts",
+    "packages/lite/src/site-builder.ts",
+    "packages/lite/src/url.ts",
+    "packages/rbac/src/index.ts",
+    "apps/reader/src/lib/course/course-service.ts",
+    "apps/reader/src/lib/course/live-lab.ts",
+    "apps/reader/src/lib/course/lo-tree.ts"
+  ],
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress",
+    "json"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": 90
+  },
+  "concurrency": 4,
+  "timeoutMS": 30000,
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": "always",
+  "mutator": {
+    "excludedMutations": [
+      "StringLiteral",
+      "ObjectLiteral"
+    ]
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "reports",
+    ".stryker-tmp*",
+    "out",
+    "apps/reader/.svelte-kit",
+    "apps/reader/build",
+    "apps/reader/static/courses"
+  ],
+  "disableTypeChecks": "{packages/**/*.ts,apps/**/*.ts,tests/**/*.ts}"
+}

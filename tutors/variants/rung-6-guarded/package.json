@@ -10,7 +10,7 @@
   "packageManager": "pnpm@10.28.0",
   "scripts": {
     "start": "node apps/cli/src/main.ts",
-    "course": "node apps/cli/src/main.ts --json-only ../fixtures/ladder-sample-course apps/reader/static/courses/ladder-sample-course",
+    "course": "node apps/cli/src/main.ts --json-only ../fixtures/ladder-sample-course apps/reader/static/courses/ladder-sample-course && node apps/cli/src/main.ts --json-only tests/fixtures/hostile-course apps/reader/static/courses/hostile-course 2>/dev/null && node apps/cli/src/main.ts --json-only --private tests/fixtures/private-course apps/reader/static/courses/private-course",
     "dev": "pnpm course && pnpm --filter @ladder/reader dev",
     "build": "pnpm course && pnpm --filter @ladder/reader build",
     "typecheck": "tsc -p packages/model && tsc -p packages/identity && tsc -p packages/rbac && tsc -p packages/gen && tsc -p packages/lite && tsc -p apps/cli && tsc -p . && pnpm --filter @ladder/reader check",

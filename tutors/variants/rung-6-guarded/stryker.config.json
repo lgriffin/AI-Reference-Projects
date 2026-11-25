@@ -10,11 +10,16 @@
   },
   "mutate": [
     "packages/gen/src/course-builder.ts",
+    "packages/gen/src/file-system-port.ts",
     "packages/gen/src/lo-kinds.ts",
     "packages/gen/src/memory-file-system.ts",
+    "packages/gen/src/portable.ts",
+    "packages/gen/src/settings.ts",
     "packages/lite/src/html.ts",
     "packages/lite/src/markdown.ts",
     "packages/lite/src/site-builder.ts",
+    "packages/lite/src/url.ts",
+    "packages/rbac/src/index.ts",
     "apps/reader/src/lib/course/course-service.ts",
     "apps/reader/src/lib/course/live-lab.ts",
     "apps/reader/src/lib/course/lo-tree.ts"

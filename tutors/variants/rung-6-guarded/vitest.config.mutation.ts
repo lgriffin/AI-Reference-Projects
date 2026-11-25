@@ -15,7 +15,7 @@ import { workspaceAliases } from "./vitest.aliases.ts";
 
 export default defineConfig({
   test: {
-    include: ["tests/unit/gen/**/*.test.ts", "tests/unit/lite/**/*.test.ts", "tests/unit/reader/**/*.test.ts", "tests/contract/**/*.test.ts", "tests/conformance/**/*.test.ts", "tests/fuzz/**/*.test.ts"],
+    include: ["tests/unit/gen/**/*.test.ts", "tests/unit/lite/**/*.test.ts", "tests/unit/rbac/**/*.test.ts", "tests/unit/reader/**/*.test.ts", "tests/contract/**/*.test.ts", "tests/conformance/**/*.test.ts", "tests/fuzz/**/*.test.ts"],
     exclude: ["**/node_modules/**"],
     pool: "threads",
     testTimeout: 30_000,

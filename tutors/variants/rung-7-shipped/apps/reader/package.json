@@ -1,0 +1,30 @@
+{
+  "name": "@ladder/reader",
+  "version": "1.0.0",
+  "description": "An interactive Svelte 5 course reader for tutors.json. Browser code: it fetches the course, never reads a course folder.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "dependencies": {
+    "@ladder/identity": "workspace:*",
+    "@ladder/lite": "workspace:*",
+    "@ladder/model": "workspace:*",
+    "@ladder/rbac": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "4.0.1",
+    "@sveltejs/kit": "3.1.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "svelte": "5.57.2",
+    "svelte-check": "4.7.6",
+    "vite": "8.3.5"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  }
+}

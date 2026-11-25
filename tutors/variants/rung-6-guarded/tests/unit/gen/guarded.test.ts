@@ -13,6 +13,9 @@ describe("containedPath: the port's one gate for every path", () => {
     ["./topic-1/topic.md", "topic-1/topic.md"],
     ["topic-1\\topic.md", "topic-1/topic.md"],
     ["topic-1//./unit-1/", "topic-1/unit-1"],
+    ["notes/c:x.md", "notes/c:x.md"],
+    ["~notes/x.md", "~notes/x.md"],
+    ["topic-1/~/x.md", "topic-1/~/x.md"],
   ];
   for (const [path, contained] of INSIDE) test(`keeps ${JSON.stringify(path)}`, () => assert.equal(containedPath(path), contained));
 
@@ -26,6 +29,7 @@ describe("containedPath: the port's one gate for every path", () => {
     ["C:/Windows/win.ini", /absolute/],
     ["c:secret", /absolute/],
     ["~/.ssh/id_ed25519", /home folder/],
+    ["~", /home folder/],
     ["course.md\0.png", /NUL/],
   ];
   for (const [path, why] of OUTSIDE) {

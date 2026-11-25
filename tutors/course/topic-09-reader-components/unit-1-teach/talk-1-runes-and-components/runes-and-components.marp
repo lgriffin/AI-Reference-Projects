@@ -1,0 +1,274 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Runes and components
+
+### Svelte 5, read through the reader's cards
+
+Tutors Ladder, week 9. Rung 5 of 7: Reader
+
+---
+
+## Where we are on the ladder
+
+| Week | Rung 5 (Reader) | You can now |
+| --- | --- | --- |
+| 8 | routes, `load`, `tutors.json` as the contract | follow a URL to a page, or to its 404 |
+| **9** | **runes, components, layers, browser tests** | **change what a student sees, and prove it** |
+
+Last week ended at `return { topic }`. This week starts at `let { data } = $props()`.
+
+It is the last week of the rung: the assignment (A5), the exit criteria and the standard version are at the
+end.
+
+---
+
+## A component is a file
+
+```svelte
+<script lang="ts">
+  import Icon from "../../ui-primitives/Icon.svelte";
+  let { cardDetails }: { cardDetails: CardDetails } = $props();
+  const external = $derived(cardDetails.route?.startsWith("http") ?? false);
+</script>
+
+<article class="card" data-lo-type={cardDetails.type}>
+  ...
+</article>
+
+<style>
+  .card { border-block-width: 6px; ... }
+</style>
+```
+
+Script, markup and styles in one `.svelte` file. Styles are scoped to the component.
+`apps/reader/src/lib/ui-components/layout/Card.svelte`
+
+---
+
+## Runes: the four you need here
+
+| Rune | Says | In the reader |
+| --- | --- | --- |
+| `$props()` | what the parent passes in | every component |
+| `$state(x)` | a value that re-renders what reads it | `courseId` on the home page, the shared `rune` |
+| `$derived(expr)` | a value computed from others, kept up to date | `Composite`'s `arrange(composite)`, `Lab`'s step |
+| `$effect(fn)` | run code after the DOM updates | none here; upstream's root layout sets `<html lang>` with one |
+
+Runes are compiler keywords, not imports. They work in `.svelte` files and in `.svelte.ts` files.
+
+---
+
+## `$state` and binding
+
+`apps/reader/src/routes/+page.svelte`
+
+```svelte
+<script lang="ts">
+  let courseId = $state("ladder-sample-course");
+</script>
+
+<label>Course id <input bind:value={courseId} /></label>
+<a href={`/course/${courseId}`}>Open the course</a>
+```
+
+Type in the box: `courseId` changes, and the link's `href` follows. No event handlers, no setState.
+
+---
+
+## `$derived`, even when destructured
+
+`apps/reader/src/lib/ui-components/structure/Composite.svelte`
+
+```svelte
+let { composite }: { composite: Course | Topic } = $props();
+const { units, sides, standardLos } = $derived(arrange(composite));
+```
+
+When the route changes from one topic to another, SvelteKit **reuses** the component with a new
+`composite`. A plain `const` would keep the first topic's cards; `$derived` recomputes.
+
+`arrange` is plain TypeScript in `lib/course/lo-tree.ts`, unit-tested and mutated without a browser.
+
+Take `$derived` away and `svelte-check` warns (`state_referenced_locally`). The reader's gate runs
+`svelte-check --fail-on-warnings`, so the warning is a red gate.
+
+---
+
+## Shared state: a rune behind `.value`
+
+`apps/reader/src/lib/runes/index.svelte.ts`
+
+```ts
+export const rune = <T>(initialValue: T) => {
+  let value = $state(initialValue);
+  return {
+    get value() { return value; },
+    set value(next: T) { value = next; },
+  };
+};
+export const currentCourse = rune<CourseTree | null>(null);
+export const currentLo = rune<Lo | null>(null);
+```
+
+A load sets `currentCourse.value`; `TutorsShell` and `SecondaryNavigator` read it and re-render.
+Upstream: `packages/svelte/runes/src/index.svelte.ts`, the same `rune` (created lazily there).
+
+---
+
+## What a rune hands back is not what you put in
+
+`$state` makes plain objects and arrays **deeply reactive** by wrapping them in a proxy.
+
+```ts
+currentLo.value = note;            // a plain object from the tree
+currentLo.value === note           // false: a proxy of it
+currentLo.value.title              // "Reading Guide": reads pass through
+tree.parents.get(currentLo.value)  // undefined: the Map is keyed by the object, not its proxy
+```
+
+- A `Map` or a `Set` is not proxied, and neither are its keys.
+- So identity (`===`, `Map.get`, `includes`) can fail where every property read succeeds.
+- The safe habit: across a rune, compare **values** (a route, an id), not objects.
+
+No unit test or scenario over plain logic can see this. A browser can. You meet it in the lab.
+
+---
+
+## Snippets replace slots
+
+`apps/reader/src/lib/ui-navigators/TutorsShell.svelte`
+
+```svelte
+<script lang="ts">
+  import type { Snippet } from "svelte";
+  let { children }: { children: Snippet } = $props();
+</script>
+
+<a class="skip" href="#main-content">Skip to content</a>
+<header>...</header>
+<main id="main-content" tabindex="-1">
+  {@render children()}
+</main>
+```
+
+What a layout or parent puts between the tags arrives as `children`, a snippet, drawn with `{@render}`.
+
+---
+
+## Cards, mirrored
+
+| Reader (`src/lib/ui-components/`) | Upstream (`packages/svelte/ui-components/src/learning-objects/`) |
+| --- | --- |
+| `layout/Card.svelte` | `layout/Card.svelte`: `cardDetails` = route, title, type, summary (+ img, icon, video) |
+| `layout/Cards.svelte` | `layout/Cards.svelte`: one `Card` per visible learning object |
+| `layout/Units.svelte` | `layout/Units.svelte`: each unit a box with a heading and its cards |
+| `structure/Composite.svelte` | `structure/Composite.svelte`: one component for course and topic, sides in a column |
+| `content/Note.svelte` | `content/Note.svelte` |
+| `content/lab/Lab.svelte` | `content/lab/Lab.svelte`: steps, a pager, arrow keys |
+
+Upstream's are bigger: locks, themes, images, video. The shape is the same.
+
+---
+
+## Inside one card
+
+```svelte
+<article class="card" data-lo-type={cardDetails.type} style:--accent={loTypeColour[cardDetails.type]}>
+  <svelte:element this={cardDetails.route ? "a" : "div"} class="link" href={cardDetails.route} ...>
+    <h3>{cardDetails.title}</h3>
+    <Icon type={cardDetails.type} />
+    <span class="visually-hidden">{cardDetails.type}</span>
+  </svelte:element>
+  {#if cardDetails.summary}<p>{cardDetails.summary}</p>{/if}
+</article>
+```
+
+- `data-lo-type` and the hidden type text: a test and a screen reader both need the kind.
+- `a.link::after { inset: 0 }` makes the whole card clickable, as upstream's `.resource-link::after`.
+- An archive has no route here, so its card is a `div`, not a broken link.
+
+---
+
+## Escaping by default
+
+- `{cardDetails.summary}` is escaped by Svelte. Course text never becomes markup.
+- `{@html ...}` is not. The reader has one, in `ui-primitives/Markdown.svelte`:
+
+```svelte
+const html = $derived(renderMarkdown(markdown).value);
+...
+<div class="prose">{@html html}</div>
+```
+
+`renderMarkdown` comes from `@ladder/lite` (rung 2) and escapes every character before adding tags.
+The Raw HTML rule fails on `{@html` anywhere else. Upstream passes author HTML through `sanitizeHtml`
+(`packages/svelte/ui-primitives/src/utils/sanitize.ts`); that is rung 6.
+
+---
+
+## Unrepresentable: a colour per kind
+
+`apps/reader/src/lib/ui-primitives/lo-colours.ts`
+
+```ts
+export const loTypeColour: Record<LoType, string> = {
+  course: "#1d4ed8", topic: "#0f766e", unit: "#4b5563", side: "#4b5563",
+  talk: "#b45309", note: "#7c3aed", lab: "#be123c", web: "#0369a1", archive: "#57534e",
+};
+```
+
+Add a kind to `@ladder/model` and `svelte-check` fails here until it has a colour (L5).
+Upstream: `loTypeColour` in `packages/svelte/themes/src/styles/lo-colours.ts`.
+
+---
+
+## The lab: derived step, keyboard path
+
+```svelte
+let { liveLab }: { liveLab: LiveLab } = $props();
+const { lab, step, index, previous, next } = $derived(liveLab);
+
+function navigateStep(event: KeyboardEvent) {
+  ...
+  const to = event.key === "ArrowRight" ? next : event.key === "ArrowLeft" ? previous : undefined;
+  if (to) { event.preventDefault(); void goto(to.route); }
+}
+</script>
+<svelte:window onkeydown={navigateStep} />
+```
+
+`liveLab` is plain data from `lib/course/live-lab.ts` (R-018, R-019), mirroring upstream's `LiveLab`.
+Events are attributes in Svelte 5: `onkeydown`, not `on:keydown`.
+
+Which key goes which way is decided **here**, in the component. Remember that for the next talk.
+
+---
+
+## Keep the logic out of the component
+
+| In the component | In `lib/course` |
+| --- | --- |
+| which prop goes to which tag | which step is next (R-019) |
+| which key calls `goto` | which crumbs a page has (R-021) |
+| what is bold, what is hidden | which objects a wall holds (R-022, yours) |
+
+A rule in `lib/course` can be specified by a scenario, unit-tested and mutated. A rule left in a component
+can only be proved by a browser, which is slower and says less when it fails.
+
+`AGENTS.md` forbids the escape route by name: "move a reader rule into a component to escape its scenario".
+
+---
+
+## What to take away
+
+- A component is a file; `$props` in, markup out, scoped styles.
+- `$state` for values that change, `$derived` for values computed from them, `.value` runes to share.
+- A rune hands back a proxy: compare values, not objects.
+- Escaping is the default; one primitive owns `{@html}`.
+- Keep rules in plain TypeScript so a scenario can prove them; let the component only show.
+
+Next: the layers these components live in, and how a browser proves them.

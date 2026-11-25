@@ -55,6 +55,8 @@ test("permissions: as upstream's ROLE_PERMISSIONS, and nobody but an educator ha
   const roles: Role[] = ["anonymous", "student", "educator"];
   for (const role of roles) for (const permission of all) assert.equal(roleHasPermission(role, permission), role === "educator", `${role} ${permission}`);
   assert.deepEqual(permissionsFor("educator"), all);
+  assert.deepEqual(permissionsFor("student"), []);
+  assert.deepEqual(permissionsFor("anonymous"), []);
 });
 
 describe("accessOf reads properties.yaml's auth and fails closed", () => {

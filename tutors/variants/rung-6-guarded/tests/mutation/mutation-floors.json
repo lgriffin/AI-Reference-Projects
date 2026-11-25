@@ -3,13 +3,18 @@
   "staleMargin": 2,
   "files": {
     "packages/gen/src/course-builder.ts": 94,
-    "packages/lite/src/site-builder.ts": 92,
+    "packages/lite/src/site-builder.ts": 93,
     "packages/gen/src/lo-kinds.ts": 100,
-    "packages/gen/src/memory-file-system.ts": 100,
+    "packages/gen/src/memory-file-system.ts": 94,
     "packages/lite/src/html.ts": 100,
-    "packages/lite/src/markdown.ts": 87,
-    "apps/reader/src/lib/course/course-service.ts": 96,
+    "packages/lite/src/markdown.ts": 88,
+    "apps/reader/src/lib/course/course-service.ts": 97,
     "apps/reader/src/lib/course/live-lab.ts": 100,
-    "apps/reader/src/lib/course/lo-tree.ts": 100
+    "apps/reader/src/lib/course/lo-tree.ts": 100,
+    "packages/gen/src/file-system-port.ts": 100,
+    "packages/gen/src/portable.ts": 98,
+    "packages/gen/src/settings.ts": 85,
+    "packages/lite/src/url.ts": 96,
+    "packages/rbac/src/index.ts": 98
   }
 }

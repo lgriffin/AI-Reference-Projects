@@ -1,0 +1,216 @@
+# Ladder CI: the gate and the release checks of rung 7 (Shipped), as GitHub Actions runs them.
+#
+# A TEMPLATE. GitHub runs only the workflows in .github/workflows at a repository's root, so this file
+# does nothing where it is. To switch it on, copy it to the root of this repository:
+#
+#   cp tutors/variants/rung-7-shipped/.github/workflows/ladder-ci.yml .github/workflows/
+#
+# and mark the one job "Ladder CI success" as required in branch protection. The paths below assume the
+# variant stays at tutors/variants/rung-7-shipped; if the ladder moves to its own repository, change
+# every path that names it (the `paths` filters, `working-directory` and the *_file inputs).
+#
+# Mirrors upstream .github/workflows/ci.yml: actions pinned to full commit SHAs with the version in a
+# comment, `permissions: contents: read`, `persist-credentials: false` on every checkout, a timeout on
+# every job, and one job ("CI success" upstream) that needs every other job and is the only required
+# check. tests/release/workflow.test.ts holds this file to those rules (the concerns zizmor audits).
+
+name: Ladder CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["tutors/variants/rung-7-shipped/**", "tutors/variants/fixtures/**"]
+  pull_request:
+    branches: [main]
+    paths: ["tutors/variants/rung-7-shipped/**", "tutors/variants/fixtures/**"]
+
+# Least privilege: read the code, nothing else. A job that needs more asks for it by name, in its own
+# workflow, never here.
+permissions:
+  contents: read
+
+concurrency:
+  group: ladder-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: tutors/variants/rung-7-shipped
+
+jobs:
+  test:
+    name: Single Gate (pnpm test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: tutors/variants/rung-7-shipped/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: tutors/variants/rung-7-shipped/.nvmrc
+          cache: pnpm
+          cache-dependency-path: tutors/variants/rung-7-shipped/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        run: pnpm test
+
+      - name: Every requirement is proved
+        run: pnpm test:ears:audit
+
+  e2e:
+    name: Browser tier (pnpm test:e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: tutors/variants/rung-7-shipped/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: tutors/variants/rung-7-shipped/.nvmrc
+          cache: pnpm
+          cache-dependency-path: tutors/variants/rung-7-shipped/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The same line upstream's ci.yml uses for its browser jobs.
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: The reader, the hostile course and the private course in Chromium
+        run: pnpm test:e2e
+
+  mutation:
+    name: Mutation floors
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: tutors/variants/rung-7-shipped/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: tutors/variants/rung-7-shipped/.nvmrc
+          cache: pnpm
+          cache-dependency-path: tutors/variants/rung-7-shipped/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Mutate the logic, release logic included
+        run: pnpm test:mutation
+
+      - name: Every file holds its floor
+        run: pnpm check:mutation-floors
+
+  release-checks:
+    name: Supply chain, claims and SLOs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: tutors/variants/rung-7-shipped/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: tutors/variants/rung-7-shipped/.nvmrc
+          cache: pnpm
+          cache-dependency-path: tutors/variants/rung-7-shipped/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Every dependency comes from the registry, pinned
+        run: pnpm audit:supply-chain
+
+      - name: Every claim has evidence
+        run: pnpm release:claims
+
+      - name: Every SLO is within budget
+        run: pnpm release:slo
+
+      - name: Readiness A3
+        run: pnpm release:readiness
+
+      - name: Show the A3 in the run summary
+        run: cat out/readiness.md >> "$GITHUB_STEP_SUMMARY"
+
+  container:
+    name: Container smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: tutors/variants/rung-7-shipped/.nvmrc
+
+      # The smoke script needs only Node and Docker (preinstalled on ubuntu-latest), not the dev tools.
+      - name: Build, run and check the image
+        run: node scripts/container-smoke.ts
+
+  # The one check to mark as required in branch protection. A skipped or cancelled job counts as a
+  # failure, so adding a job above means adding it to `needs` (the workflow test fails until you do).
+  gate:
+    name: Ladder CI success
+    if: always()
+    needs: [test, e2e, mutation, release-checks, container]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Nothing is checked out here, so the variant's folder does not exist: run in the workspace itself.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Every job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::A required job finished with '$result' (results: $RESULTS)"
+              exit 1
+            fi
+          done
