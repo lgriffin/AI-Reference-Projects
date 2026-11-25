@@ -46,7 +46,7 @@ test("arrange splits a topic into units, side units and loose cards", () => {
   const topic = findLo(tree, "/topic/sample/topic-01-basics")!;
   assert.equal(topic.type, "topic");
   const { units, sides, standardLos } = arrange(topic.type === "topic" ? topic : tree.course);
-  assert.deepEqual([units.length, sides.length, standardLos.length], [1, 1, 0]);
+  assert.deepEqual([units.map((lo) => lo.id), sides.map((lo) => lo.id), standardLos.length], [["unit-1-intro"], ["side-resources"], 0]);
   assert.deepEqual(arrange(tree.course).standardLos.map((lo) => lo.type), ["topic", "topic"]);
 });
 
@@ -54,4 +54,12 @@ test("a web card links out, an archive card has no link", () => {
   const los = [...tree.parents.keys()];
   assert.equal(cardRoute(los.find((lo) => lo.type === "web")!), "https://tutors.dev");
   assert.equal(cardRoute(los.find((lo) => lo.type === "archive")!), undefined);
+});
+
+// Added in rung 5 to kill mutants that survived the first Stryker run over the reader (see RUNG.md).
+test("the course has no parent, and every lab step's route carries the course id", () => {
+  assert.equal(tree.parents.has(tree.course), false);
+  const lab = findLo(tree, "/lab/sample/topic-02-practice/unit-1-lab/book-1-first-lab");
+  assert.equal(lab?.type, "lab");
+  if (lab?.type === "lab") assert.deepEqual(lab.los.map((step) => step.route), ["Lab-01-First-Steps", "Setup", "Build"].map((id) => `/lab/sample/topic-02-practice/unit-1-lab/book-1-first-lab/${id}`));
 });

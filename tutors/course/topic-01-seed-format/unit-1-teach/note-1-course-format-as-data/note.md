@@ -268,6 +268,33 @@ Upstream's `packages/jsr/tutors/main.ts` works in the current folder, prints "Ca
 there is none, and exits 0 either way (try it in Lab 1). `packages/jsr/tutors-cli/main.ts` puts the generator,
 `tutors-lite` and the validator behind one program: `tutors build`, `tutors website`, `tutors validate`.
 
+## Value first: the Tutors value stream
+
+Lean thinking starts with value, seen by the customer, and with the stream of steps that delivers it. Tutors
+has three customers, and the course format sits in the middle of the stream that serves all of them:
+
+~~~
+lecturer writes a folder -> validator checks it -> generator writes tutors.json -> host publishes it
+    -> reader fetches and decorates it -> student reads a page
+~~~
+
+| Customer | What they value | Where the course format serves them |
+| --- | --- | --- |
+| Student | the right content, on time, readable on any screen | one `tutors.json` holds the whole course, so the reader needs one request |
+| Lecturer | publishing by renaming folders and pushing; a clear message when something is wrong | the grammar is just names; V002 says exactly what to rename |
+| Contributor | a change they can understand, and one command that says it is done | a small model (`src/model.ts`) and one gate (`npm test`) |
+
+Map the waste in the stream, too. The worst one in this note is a **defect that travels**: a misnamed folder
+passes the generator silently, is published, and is discovered by a student who cannot find a note. The
+validator moves that discovery to the first step, where it is cheapest to fix. The upstream crash on a
+course with no `properties.yaml` (Lab 1, step 9) is the opposite: two steps of the same stream disagree about
+what a valid course is, and the lecturer finds out late.
+
+Each rung of the ladder improves one step of this stream. Rung 1 rebuilds the generator step. Rung 2 adds a
+second way to the student's screen (a static site). Rung 5 rebuilds the reader. Rung 6 protects the student
+and the private course; rung 7 makes the host step repeatable and safe. Keep this map: from week 2 on, each
+week names the step it improves.
+
 ## Which levels guard this week's rules
 
 | Rule | Level | Where it is kept |
@@ -298,5 +325,7 @@ the Assertion Ladder.
    `# Objectives`) and `img/main.png`. Then predict it without `img/`.
 7. **(Analyse)** The generator ignores a misnamed folder and the validator reports it. Which Assertion Ladder
    level does each sit at for that rule, and why is the gap dangerous?
-8. **(Evaluate)** Rung 1 exits 1 when there is no `course.md`; upstream exits 0. Which is better for a script
+8. **(Understand)** Name the three customers of Tutors and one thing each values. Which step of the value
+   stream does rung 1 rebuild?
+9. **(Evaluate)** Rung 1 exits 1 when there is no `course.md`; upstream exits 0. Which is better for a script
    that runs in CI, and why?

@@ -7,6 +7,9 @@
     "packages/gen/src/lo-kinds.ts": 100,
     "packages/gen/src/memory-file-system.ts": 100,
     "packages/lite/src/html.ts": 100,
-    "packages/lite/src/markdown.ts": 87
+    "packages/lite/src/markdown.ts": 87,
+    "apps/reader/src/lib/course/course-service.ts": 96,
+    "apps/reader/src/lib/course/live-lab.ts": 100,
+    "apps/reader/src/lib/course/lo-tree.ts": 100
   }
 }

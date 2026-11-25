@@ -29,6 +29,13 @@ By the end of this week you will be able to:
    and cannot catch.
 5. **(Create)** Add the `github` kind to rung 1 so that it agrees with upstream (the rung 1 assignment).
 
+## Lean focus
+
+Standard work: the Single Gate (`npm test`) and the manifest (`AGENTS.md`) as the agreed way to do and
+finish a change, and defects caught early, at L5 in the editor or L3 in the gate, instead of late in a
+student's browser. This week rung 1 improves the generator step of the Tutors value stream. The lab ends with
+a Kaizen step.
+
 ## This week
 
 - Talks: "Unions and never" and "Agree with upstream".

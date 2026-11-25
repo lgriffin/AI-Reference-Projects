@@ -28,6 +28,12 @@ By the end of this week you will be able to:
    guards a given rule.
 5. **(Create)** Write the week's rule as an informal EARS "shall" sentence.
 
+## Lean focus
+
+Value and the customer. Who is Tutors for, and what does each of them value? The reading note maps the
+Tutors value stream, from a lecturer's folder to a student's screen, and every later rung says which step of
+that stream it improves. The lab ends with a short Kaizen step: one waste, its cause, one improvement.
+
 ## This week
 
 - Talks: "Tutors and the two ladders" and "The course as data".

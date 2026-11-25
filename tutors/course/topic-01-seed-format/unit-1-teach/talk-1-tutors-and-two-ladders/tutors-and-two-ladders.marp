@@ -63,6 +63,23 @@ Counted from the clone at `2b96b69` with `ls`, `git ls-files` and `grep`. Recoun
 
 ---
 
+## Value first: the Tutors value stream
+
+```
+lecturer writes   ->  validator   ->  generator    ->  host        ->  reader      ->  student reads
+a folder              checks it       tutors.json      (Netlify)       fetches it      and learns
+```
+
+| Customer | What they value |
+| --- | --- |
+| Student | the right content, on time, readable on any screen |
+| Lecturer | publish by renaming folders and pushing; a clear message when something is wrong |
+| Contributor | a change they understand, a gate that says "done", no surprises |
+
+Each rung improves one step of this stream. Rung 1 is the generator step. (Lean: value and the customer.)
+
+---
+
 ## What it takes to run
 
 - Node.js 26.13.0 or later (`engines` in `package.json`; `.nvmrc`)

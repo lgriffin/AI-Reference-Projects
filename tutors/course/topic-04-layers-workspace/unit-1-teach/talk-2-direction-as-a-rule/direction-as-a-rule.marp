@@ -1,0 +1,226 @@
+---
+marp: true
+theme: default
+paginate: true
+---
+
+# Direction as a rule
+
+### The README's arrows, kept as a test
+
+Week 4, rung 3 of 7 (Layers), talk 2
+
+---
+
+## A diagram is L2
+
+The README of rung 3 draws the layers and lists who may import what:
+
+```
+apps/cli ──► @ladder/gen ──► @ladder/model
+    │                            ▲
+    └──────► @ladder/lite ───────┘
+```
+
+A coding agent may read it, forget it, or decide that "just this once" `lite` can import a helper from
+`gen`. `AGENTS.md` says it plainly: "The layering, the port rule and the README's Architecture section say
+the same thing; the tests decide."
+
+So each arrow climbs to L3, a test, with an L4 message.
+
+---
+
+## The table the rules read
+
+```ts
+// variants/rung-3-layers/tests/architecture/architecture.test.ts
+/** Each layer, where it lives, the only workspace packages it may import, and why. */
+const LAYERS: Record<string, { dir: string; may: string[]; job: string }> = {
+  "@ladder/model": { dir: "packages/model", may: [], job: "model is the shared vocabulary of types; ..." },
+  "@ladder/gen":   { dir: "packages/gen", may: ["@ladder/model"], job: "gen turns a course folder into a Course; ..." },
+  "@ladder/lite":  { dir: "packages/lite", may: ["@ladder/model"], job: "lite turns a Course into HTML; ..." },
+  "@ladder/cli":   { dir: "apps/cli", may: ["@ladder/model", "@ladder/gen", "@ladder/lite"], job: "cli is the composition root ..." },
+};
+```
+
+Each layer carries its **reason**, the `job`. The reason goes into the failure, so whoever meets it learns
+why, not just what.
+
+---
+
+## How the test reads code
+
+```ts
+/** Source without comments, so a comment may name what the code must not do. */
+const stripComments = (text: string) => text.replace(/\/\*[\s\S]*?\*\/|(?<![:"'])\/\/.*$/gm, "");
+
+const modules: Module[] = Object.entries(LAYERS).flatMap(([layer, { dir }]) =>
+  readdirSync(join(ROOT, dir, "src"), { recursive: true, encoding: "utf8" })
+    .filter((file) => file.endsWith(".ts"))
+    .map((file) => ({ layer, file: `${dir}/src/${file}`, source: stripComments(readFileSync(...)) })));
+
+const specifiers = (source: string) =>
+  [...source.matchAll(/(?:from|import)\s*\(?\s*"([^"]+)"/g)].map((match) => match[1]!);
+```
+
+Plain text and regular expressions, with `node:test`. No parser and no dependency: enough for four
+packages whose imports are all `import ... from "..."`.
+
+---
+
+## Four rules about direction
+
+| Rule | Checks | Applies to |
+| --- | --- | --- |
+| Layering | workspace imports are in the layer's `may` list | every file |
+| Package boundary | a relative import never leaves its own `src/` | every file |
+| Model | only `export type` and `export interface`; no imports | `model` |
+| Closure | `package.json` declares exactly the `@ladder/*` packages the source imports | every package |
+
+Two more rules, Port and Honest Double, guard the edges. They are next week's.
+
+---
+
+## A teaching failure: layering
+
+`packages/lite/src/site-builder.ts` gains `import { parseMarkdown } from "@ladder/gen";`
+
+```
+not ok 10 - packages/lite/src/site-builder.ts
+  Layering rule: @ladder/lite may import only [@ladder/model], because lite turns a Course into HTML;
+  it never reads a course folder, so it can render any tutors.json. Move the code to a layer that may
+  make this import, or take what you need as an argument; apps/cli wires the layers together
+  (README.md, Architecture).
+    packages/lite/src/site-builder.ts imports @ladder/gen
+not ok 15 - each package.json declares exactly the workspace packages its source imports
+  Closure rule: ... Add the missing dependency as "workspace:*", or remove the unused one, ...
+    packages/lite/package.json declares [@ladder/model] but its src imports [@ladder/gen, @ladder/model]
+```
+
+The rule, the offender, the reason, and the ways out. That is L4.
+
+---
+
+## Two rules, two fixes: which wins?
+
+The Closure rule offers "add the missing dependency". That turns Closure green and leaves Layering red.
+
+- Closure is about **consistency**: the manifest and the imports agree.
+- Layering is about **intent**: this arrow should not exist.
+
+When two rules disagree about the fix, the one that names the **reason** wins. Here `lite` does not need
+`parseMarkdown` at all: the `Course` it receives already has titles.
+
+And `pnpm test` stops even earlier, at `tsc -p packages/lite`: `TS2307: Cannot find module '@ladder/gen'`.
+pnpm links into a package only what it declares.
+
+---
+
+## The other two, failing
+
+```
+Model rule: packages/model holds only `export type` and `export interface`, and imports nothing, so it
+adds no code and no dependency to any layer. Put functions and constants in the layer that uses them
+(preOrder and folderKinds live in gen).
+    packages/model/src/index.ts: export const LO_TYPES = ["course", "topic"];
+
+Package boundary rule: a relative import may not leave packages/lite/src. Import another package by its
+name (@ladder/...) through its index.ts, and only if the layering rule allows it.
+    packages/lite/src/site-builder.ts imports "../../gen/src/file-system-port.ts"
+```
+
+The Layering rule is silent on the second: it reads only `@ladder/` names. That gap is why the boundary rule
+exists.
+
+---
+
+## A cycle, caught three ways
+
+`packages/model/src/index.ts` gains `import type { FileSystemPort } from "@ladder/gen";`
+
+```
+Layering rule: @ladder/model may import only [], because model is the shared vocabulary of types; ...
+    packages/model/src/index.ts imports @ladder/gen
+Model rule: packages/model holds only `export type` and `export interface`, and imports nothing, ...
+Closure rule: ... packages/model/package.json declares [] but its src imports [@ladder/gen]
+# fail 3
+```
+
+`gen` already imports `model`, so this is a cycle: neither package can change alone. Upstream's rule is
+`no-cross-package-cycle` in `.dependency-cruiser.cjs`: "A cycle that leaves a workspace and comes back makes
+the layering meaningless; invert one edge through a seam."
+
+---
+
+## Lean: coupling builds in handoffs
+
+| If this arrow existed | The waste it would create |
+| --- | --- |
+| `lite` → `gen` | every change to `gen` is a **handoff** to `lite`: relearn, re-test, wait |
+| `model` → `gen` | a **cycle**: neither package can be released or tested alone; work waits on work |
+| a relative import into `gen/src` | **relearning**: a private helper becomes public by accident, and its next change breaks a stranger |
+| a runtime helper in `model` | **extra features** in the one package everybody depends on |
+
+Each direction rule removes one of these before it happens. The teaching failure removes another waste:
+**relearning** why the rule exists, every time someone meets it.
+
+---
+
+## The Human Boundary around the rules
+
+```markdown
+<!-- variants/rung-3-layers/AGENTS.md, "Ask a human first" -->
+- Adding or upgrading any dependency, or changing `tests/rung-fence.test.ts`.
+- Changing `tests/architecture/`, a package's `tsconfig.json`, or the port's methods.
+- Adding a package or app, or changing this file.
+```
+
+An agent that meets the Layering rule changes the code. Only a person changes `LAYERS`. Next week's
+assignment is exactly such a change: a new package, with you, not the agent, deciding where it sits.
+
+---
+
+## Upstream: dependency-cruiser
+
+```js
+// .dependency-cruiser.cjs (tutors-mono-repo 2b96b69)
+const LAYERS = [
+  { name: "foundation", paths: ["packages/jsr/[^/]+", "packages/svelte/utils/logger", "packages/svelte/utils/metrics"] },
+  { name: "core", paths: ["packages/svelte/runes", "packages/svelte/course", ...] },
+  ...
+];
+const layerRules = LAYERS.slice(0, -1).map((layer, index) => ({
+  name: `layer-${layer.name}`,
+  comment: `The ${layer.name} layer must not import from a layer above it (...). See the Architecture section of README.md.`,
+  from: { path: anyOf(layer.paths) },
+  to: { path: anyOf(LAYERS.slice(index + 1).flatMap((l) => l.paths)) }
+}));
+```
+
+Plus named rules such as `no-app-to-app` and `no-cross-workspace-relative-import` (rung 3's Package
+boundary rule). The same ideas, on a resolved module graph.
+
+---
+
+## Text rules or a graph?
+
+| | Rung 3 (text and regex) | Upstream (dependency-cruiser) |
+| --- | --- | --- |
+| Dependency | none | `dependency-cruiser` |
+| Sees | `import ... from "..."` in source | the resolved module graph, `.svelte` included |
+| Proves a rule can fail | the lab, by hand | negative fixtures in `tests/architecture/fixtures/workspace` |
+| Old violations | none allowed | a ratchet, `tests/architecture/known-violations.txt` |
+
+Rung 3's rule count is small enough for text. Upstream needs the graph. Both put the reason in the message.
+
+---
+
+## Summary
+
+- the README's diagram is L2; the architecture test makes each arrow L3 with an L4 message
+- the reason for each layer lives in `LAYERS`, so in every failure
+- when two fixes compete, follow the rule that names the reason
+- coupling is built-in handoff waste; direction rules remove it before it starts
+- upstream keeps the same rules with dependency-cruiser
+
+Read "Dependency direction", then break the layers in Lab 4.

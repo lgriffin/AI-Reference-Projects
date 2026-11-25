@@ -74,3 +74,12 @@ test("requestLab opens a lab, or says whether the course or the step is missing"
   assert.deepEqual(await requestLab("sample", `${lab}/Nope`, fetch), { notFound: `Not found: a lab step at ${lab}/Nope` });
   assert.deepEqual(await requestLab("missing", lab, fetch), { notFound: 'Not found: the course "missing"' });
 });
+
+// Added in rung 5 to kill mutants that survived the first Stryker run over the reader (see RUNG.md).
+test("a course id the reader refuses is never fetched, and readLab of a missing course is undefined", async () => {
+  const { fetch, requests } = fakeFetch();
+  assert.equal(await readCourse("../secrets", fetch), undefined);
+  assert.equal(await readLab("../secrets", "/lab/x/y", fetch), undefined);
+  assert.equal(await readLab("missing-lab-course", "/lab/missing-lab-course/y", fetch), undefined);
+  assert.deepEqual(requests, ["/courses/missing-lab-course/tutors.json"]);
+});

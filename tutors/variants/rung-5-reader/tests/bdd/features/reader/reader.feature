@@ -1,4 +1,4 @@
-@developer
+@student
 Feature: The reader shows a course from its tutors.json
   As a student reading a course in a browser
   I want each URL to open the right page, and a clear answer when it names nothing
@@ -7,7 +7,9 @@ Feature: The reader shows a course from its tutors.json
   The scenarios call the reader's plain logic in apps/reader/src/lib/course (the course service, lo-tree and
   live-lab), the code each route's +page.ts runs, with a stand-in host that serves upstream's tutors.json for
   the shared fixture. They need no browser: what a learner sees and clicks is proved again, in Chromium, by
-  `pnpm test:e2e`. Upstream keeps its reader's Rules in tests/bdd/features/reader.
+  `pnpm test:e2e`. Upstream states the same kind of Rule for its reader in
+  tests/bdd/features/course/course-loading.feature (fetch tutors.json once, replace the course URL
+  placeholder) and course-navigation.feature (a lab opens at its first step, breadcrumbs).
 
   @R-014 @ears-ubiquitous
   Rule: The reader shall fetch a course's tutors.json at most once, from /courses/ followed by the course id, and reuse it for every page of that course.
