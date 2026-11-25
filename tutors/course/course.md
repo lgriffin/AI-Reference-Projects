@@ -76,7 +76,7 @@ On completing the module you will be able to:
 | M1 | 1, 2, 3, 8 | A1, A2 |
 | M2 | 1, 2, 3, every week's lab | A1, A2, A8 |
 | M3 | 2, 3, 4, 5, 9 | A1, A2, A3, A5 |
-| M4 | 2, 3, 5, 7 | A1, A2, A3, A4 |
+| M4 | 2, 3, 4, 5, 6, 7 | A1, A2, A3, A4 |
 | M5 | 4, 5 | A3 |
 | M6 | 6, 7, 8, 9 | A4, A5 |
 | M7 | 3, 10, 11 | A2, A6, A7 |

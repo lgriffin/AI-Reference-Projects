@@ -1,5 +1,5 @@
 /**
- * Grading test for Assignment 09, "A next and previous navigator" (tutors/course/topic-09-reader-components,
+ * Grading test for Assignment 5, "A next and previous navigator" (tutors/course/topic-09-reader-components,
  * the last week of rung 5). It skips in the gate; a learner runs it with:
  *
  *   pnpm test:assignment      # these tests, then a build and the browser check in lo-pager.e2e.ts
@@ -41,7 +41,7 @@ async function load(): Promise<{ pager: Pager; tree: Tree }> {
   return { pager, tree: decorateCourseTree(JSON.parse(readFileSync(ORACLE, "utf8")), "sample") };
 }
 
-describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 09: a next and previous navigator", () => {
+describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 5: a next and previous navigator", () => {
   test("AC1: REQUIREMENTS.md states the reading-order rule in EARS, implemented in the reader", () => {
     const found = requirement();
     expect(found, 'AC1: no requirement says "the reader shall" and "reading order". Specify first: add a row with the next id (pnpm test:ears:audit --next-id).').toBeDefined();

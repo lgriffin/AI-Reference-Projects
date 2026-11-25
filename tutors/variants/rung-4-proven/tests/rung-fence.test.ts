@@ -34,7 +34,8 @@ const TEST_TOOLS = /^(vitest|@vitest\/|@amiceli\/|fast-check|@stryker-mutator\/)
 
 /** Where a package that is not allowed here arrives, so the failure can say which rung to climb to. */
 const LATER: [pattern: RegExp, rung: string][] = [
-  [/^(svelte|@sveltejs\/|vite|@vitejs\/|markdown-it|marked|remark|micromark|@marp-team\/)/, "rung 5 (Reader)"],
+  [/^(svelte|@sveltejs\/|vite|@vitejs\/)/, "rung 5 (Reader)"],
+  [/^(markdown-it|marked|remark|micromark|@marp-team\/)/, "the Summit (the ladder keeps its own Markdown subset)"],
   [/^playwright$/, "rung 5 (Reader), which drives Chromium for its smoke test (upstream apps/reader/tests/e2e)"],
   [/^(@playwright\/|@axe-core\/)/, "the Summit (upstream's Playwright runner and axe checks in apps/reader/tests/e2e; rung 5 drives Chromium with the playwright library)"],
   [/^(@cucumber\/|jest|mocha|ava|tap)/, "no rung: rung 4 (Proven) chose vitest and @amiceli/vitest-cucumber, as upstream does"],

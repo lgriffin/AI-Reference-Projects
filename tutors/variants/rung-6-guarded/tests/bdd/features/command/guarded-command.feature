@@ -43,7 +43,7 @@ Feature: The command refuses to publish what it should not
       When the command builds it with "--private"
       Then it exits with status 0
       And every page it wrote holds '<meta name="robots" content="noindex, nofollow">'
-      And every page it wrote holds '<p class="private" role="note">Private course'
+      And every page it wrote shows '<p class="private" role="note">Private course'
 
     Scenario: A public course built with --private is not marked
       Given the hostile course

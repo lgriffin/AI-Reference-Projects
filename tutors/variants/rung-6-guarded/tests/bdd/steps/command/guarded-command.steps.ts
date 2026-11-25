@@ -87,10 +87,12 @@ describeFeature(feature, ({ Rule }) => {
       Given("the private course", theCourse(PRIVATE));
       When("the command builds it with {string}", builds);
       Then("it exits with status {int}", exits);
-      And("every page it wrote holds {string}", (_ctx, text: string) => {
+      const everyPageHolds = (_ctx: unknown, text: string) => {
         expect(pages().length).toBeGreaterThan(0);
         for (const html of pages()) expect(html).toContain(text);
-      });
+      };
+      And("every page it wrote holds {string}", everyPageHolds);
+      And("every page it wrote shows {string}", everyPageHolds);
     });
 
     RuleScenario("A public course built with --private is not marked", ({ Given, When, Then, And }) => {

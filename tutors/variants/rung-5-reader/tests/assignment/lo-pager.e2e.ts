@@ -1,11 +1,11 @@
 /**
- * Grading check in a browser for Assignment 09 (AC7). Run with `pnpm test:assignment`, which builds the
+ * Grading check in a browser for Assignment 5 (AC7). Run with `pnpm test:assignment`, which builds the
  * reader first. Skipped unless LADDER_ASSIGNMENT=1.
  */
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { openReader, type Reader } from "../e2e/serve.ts";
 
-describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 09 in a browser", () => {
+describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 5 in a browser", () => {
   let reader: Reader;
   beforeAll(async () => {
     reader = await openReader();
