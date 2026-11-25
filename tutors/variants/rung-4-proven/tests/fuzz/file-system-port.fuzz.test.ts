@@ -13,7 +13,7 @@ import type { FileSystemPort } from "@ladder/gen";
 import { nodeFileSystem, sorted } from "../support/adapters.ts";
 import { fuzzParameters } from "../support/fuzz.ts";
 
-const scratch = mkdtempSync(join(tmpdir(), "rung-5-honest-"));
+const scratch = mkdtempSync(join(tmpdir(), "rung-4-honest-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 let run = 0;
 

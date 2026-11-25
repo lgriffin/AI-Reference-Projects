@@ -1,8 +1,8 @@
 /**
  * A small Markdown renderer: headings, paragraphs, lists, code fences, links, images, bold and emphasis.
  * Everything else is shown as text. Every character of input is escaped before any tag is added, so
- * the output is SafeHtml. A full Markdown library arrives in rung 4 (Reader); sanitising links such as
- * `javascript:` is rung 6 (Guarded).
+ * the output is SafeHtml. A full Markdown library is left to the Summit (upstream uses markdown-it);
+ * sanitising links such as `javascript:` is rung 6 (Guarded).
  */
 import { escapeHtml, SafeHtml } from "./html.ts";
 

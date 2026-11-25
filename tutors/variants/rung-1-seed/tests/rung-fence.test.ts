@@ -17,7 +17,7 @@ const ALLOWED: Record<string, string[]> = { dependencies: [], devDependencies: [
 
 /** Things this rung's source must not do, and the rung that introduces each. */
 const FORBIDDEN: { pattern: RegExp; what: string; why: string }[] = [
-  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The generator reads a folder and writes a file; it never needs the network. The first network call is the reader loading tutors.json in rung 4 (Reader)." },
+  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The generator reads a folder and writes a file; it never needs the network. The first network call is the reader loading tutors.json in rung 5 (Reader)." },
   { pattern: /"node:child_process"|"node:worker_threads"/, what: "other processes or threads", why: "The generator is one process that reads files and writes one; no rung of it starts another." },
   { pattern: /\.html\b|<html|<body/i, what: "HTML output", why: "A website arrives in rung 2 (Lite)." },
 ];
@@ -44,7 +44,7 @@ test("package.json declares only the dependencies this rung allows", () => {
       if (ALLOWED[section]?.includes(name)) continue;
       violations.push(
         `Rung Fence, ${RUNG}: package.json declares "${name}" in ${section}. Rung 1 has no dependencies and needs no install. ` +
-          "TypeScript arrives as a dev dependency in rung 3 (Layers); runtime packages such as Svelte or a Markdown library arrive in rung 4 (Reader). " +
+          "TypeScript arrives as a dev dependency in rung 3 (Layers), test libraries such as Vitest in rung 4 (Proven), runtime packages such as Svelte in rung 5 (Reader), and a full Markdown library only at the Summit. " +
           "Write the code with Node's built-ins instead.",
       );
     }
@@ -59,7 +59,7 @@ test("src imports only node: built-ins and relative files", () => {
     for (const specifier of specifiers.filter((s) => !s.startsWith("node:") && !s.startsWith("./") && !s.startsWith("../"))) {
       violations.push(
         `Rung Fence, ${RUNG}: ${shortName(file)} imports "${specifier}". Rung 1 may import only node: built-ins (node:fs, node:path) and relative files. ` +
-          "Workspace packages arrive in rung 3 (Layers) and npm packages in rung 4 (Reader). Write it with a node: built-in, or as a small function in src/.",
+          "Workspace packages arrive in rung 3 (Layers), test libraries in rung 4 (Proven) and runtime packages such as Svelte in rung 5 (Reader). Write it with a node: built-in, or as a small function in src/.",
       );
     }
   }

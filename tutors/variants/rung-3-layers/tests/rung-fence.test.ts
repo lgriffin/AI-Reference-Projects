@@ -18,20 +18,22 @@ const PACKAGES = ["", "packages/model", "packages/gen", "packages/lite", "apps/c
 /** The only outside packages this rung allows: dev tools in the root package.json, never at run time. */
 const ALLOWED_DEV = ["typescript", "@types/node"];
 
-/** Where a package that is not allowed here arrives, so the failure can say which rung to climb to. */
+/** Where a package that is not allowed here arrives ("arrives in rung 5 (Reader)"), so the failure can say which rung to climb to. */
 const LATER: [pattern: RegExp, rung: string][] = [
-  [/^(svelte|@sveltejs\/|vite|@vitejs\/|markdown-it|marked|remark|micromark|@marp-team\/)/, "rung 4 (Reader)"],
-  [/^(vitest|@vitest\/|@stryker-mutator\/|fast-check|@cucumber\/|@amiceli\/|playwright|@playwright\/)/, "rung 5 (Proven)"],
-  [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "the Summit (rung 6 Guarded sanitises by allow-list and fakes identity without a library)"],
-  [/^(@changesets\/|semantic-release|release-please)/, "rung 7 (Shipped)"],
+  [/^(vitest|@vitest\/|@stryker-mutator\/|fast-check|@amiceli\/)/, "in rung 4 (Proven), the next rung: tests as specification, with EARS, Given/When/Then, properties and mutants"],
+  [/^(@cucumber\/|jest|mocha|ava$|tap$)/, "on no rung: rung 4 (Proven) chose vitest and @amiceli/vitest-cucumber, as upstream does"],
+  [/^(svelte|svelte-check|@sveltejs\/|vite|@vitejs\/|playwright|@playwright\/)/, "in rung 5 (Reader)"],
+  [/^(markdown-it|marked|remark|micromark|@marp-team\/)/, "only at the Summit (every rung keeps lite's small Markdown renderer; upstream renders with markdown-it)"],
+  [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "at the Summit (rung 6 Guarded sanitises by allow-list and fakes identity without a library)"],
+  [/^(@changesets\/|semantic-release|release-please)/, "in rung 7 (Shipped)"],
 ];
-const arrivesIn = (name: string) => LATER.find(([pattern]) => pattern.test(name))?.[1] ?? "a later rung, which names it in its RUNG.md";
+const arrivesIn = (name: string) => LATER.find(([pattern]) => pattern.test(name))?.[1] ?? "in a later rung, which names it in its RUNG.md";
 
 /** Things this rung's source must not do, and why. */
 const FORBIDDEN: { pattern: RegExp; what: string; why: string }[] = [
-  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The tools read a folder and write files; they never need the network. The first network call is the reader loading tutors.json in rung 4 (Reader)." },
+  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The tools read a folder and write files; they never need the network. The first network call is the reader loading tutors.json in rung 5 (Reader)." },
   { pattern: /"node:child_process"|"node:worker_threads"/, what: "other processes or threads", why: "The command is one process that reads files and writes files; no rung of it starts another." },
-  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 3 writes static pages. Interactive pages arrive with Svelte in rung 4 (Reader)." },
+  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 3 writes static pages. Interactive pages arrive with Svelte in rung 5 (Reader)." },
 ];
 
 /** Source without comments, so a comment may name what the code must not do. */
@@ -59,7 +61,7 @@ test("no package.json declares a dependency this rung does not allow", () => {
         if (workspace || devTool) continue;
         violations.push(
           `Rung Fence, ${RUNG}: ${file} declares "${name}" in ${section}. Rung 3 has no runtime dependencies: packages depend only on each other ("@ladder/...": "workspace:*"), ` +
-            `and the root may add only the dev tools [${ALLOWED_DEV.join(", ")}]. "${name}" arrives in ${arrivesIn(name)}. Write it with Node's built-ins, in the layer it belongs to.`,
+            `and the root may add only the dev tools [${ALLOWED_DEV.join(", ")}]. "${name}" arrives ${arrivesIn(name)}. Write it with Node's built-ins, in the layer it belongs to.`,
         );
       }
     }
@@ -74,7 +76,7 @@ test("source imports only node: built-ins, relative files and @ladder packages",
     for (const specifier of specifiers.filter((s) => !/^(node:|\.\.?\/|@ladder\/)/.test(s))) {
       violations.push(
         `Rung Fence, ${RUNG}: ${file} imports "${specifier}". Rung 3 may import only node: built-ins, relative files and the workspace's own @ladder packages. ` +
-          `"${specifier}" arrives in ${arrivesIn(specifier)}.`,
+          `"${specifier}" arrives ${arrivesIn(specifier)}.`,
       );
     }
   }

@@ -17,9 +17,9 @@ const ALLOWED: Record<string, string[]> = { dependencies: [], devDependencies: [
 
 /** Things this rung's source must not do, and the rung that introduces each. */
 const FORBIDDEN: { pattern: RegExp; what: string; why: string }[] = [
-  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The generator reads a folder and writes a file; it never needs the network. The first network call is the reader loading tutors.json in rung 4 (Reader)." },
+  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The generator reads a folder and writes a file; it never needs the network. The first network call is the reader loading tutors.json in rung 5 (Reader)." },
   { pattern: /"node:child_process"|"node:worker_threads"/, what: "other processes or threads", why: "The generator is one process that reads files and writes one; no rung of it starts another." },
-  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 2 writes static pages. Interactive pages arrive with Svelte in rung 4 (Reader)." },
+  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 2 writes static pages. Interactive pages arrive with Svelte in rung 5 (Reader)." },
 ];
 
 function sourceFiles(dir: string): string[] {
@@ -44,8 +44,8 @@ test("package.json declares only the dependencies this rung allows", () => {
       if (ALLOWED[section]?.includes(name)) continue;
       violations.push(
         `Rung Fence, ${RUNG}: package.json declares "${name}" in ${section}. Rung 2 has no dependencies and needs no install. ` +
-          "Its Markdown renderer is the small one in src/markdown.ts on purpose: a full Markdown library arrives in rung 4 (Reader), " +
-          "TypeScript as a dev dependency in rung 3 (Layers), and URL sanitising by allow-list in rung 6 (Guarded). Extend src/markdown.ts instead.",
+          "Its Markdown renderer is the small one in src/markdown.ts on purpose: TypeScript as a dev dependency arrives in rung 3 (Layers), " +
+          "test libraries in rung 4 (Proven), URL sanitising by allow-list in rung 6 (Guarded), and a full Markdown library only at the Summit. Extend src/markdown.ts instead.",
       );
     }
   }
@@ -59,7 +59,7 @@ test("src imports only node: built-ins and relative files", () => {
     for (const specifier of specifiers.filter((s) => !s.startsWith("node:") && !s.startsWith("./") && !s.startsWith("../"))) {
       violations.push(
         `Rung Fence, ${RUNG}: ${shortName(file)} imports "${specifier}". Rung 2 may import only node: built-ins (node:fs, node:path) and relative files. ` +
-          "Workspace packages arrive in rung 3 (Layers) and npm packages in rung 4 (Reader). Write it with a node: built-in, or as a small function in src/.",
+          "Workspace packages arrive in rung 3 (Layers), test libraries in rung 4 (Proven) and runtime packages such as Svelte in rung 5 (Reader). Write it with a node: built-in, or as a small function in src/.",
       );
     }
   }

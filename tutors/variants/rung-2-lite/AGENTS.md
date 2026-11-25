@@ -36,7 +36,7 @@ gets a case in the escaping test of `tests/site-builder.test.ts`.
 This rung uses Node and nothing else. `tests/rung-fence.test.ts` fails, naming the file and the rung that
 introduces the capability, if:
 
-- `package.json` gains any dependency (a Markdown library arrives in rung 4);
+- `package.json` gains any dependency (a Markdown library waits for the Summit);
 - `src/` imports anything but `node:` built-ins and relative files;
 - `src/` uses the network, starts another process, or writes client-side script.
 

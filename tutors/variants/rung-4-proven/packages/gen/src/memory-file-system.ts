@@ -14,7 +14,7 @@ export class MemoryFileSystem implements FileSystemPort {
 
   list(dir: string): Promise<DirEntry[]> {
     const prefix = normalise(dir) === "" ? "" : `${normalise(dir)}/`;
-    // Like readdir: a folder that is not there, or a file, cannot be listed. Rung 5's contract test found this drift.
+    // Like readdir: a folder that is not there, or a file, cannot be listed. Rung 4's contract test found this drift.
     if (prefix !== "" && ![...this.files.keys()].some((key) => key.startsWith(prefix))) return Promise.reject(new Error(`${dir}: no such folder`));
     const entries = new Map<string, DirEntry>();
     for (const path of this.files.keys()) {

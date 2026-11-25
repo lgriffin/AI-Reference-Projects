@@ -1,5 +1,5 @@
 /**
- * Grading test for Assignment 06, "Hidden topics" (tutors/course/topic-06-proven). It skips in the gate;
+ * Grading test for Assignment 07, "Hidden topics" (tutors/course/topic-07-proven-bdd, the last week of rung 4). It skips in the gate;
  * a learner runs it with:
  *
  *   LADDER_ASSIGNMENT=1 pnpm exec vitest run tests/assignment
@@ -22,7 +22,7 @@ const COURSE = { "course.md": "# C\nA course.\n", "topic-1/topic.md": "# One\n1\
 const hidden = async (files: Record<string, string>) =>
   (await buildCourse(new MemoryFileSystem(files), "c")).los.filter((lo) => (lo as { hide?: boolean }).hide === true).map((lo) => lo.id);
 
-describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 06: hidden topics", () => {
+describe.skipIf(!process.env.LADDER_ASSIGNMENT)("Assignment 07: hidden topics", () => {
   test("AC1: REQUIREMENTS.md states the rule in EARS, event-driven, implemented in gen", () => {
     const found = requirement();
     expect(found, "AC1: no requirement mentions properties.yaml, ignore and hide. Add a row with the next id (pnpm test:ears:audit --next-id).").toBeDefined();

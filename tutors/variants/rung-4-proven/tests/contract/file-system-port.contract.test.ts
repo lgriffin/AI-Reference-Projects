@@ -5,7 +5,7 @@
  * tests/architecture checks that it does. tests/fuzz/file-system-port.fuzz.test.ts runs the same
  * comparison over random course trees.
  *
- * Rung 5 extended the contract with the failure cases. The first run caught a real drift: listing a folder
+ * Rung 4 extended the contract with the failure cases. The first run caught a real drift: listing a folder
  * that is not there rejected on disk and gave [] in memory, so a test on the double could pass where the
  * command would crash.
  */

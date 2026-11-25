@@ -1,5 +1,5 @@
 /**
- * The test tiers' architecture: rung 5 adds two layers, tests/ (one folder per tier) and scripts/checks
+ * The test tiers' architecture: rung 4 adds two layers, tests/ (one folder per tier) and scripts/checks
  * (the pure logic behind the repository checks). Every failure names the rule, the offender and the fix.
  */
 import { test } from "vitest";

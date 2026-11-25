@@ -1,7 +1,7 @@
 {
-  "name": "@ladder/rung-5-proven",
+  "name": "@ladder/rung-4-proven",
   "version": "1.0.0",
-  "description": "Tutors ladder, rung 5 (Proven): the rung 3 tools, specified by tests: EARS, BDD, contracts, conformance, properties and mutation",
+  "description": "Tutors ladder, rung 4 (Proven): the rung 3 tools, specified by tests: EARS, BDD, contracts, conformance, properties and mutation",
   "type": "module",
   "private": true,
   "engines": {

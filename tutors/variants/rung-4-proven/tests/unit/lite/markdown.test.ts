@@ -33,7 +33,7 @@ test("every piece of input is escaped: text, code, link text, URLs and alt text"
   assert.equal(md("# <img src=x onerror=alert(1)>"), "<h1>&lt;img src=x onerror=alert(1)&gt;</h1>");
 });
 
-// Added in rung 5 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
+// Added in rung 4 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
 
 test("block marks count only at the start of a line", () => {
   assert.equal(md("C# is # fun"), "<p>C# is # fun</p>");

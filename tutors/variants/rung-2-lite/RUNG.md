@@ -32,8 +32,8 @@ Pinned at tutors-mono-repo `2b96b69`.
 
 ## Deliberately left out
 
-- A full Markdown library (tables, math, Mermaid, syntax highlighting, the `::video` directive). It
-  arrives in rung 4 (Reader). The small renderer shows anything it does not know as text.
+- A full Markdown library (tables, math, Mermaid, syntax highlighting, the `::video` directive). No
+  rung of the ladder adds one; upstream's markdown-it waits for the Summit. The small renderer shows anything it does not know as text.
 - Sanitising. Every character is escaped, so no tag or attribute can be injected, but a
   `[link](javascript:...)` keeps its URL. Rung 6 (Guarded) closes that.
 - Copying images and archives into the site, so Markdown images and archive files are not served.

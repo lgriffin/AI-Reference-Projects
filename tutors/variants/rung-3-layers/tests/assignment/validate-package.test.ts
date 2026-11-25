@@ -1,5 +1,5 @@
 /**
- * Grading test for the Layers assignment (course topic-04-layers, "A @ladder/validate package").
+ * Grading test for the Layers assignment (course week 5, tutors/course/topic-05-layers-ports: "A validate package", the last week of rung 3).
  * Skipped unless LADDER_ASSIGNMENT=1, so the Single Gate stays green before you start:
  *
  *     LADDER_ASSIGNMENT=1 node --test tests/assignment/*.test.ts

@@ -44,7 +44,10 @@ Three rules hold it together, and `tests/architecture/architecture.test.ts` chec
 | a way to show courses (a reader app) | a new package that depends on `@ladder/model` only, wired in an app | the layering rules; add the package to `LAYERS` |
 | a command | `apps/cli/src/run.ts` | the platform rule keeps `node:` here |
 
-Rungs 4 to 7 start from a copy of this folder. Each adds its packages to `LAYERS` in the architecture test
-and its dependencies to the Rung Fence, and says so in its `RUNG.md`.
+The ladder is one straight line: rung 4 (Proven) starts from a copy of this folder, and each later rung
+from a copy of the one below (5 Reader, 6 Guarded, 7 Shipped, then the Summit, tutors-mono-repo itself).
+Each adds its packages to `LAYERS` in the architecture test and its dependencies to the Rung Fence, and
+says so in its `RUNG.md`. The next rung, Proven, keeps this structure and makes the tests the
+specification: EARS requirements, Given/When/Then scenarios, properties and mutation testing.
 
 See `RUNG.md` for what this rung adds and leaves out, and `AGENTS.md` for the working agreement.

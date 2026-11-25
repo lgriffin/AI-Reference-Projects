@@ -1,5 +1,5 @@
 /**
- * Rung Fence: what rung 5 (Proven) may use, as an executable rule. Each failure names the rule, the
+ * Rung Fence: what rung 4 (Proven) may use, as an executable rule. Each failure names the rule, the
  * offending file and the rung that introduces what was added. Only a person lifts the fence
  * (AGENTS.md, "Ask a human first"); an agent that meets it changes the code, not this file.
  */
@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const RUNG = "rung 5 (Proven)";
+const RUNG = "rung 4 (Proven)";
 const ROOT = join(import.meta.dirname, "..");
 const LIFT = 'Lifting the fence is a person\'s decision: see AGENTS.md, "Ask a human first".';
 
@@ -17,7 +17,7 @@ const PACKAGES = ["", "packages/model", "packages/gen", "packages/lite", "apps/c
 
 /**
  * The only outside packages this rung allows: dev tools in the root package.json, never at run time.
- * Rung 3 allowed the first two; rung 5 adds the test tools, each named in RUNG.md with what it is for.
+ * Rung 3 allowed the first two; rung 4 adds the test tools, each named in RUNG.md with what it is for.
  */
 const ALLOWED_DEV = [
   "typescript",
@@ -34,9 +34,10 @@ const TEST_TOOLS = /^(vitest|@vitest\/|@amiceli\/|fast-check|@stryker-mutator\/)
 
 /** Where a package that is not allowed here arrives, so the failure can say which rung to climb to. */
 const LATER: [pattern: RegExp, rung: string][] = [
-  [/^(svelte|@sveltejs\/|vite|@vitejs\/|markdown-it|marked|remark|micromark|@marp-team\/)/, "rung 4 (Reader)"],
-  [/^(playwright|@playwright\/|@axe-core\/)/, "the Summit, where rung 4's reader meets rung 5's tests (upstream apps/reader/tests/e2e)"],
-  [/^(@cucumber\/|jest|mocha|ava|tap)/, "no rung: rung 5 (Proven) chose vitest and @amiceli/vitest-cucumber, as upstream does"],
+  [/^(svelte|@sveltejs\/|vite|@vitejs\/|markdown-it|marked|remark|micromark|@marp-team\/)/, "rung 5 (Reader)"],
+  [/^playwright$/, "rung 5 (Reader), which drives Chromium for its smoke test (upstream apps/reader/tests/e2e)"],
+  [/^(@playwright\/|@axe-core\/)/, "the Summit (upstream's Playwright runner and axe checks in apps/reader/tests/e2e; rung 5 drives Chromium with the playwright library)"],
+  [/^(@cucumber\/|jest|mocha|ava|tap)/, "no rung: rung 4 (Proven) chose vitest and @amiceli/vitest-cucumber, as upstream does"],
   [/^(dompurify|isomorphic-dompurify|sanitize-html|better-auth|@supabase\/)/, "the Summit (rung 6 Guarded sanitises by allow-list and fakes identity without a library)"],
   [/^(@changesets\/|semantic-release|release-please)/, "rung 7 (Shipped)"],
 ];
@@ -44,9 +45,9 @@ const arrivesIn = (name: string) => LATER.find(([pattern]) => pattern.test(name)
 
 /** Things this rung's source must not do, and why. */
 const FORBIDDEN: { pattern: RegExp; what: string; why: string }[] = [
-  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The tools read a folder and write files; they never need the network. The first network call is the reader loading tutors.json in rung 4 (Reader)." },
+  { pattern: /\bfetch\s*\(|XMLHttpRequest|WebSocket|"node:(https?|http2|net|tls|dgram|dns)"/, what: "network access", why: "The tools read a folder and write files; they never need the network. The first network call is the reader loading tutors.json in rung 5 (Reader)." },
   { pattern: /"node:child_process"|"node:worker_threads"/, what: "other processes or threads", why: "The command is one process that reads files and writes files; no rung of it starts another." },
-  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 5 writes static pages. Interactive pages arrive with Svelte in rung 4 (Reader)." },
+  { pattern: /<script|\bon(click|load|error)=/i, what: "client-side JavaScript", why: "Rung 4 writes static pages. Interactive pages arrive with Svelte in rung 5 (Reader)." },
 ];
 
 /** Source without comments, so a comment may name what the code must not do. */
@@ -74,13 +75,13 @@ test("no package.json declares a dependency this rung does not allow", () => {
         if (workspace || devTool) continue;
         if (TEST_TOOLS.test(name) && ALLOWED_DEV.includes(name)) {
           violations.push(
-            `Rung Fence, ${RUNG}: ${file} declares the test tool "${name}" in ${section}. Rung 5's test tools are dev dependencies of the root package.json only: ` +
+            `Rung Fence, ${RUNG}: ${file} declares the test tool "${name}" in ${section}. Rung 4's test tools are dev dependencies of the root package.json only: ` +
               "tests run them, and nothing that runs the command or builds the site may need them. Move it to the root devDependencies.",
           );
           continue;
         }
         violations.push(
-          `Rung Fence, ${RUNG}: ${file} declares "${name}" in ${section}. Rung 5 has no runtime dependencies: packages depend only on each other ("@ladder/...": "workspace:*"), ` +
+          `Rung Fence, ${RUNG}: ${file} declares "${name}" in ${section}. Rung 4 has no runtime dependencies: packages depend only on each other ("@ladder/...": "workspace:*"), ` +
             `and the root may add only the dev tools [${ALLOWED_DEV.join(", ")}]. "${name}" arrives in ${arrivesIn(name)}. Write it with Node's built-ins, in the layer it belongs to.`,
         );
       }
@@ -102,7 +103,7 @@ test("source imports only node: built-ins, relative files and @ladder packages",
         continue;
       }
       violations.push(
-        `Rung Fence, ${RUNG}: ${file} imports "${specifier}". Rung 5 may import only node: built-ins, relative files and the workspace's own @ladder packages. ` +
+        `Rung Fence, ${RUNG}: ${file} imports "${specifier}". Rung 4 may import only node: built-ins, relative files and the workspace's own @ladder packages. ` +
           `"${specifier}" arrives in ${arrivesIn(specifier)}.`,
       );
     }

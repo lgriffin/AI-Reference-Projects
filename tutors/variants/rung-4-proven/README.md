@@ -1,4 +1,4 @@
-# Rung 5: Proven
+# Rung 4: Proven
 
 The rung 3 tools, a course folder in and a static website out, now specified by their tests. Twelve
 requirements in `REQUIREMENTS.md`, each an EARS sentence with an id; Gherkin scenarios that prove each one;
@@ -44,9 +44,15 @@ missing or has drifted. `REQUIREMENTS.md` says how to add a requirement.
 ## Architecture
 
 Unchanged from rung 3 (`apps/cli` over `@ladder/gen` and `@ladder/lite` over `@ladder/model`, meeting at
-`FileSystemPort`). Rung 5 adds two layers outside the product: `tests/`, one folder per tier, and
+`FileSystemPort`). Rung 4 adds two layers outside the product: `tests/`, one folder per tier, and
 `scripts/checks`, the pure logic of the repository checks, which runs under plain `node`.
 `tests/architecture` checks both, as well as rung 3's rules.
 
 See `RUNG.md` for what this rung adds and leaves out, `tests/TESTING.md` for the tiers, and `AGENTS.md`
 for the working agreement.
+
+## Next on the ladder
+
+Rung 5 (Reader) starts from a copy of this rung and adds an interactive SvelteKit reader, specified first:
+its rules arrive as new EARS requirements and scenarios before any Svelte is written. Rung 6 (Guarded) and
+rung 7 (Shipped) follow, each in the same way.

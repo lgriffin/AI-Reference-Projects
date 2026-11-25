@@ -1,0 +1,14 @@
+// Tests, scripts and configs, with Node's types. Each package's own tsconfig.json is stricter about what it may see.
+// The paths match vitest.aliases.ts: tests import the workspace packages by name, from their source.
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@ladder/model": ["./packages/model/src/index.ts"],
+      "@ladder/gen": ["./packages/gen/src/index.ts"],
+      "@ladder/lite": ["./packages/lite/src/index.ts"]
+    }
+  },
+  "include": ["tests", "scripts", "vitest.aliases.ts", "vitest.config.ts", "vitest.config.mutation.ts", "vitest.config.e2e.ts"]
+}

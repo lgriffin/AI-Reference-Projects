@@ -69,7 +69,7 @@ test("a kind that slips past the type checker fails loudly at run time", () => {
   assert.throws(() => assertNever("podcast" as never), /unhandled learning object kind: podcast/);
 });
 
-// Added in rung 5 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
+// Added in rung 4 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
 
 test("front matter is only a block at the very start, closed by --- with optional trailing spaces", () => {
   assert.equal(stripFrontMatter("# T\n---\na: 1\n---\nbody\n"), "# T\n---\na: 1\n---\nbody\n", "a --- block later in the file is content");

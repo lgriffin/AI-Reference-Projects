@@ -49,7 +49,7 @@ test("course text never reaches a page unescaped", () => {
   for (const page of buildSite(course)) assert.doesNotMatch(page.html, /<script/, `${page.path} contains an unescaped <script>`);
 });
 
-// Added in rung 5 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
+// Added in rung 4 to kill mutants that survived the first Stryker run (see RUNG.md, "Mutation testing").
 
 const talkCourse = (deck: string): Course => ({
   type: "course", id: "c", title: "C", summary: "", contentMd: "# C", route: "/",

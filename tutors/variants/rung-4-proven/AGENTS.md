@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Rung 5 (Proven) of the Tutors ladder: rung 3's layered tools, specified by their tests. TypeScript on
+Rung 4 (Proven) of the Tutors ladder: rung 3's layered tools, specified by their tests. TypeScript on
 Node 22.18 or later. This file is the working agreement for every contributor, human or AI. Anything a test
 can check lives in the tests, not here.
 

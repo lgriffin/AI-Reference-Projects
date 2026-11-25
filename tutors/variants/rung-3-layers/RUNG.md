@@ -41,6 +41,10 @@ Pinned at tutors-mono-repo `2b96b69`.
   fixes; gen only reads, so this port only reads (Interface Segregation). `readText` replaces `read`'s bytes.
 - Building packages for publication (JSR, npm). Node runs the TypeScript sources directly.
 - Linting, formatting and knip. The upstream suite has them; this rung keeps one gate.
+- What the rungs above add, each on a copy of the one below: requirements in EARS, Given/When/Then
+  scenarios, property and mutation testing (rung 4, Proven); an interactive Svelte reader (rung 5,
+  Reader); sanitising, path containment and identity (rung 6, Guarded); versioned, gated releases (rung 7,
+  Shipped). Supabase, a DOM sanitiser such as DOMPurify and markdown-it arrive only at the Summit.
 
 ## Assertion Ladder
 

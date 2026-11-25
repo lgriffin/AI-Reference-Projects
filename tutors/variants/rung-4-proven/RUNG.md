@@ -1,4 +1,4 @@
-# Rung Delta: 5, Proven
+# Rung Delta: 4, Proven
 
 ## Capability
 
@@ -47,7 +47,7 @@ ObjectLiteral mutators off, as upstream). The run took about 45 seconds on 4 cor
 | BDD steps in the mutation run, the When step doing the work | 85.37% | `course-builder.ts` 72%: mutants a Then step would kill survived |
 | BDD steps in, each Then doing the work | 93.29% | inflated: kills came from Then steps crashing without their Given |
 | BDD steps out, rung 3's tests plus contract, conformance and fuzz | 82.49% | the honest baseline |
-| the same, after the tests added in rung 5 | **93.05%** | the floors in `tests/mutation/mutation-floors.json` |
+| the same, after the tests added in rung 4 | **93.05%** | the floors in `tests/mutation/mutation-floors.json` |
 
 The first two rows are one finding. vitest-cucumber makes each Given, When and Then a vitest test of its
 own, and Stryker's vitest runner always measures coverage per test (it ignores `coverageAnalysis: "off"`
@@ -85,8 +85,9 @@ Pinned at tutors-mono-repo `2b96b69`.
 ## Deliberately left out
 
 - Everything rung 3 left out. Nothing changed for the user.
-- Browser tests (Playwright, `@ui` Rules, axe). There is no browser app on this rung; they meet the reader
-  at the Summit (upstream `apps/reader/tests/e2e`).
+- Browser tests (Playwright, `@ui` Rules, axe). There is no browser app on this rung. The reader arrives
+  next, in rung 5 (Reader), specified first in this rung's style and smoke-tested in Chromium with
+  `pnpm test:e2e`; axe and the `@ui` Rules wait for the Summit (upstream `apps/reader/tests/e2e`).
 - Ratchet baselines (`known-findings.txt`, `ears-audit-baseline.txt`). A new suite starts clean, so this
   rung fails on every finding instead of only new ones.
 - Coverage floors, test-time budgets, the timezone matrix, the no-network setup file, schema contracts
