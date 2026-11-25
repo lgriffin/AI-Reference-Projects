@@ -43,6 +43,8 @@ export const SYSTEMS: Record<string, string> = {
   // Rung 6 (Guarded): the RBAC policy in packages/rbac, and the supply-chain audit in scripts/supply-chain.ts.
   "the policy": "rbac",
   "the audit": "scripts",
+  // Rung 7 (Shipped): the release tools in scripts/ (version, claims, objectives, readiness, smoke, value stream).
+  "the release": "scripts",
 };
 
 export const VAGUE = ["appropriate", "appropriately", "adequate", "as needed", "correctly", "easily", "efficient", "efficiently", "etc", "fast", "handle", "handles", "if possible", "properly", "quickly", "robust", "seamlessly", "several", "some", "user-friendly", "various"];

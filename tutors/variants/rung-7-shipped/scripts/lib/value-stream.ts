@@ -87,12 +87,13 @@ export function parseWaits(pairs: string[], known: string[]): Record<string, num
 export function summarise(steps: Step[]): Summary {
   const ran = steps.filter((s) => s.status === "passed" || s.status === "failed");
   const processSeconds = ran.reduce((sum, s) => sum + s.seconds, 0);
-  const waitSeconds = steps.reduce((sum, s) => sum + s.waitSeconds, 0);
+  // A wait counts only before a step that ran: nothing waited for a step nobody took.
+  const waitSeconds = ran.reduce((sum, s) => sum + s.waitSeconds, 0);
   const leadSeconds = processSeconds + waitSeconds;
   const longest = (key: "seconds" | "waitSeconds", among: Step[]) => among.reduce<Step | undefined>((best, s) => (s[key] > (best?.[key] ?? 0) ? s : best), undefined)?.id;
   const stopped = steps.find((s) => s.status === "failed")?.id;
   const bottleneck = longest("seconds", ran);
-  const longestWait = longest("waitSeconds", steps);
+  const longestWait = longest("waitSeconds", ran);
   return {
     processSeconds,
     waitSeconds,
@@ -125,7 +126,7 @@ export function renderValueStream(steps: Step[], meta: { version: string; commit
     "",
     "| # | Step | SOP | Command | Waited before | Process time | Share | Result |",
     "| --- | --- | --- | --- | --- | --- | --- | --- |",
-    ...steps.map((s, i) => `| ${i + 1} | ${s.what} | ${s.sop} | \`${s.command}\` | ${s.waitSeconds > 0 ? duration(s.waitSeconds) : "-"} | ${s.status === "skipped" || s.status === "not run" ? "-" : duration(s.seconds)} | ${share(s)} | ${s.status}${s.note ? `: ${s.note}` : ""} |`),
+    ...steps.map((s, i) => `| ${i + 1} | ${s.what} | ${s.sop} | \`${s.command}\` | ${s.waitSeconds > 0 && (s.status === "passed" || s.status === "failed") ? duration(s.waitSeconds) : "-"} | ${s.status === "skipped" || s.status === "not run" ? "-" : duration(s.seconds)} | ${share(s)} | ${s.status}${s.note ? `: ${s.note}` : ""} |`),
     "",
     `- **Process time:** ${duration(summary.processSeconds)} (work on the release)`,
     `- **Waiting time:** ${duration(summary.waitSeconds)}${summary.waitSeconds === 0 ? " (none given: a machine ran every step back to back; add what a real release waits with --wait <step>=<seconds>)" : ""}`,

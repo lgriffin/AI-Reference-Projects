@@ -94,7 +94,7 @@ alone, and as an `href` it runs when a reader clicks. **Escaping** changes how a
 **Sanitising** decides whether a value is allowed at all. Rung 5's renderer admitted the gap in a comment:
 "sanitising links such as `javascript:` is rung 6 (Guarded)".
 
-Rung 6's sanitiser is fifteen lines, `packages/lite/src/url.ts`:
+Rung 6's sanitiser is one short function, `packages/lite/src/url.ts`:
 
 ```ts
 export function safeUrl(url: string, use: UrlUse): string | null {

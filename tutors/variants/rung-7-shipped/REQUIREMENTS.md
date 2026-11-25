@@ -1,6 +1,6 @@
 # REQUIREMENTS.md
 
-Every rule of the generator, the site, the command, the reader, the policy and the audit, stated once as an EARS sentence with an id. The
+Every rule of the generator, the site, the command, the reader, the policy, the audit and the release, stated once as an EARS sentence with an id. The
 sentence is the `Rule:` title of a feature in `tests/bdd/features`, word for word, tagged with its id and
 its EARS pattern; the scenarios beneath it are the proof. `pnpm test:ears:audit`, run in the gate by
 `tests/suite-health/requirements.test.ts`, checks that every id has a Rule with at least one scenario, that
@@ -45,6 +45,14 @@ its pattern names. "Implemented in" names the layer that holds the code (README.
 | R-034 | Ubiquitous | The reader shall carry a Content Security Policy that allows script and style only from its own origin, and inline only what SvelteKit itself writes, each named by its hash. | reader |
 | R-035 | Unwanted behaviour | If a dependency is neither a workspace package nor a registry version that the lockfile pins with an integrity hash, then the audit shall report it and exit with status 1. | scripts |
 | R-036 | Unwanted behaviour | If an audit allowance has no reason, no expiry date or an expiry date in the past, then the audit shall report it and exit with status 1. | scripts |
+| R-037 | Event-driven | When the command is given --version alone, the command shall print the release version and the commit it was built from, and write no file. | cli |
+| R-038 | Ubiquitous | The command shall write the build identity of a site into its version.json and into no other file. | cli, as data from lite |
+| R-039 | Ubiquitous | The release shall take its next version from the largest change its Conventional Commits name: major for a breaking change, minor for a feat, patch for a fix or a perf. | scripts |
+| R-040 | Unwanted behaviour | If a release claim names no evidence, or names evidence that is not a test or a scenario that exists and runs, then the release shall report the claim and exit with status 1. | scripts |
+| R-041 | Unwanted behaviour | If a measure of the build is over the budget of its objective, or was not measured, then the release shall report the objective and exit with status 1. | scripts |
+| R-042 | Ubiquitous | The release shall write a readiness page whose verdict is HOLD when a check has a gap, and READY only when no check has one. | scripts |
+| R-043 | Unwanted behaviour | If the image runs as root, or its revision is not the commit it was built from, then the release shall fail the container smoke check and say which. | scripts |
+| R-044 | Event-driven | When the release measures its value stream, the release shall report the process time of each step and the lead time, and run no step after one that failed. | scripts |
 
 ## The form of a requirement
 
@@ -57,8 +65,8 @@ its pattern names. "Implemented in" names the layer that holds the code (README.
 | Unwanted behaviour | If \<condition\>, then the \<system\> shall \<response\>. | `@ears-unwanted` |
 
 The systems are `the generator` (`packages/gen`), `the site` (`packages/lite`), `the command`
-(`apps/cli`), `the reader` (`apps/reader`), `the policy` (`packages/rbac`) and `the audit`
-(`scripts/supply-chain.ts`). One "shall" per sentence. No vague words ("appropriate", "handle", "quickly", ...): say what
+(`apps/cli`), `the reader` (`apps/reader`), `the policy` (`packages/rbac`), `the audit`
+(`scripts/supply-chain.ts`) and `the release` (the release tools in `scripts/`). One "shall" per sentence. No vague words ("appropriate", "handle", "quickly", ...): say what
 can be observed.
 
 ## From pattern to layer
@@ -72,6 +80,7 @@ can be observed.
 | The reader shall ... about what a learner sees or clicks | a component in `apps/reader/src/lib/ui-*`, its logic in `lib/course`, proved by a scenario over that logic and by `pnpm test:e2e` |
 | The policy shall ... about who may view or do what | `packages/rbac`, pure: every answer from its arguments alone, so a table of cases is the whole truth |
 | The audit shall ... about a dependency, the lockfile or an allowance | `scripts/supply-chain.ts`, as a function that returns findings |
+| The release shall ... about a version, a claim, a budget, the readiness page, the image or the value stream | a pure function in `scripts/lib`, so a scenario and Stryker can reach it; the script beside it reads the files and starts the processes |
 | ... shall refuse, or shall show ... without (a security rule) | the layer where the hostile value enters: the port's adapter for a path, `renderMarkdown` for an address, `decorateCourseTree` for a route |
 | ... the same value as upstream | a conformance test against the oracle, and the layer the field comes from |
 
@@ -90,3 +99,15 @@ attacker supplies and what the system does instead. And its scenarios are **adve
 hostile course, path or address, and the Then says what a reader can no longer be made to see or run. The
 corpus in `tests/unit/lite/xss-corpus.test.ts` and the properties in `tests/fuzz/safe-url.fuzz.test.ts` are
 the same requirement (R-022) met by many more adversaries than a scenario can list.
+
+## Release requirements
+
+R-037 to R-044 arrived with rung 7 (Shipped). A release requirement is written like any other, with one
+habit: it says what the release **reports and decides**, never what a person does. "The release shall be
+tagged" is not a requirement of this code, because tagging is a person's act (release/SOP.md, step 10).
+"If a release claim names no evidence, ... the release shall report the claim and exit with status 1" is.
+
+The requirements and the release claims are two lists that meet. A requirement says what the code shall
+do; a claim in `release/claims.yaml` says what this release promises the people who use it, names the
+requirements it rests on, and names the tests that are its evidence. `pnpm test:ears:audit` closes
+requirements over scenarios; `pnpm release:claims` closes claims over tests and requirements.

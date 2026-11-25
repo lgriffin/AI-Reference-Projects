@@ -14,7 +14,7 @@ test("@ladder/gen exports exactly these names", () => {
 });
 
 test("@ladder/lite exports exactly these names", () => {
-  expect(Object.keys(lite).sort()).toEqual(["CSP", "STYLE", "STYLE_HASH", "SafeHtml", "buildSite", "escapeHtml", "html", "page", "pagesFor", "relativeHref", "renderInline", "renderMarkdown", "safeUrl"]);
+  expect(Object.keys(lite).sort()).toEqual(["CSP", "STYLE", "STYLE_HASH", "SafeHtml", "buildIdentity", "buildSite", "describeIdentity", "escapeHtml", "html", "page", "pagesFor", "relativeHref", "renderInline", "renderMarkdown", "safeUrl", "versionFile"]);
 });
 
 test("@ladder/identity exports exactly these names", () => {

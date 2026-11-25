@@ -22,7 +22,13 @@
     "packages/rbac/src/index.ts",
     "apps/reader/src/lib/course/course-service.ts",
     "apps/reader/src/lib/course/live-lab.ts",
-    "apps/reader/src/lib/course/lo-tree.ts"
+    "apps/reader/src/lib/course/lo-tree.ts",
+    "scripts/lib/a3.ts",
+    "scripts/lib/claims.ts",
+    "scripts/lib/conventional.ts",
+    "scripts/lib/slo.ts",
+    "scripts/lib/smoke.ts",
+    "scripts/lib/value-stream.ts"
   ],
   "reporters": [
     "html",
@@ -60,5 +66,5 @@
     "apps/reader/build",
     "apps/reader/static/courses"
   ],
-  "disableTypeChecks": "{packages/**/*.ts,apps/**/*.ts,tests/**/*.ts}"
+  "disableTypeChecks": "{packages/**/*.ts,apps/**/*.ts,scripts/**/*.ts,tests/**/*.ts}"
 }
