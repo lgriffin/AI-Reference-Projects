@@ -1,4 +1,0 @@
-{
-  "$comment": "Advisories accepted for a limited time, as upstream tests/security/audit-allowlist.json. Each needs an id, the package, a reason and an expiry (YYYY-MM-DD); an expired entry fails `pnpm audit:online`. Adding one is a person's decision (AGENTS.md).",
-  "allowances": []
-}

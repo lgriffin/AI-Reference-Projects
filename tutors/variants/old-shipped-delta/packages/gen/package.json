@@ -1,9 +1,0 @@
-{
-  "name": "@ladder/gen",
-  "version": "1.0.0",
-  "description": "Course folder to Course, read through a FileSystemPort.",
-  "type": "module",
-  "private": true,
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@ladder/model": "workspace:*" }
-}

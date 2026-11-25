@@ -109,14 +109,10 @@ export function checkClaims(doc: unknown, readFile: (path: string) => string | u
       const tests = testsIn(source, file);
       const found = tests.find((t) => t.name === testName);
       if (!found) {
-        const words = (text: string) => new Set(text.toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+        // Names that share a word of four letters or more with what was asked for: the likeliest renames, in file order.
+        const words = (text: string) => text.toLowerCase().split(/\W+/).filter((w) => w.length > 3);
         const wanted = words(testName);
-        const near = tests
-          .map((t) => ({ name: t.name, shared: [...words(t.name)].filter((w) => [...wanted].some((x) => w.startsWith(x) || x.startsWith(w))).length }))
-          .filter((t) => t.shared > 0)
-          .sort((a, b) => b.shared - a.shared)
-          .slice(0, 2)
-          .map((t) => t.name);
+        const near = tests.map((t) => t.name).filter((n) => words(n).some((w) => wanted.includes(w))).slice(0, 2);
         problems.push(
           `${name} cites the test "${testName}" in ${file}, and no test there has that name. A test id is the exact name in test("...") or the exact title of a Scenario. ` +
             (near.length > 0 ? `Did you mean: ${near.map((n) => `"${n}"`).join(", ")}?` : `That file defines: ${tests.map((t) => `"${t.name}"`).join(", ") || "no tests"}.`),

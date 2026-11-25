@@ -1,8 +1,0 @@
-{
-  "name": "@ladder/identity",
-  "version": "1.0.0",
-  "description": "Verified identity: who is reading, as a port. Imports nothing, like upstream @tutors/identity.",
-  "type": "module",
-  "private": true,
-  "exports": { ".": "./src/index.ts" }
-}

@@ -65,7 +65,9 @@ export async function run(args: string[], identity: BuildIdentity = readBuildIde
       await writeFile(join(outDir, path), html);
     }
     await writeFile(join(outDir, "tutors.json"), `${JSON.stringify(course, null, 2)}\n`);
-    process.stdout.write(`wrote ${pages.length} pages${decision.allowed ? "" : ", marked private,"}${pages.length > 0 ? ", version.json" : ""} and tutors.json to ${outDir}\n`);
+    const marked = decision.allowed ? "" : ", marked private";
+    const also = pages.length > 0 ? ", version.json and" : `${marked === "" ? "" : ","} and`;
+    process.stdout.write(`wrote ${pages.length} pages${marked}${also} tutors.json to ${outDir}\n`);
     return 0;
   } catch (error) {
     if (!(error instanceof PathEscapeError)) throw error;

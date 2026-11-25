@@ -1,6 +1,0 @@
-// No Node types and no DOM: a node: import, process or fetch here does not compile. Only apps/cli touches the platform.
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": [] },
-  "include": ["src"]
-}

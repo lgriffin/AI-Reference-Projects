@@ -1,9 +1,0 @@
-node_modules/
-json/
-html/
-out/
-*.log
-*.tsbuildinfo
-.svelte-kit/
-build/
-apps/reader/static/courses/

@@ -68,4 +68,4 @@ You are ready for rung 6 when you can:
   green and find out why the browser disagrees, write browser tests, judge the suite by mutation, look
   upstream, compare with the standard version, build beyond, Kaizen.
 - Assignment 5 (A5): a next and previous navigator.
-- Rung 5: the standard version (the zip of this rung's completed code).
+- Rung 5 (reader): the standard version (the zip of this rung's completed code).

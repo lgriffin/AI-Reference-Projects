@@ -7,7 +7,7 @@ import { test } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { addRelease, bumpFor, bumpOf, changelogSection, explainBump, nextVersion, parseCommits, parseMessage } from "../../../scripts/lib/conventional.ts";
+import { addRelease, bumpFor, bumpOf, changelogSection, explainBump, nextVersion, parseCommits, parseMessage, versionOfRef } from "../../../scripts/lib/conventional.ts";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 const fixture = (name: string) => readFileSync(join(FIXTURES, name), "utf8");
@@ -81,4 +81,40 @@ test("a section with no user-facing change says so, and the version may carry bu
   assert.equal(nextVersion("2.0.0-rc.2", "none"), "2.0.0-rc.2");
   assert.throws(() => nextVersion("01.2.3", "patch"), /not a SemVer version/);
   assert.throws(() => addRelease("# Changelog\n\n## [Unreleased]\n\n## [1.0.0+b] - x\n", "## [1.0.0+b] - y\n"), /already has a section for 1\.0\.0\+b/);
+});
+
+test("a message is read exactly: its subject trimmed, its hash line whole, its separators whole lines", () => {
+  assert.deepEqual(parseMessage("  fix(lite): tidy the page   \n"), { type: "fix", scope: "lite", breaking: false, description: "tidy the page" });
+  assert.deepEqual(parseMessage("commit 1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d\n   \n\nfix: a"), { hash: "1a2b3c4", type: "fix", breaking: false, description: "a" });
+  assert.deepEqual(parseMessage("Revert commit 1a2b3c4d"), { subject: "Revert commit 1a2b3c4d" });
+  assert.deepEqual(parseMessage("commit 1a2b3c4d is the bad one"), { subject: "commit 1a2b3c4d is the bad one" });
+  for (const subject of ["feat:no space", "feat: ", "feat(a(b)): nested", "feat (cli): spaced", "FEAT: shouting", "1feat: a"]) assert.deepEqual(parseMessage(subject), { subject: subject.trim() }, subject);
+  const { commits } = parseCommits("feat: a\n\nsee ---\n---- not a separator\n--- \nfix: b\n---\nperf: c");
+  assert.deepEqual(commits.map((c) => c.type), ["feat", "fix", "perf"]);
+});
+
+test("every user-facing commit lands under exactly one heading; only a fix scoped to security is a Security entry", () => {
+  const section = changelogSection("1.0.1", "2026-11-25", parseCommits("feat(security): add a policy page\n---\nfix(security)!: refuse old tokens\n---\nperf(security): hash once\n---\nfix(security): drop data: URLs").commits);
+  assert.equal(section, "## [1.0.1] - 2026-11-25\n\n### Added\n\n- add a policy page\n\n### Changed\n\n- **Breaking:** refuse old tokens\n\n### Fixed\n\n- hash once\n\n### Security\n\n- drop data: URLs\n");
+});
+
+test("a release is added under the real Unreleased heading, whatever the text around it says", () => {
+  const before = "# Changelog\n\nNew entries go under `## [Unreleased]` first.\n\n## [Unreleased]\n\n- write headings as ## [x.y.z]\n\n## [1.0.0] - 2026-01-01\n\n- first\n";
+  assert.equal(addRelease(before, "## [1.1.0] - d\n"), "# Changelog\n\nNew entries go under `## [Unreleased]` first.\n\n## [Unreleased]\n\n## [1.1.0] - d\n\n## [1.0.0] - 2026-01-01\n\n- first\n");
+  assert.equal(addRelease("# Changelog\n\n## [Unreleased]\n\n- pending\n", "## [1.0.0] - d\n"), "# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - d\n\n", "the first release has no section after it");
+  assert.equal(addRelease("## [Unreleased]\n", "no heading\n"), "## [Unreleased]\n\nno heading\n\n", "a section with no version heading is added as it is");
+  assert.equal(nextVersion("10.20.30", "patch"), "10.20.31");
+  assert.equal(nextVersion("10.20.30", "minor"), "10.21.0");
+  assert.equal(nextVersion("10.20.30", "major"), "11.0.0");
+  for (const bad of ["1.2", "1.2.3.4", "a1.2.3", "1.2.3 ", "1.x.3", "1.2.x", "x.2.3"]) assert.throws(() => nextVersion(bad, "patch"), /not a SemVer version/, bad);
+});
+
+test("a release tag names its version, with or without the v; a branch or a commit id names none", () => {
+  assert.equal(versionOfRef("v1.4.2"), "1.4.2");
+  assert.equal(versionOfRef("1.4.2"), "1.4.2");
+  assert.equal(versionOfRef("v2.0.0-rc.1"), "2.0.0-rc.1");
+  assert.equal(versionOfRef("main"), undefined);
+  assert.equal(versionOfRef("vnext"), undefined);
+  assert.equal(versionOfRef("9b70dd7"), undefined);
+  assert.equal(versionOfRef("release/v1.4.2"), undefined);
 });

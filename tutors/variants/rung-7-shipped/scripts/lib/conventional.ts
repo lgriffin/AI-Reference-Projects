@@ -90,6 +90,16 @@ export function bumpFor(commits: Commit[]): Bump {
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
 /**
+ * The version a release tag names: "v1.4.2" or "1.4.2" is "1.4.2"; a branch or a commit id names none.
+ * `--from v1.4.2` counts commits since that release, so the next version is counted from it too, whatever
+ * package.json says now. That is what stops the same commits being released twice.
+ */
+export function versionOfRef(ref: string): string | undefined {
+  const version = ref.startsWith("v") ? ref.slice(1) : ref;
+  return SEMVER.test(version) ? version : undefined;
+}
+
+/**
  * The next version. A pre-release (`1.2.0-rc.1`) is finished as `1.2.0` by any bump. Before 1.0.0 the
  * public API is not stable (SemVer item 4), so a breaking change moves the minor number, as most tools do.
  */
@@ -114,7 +124,7 @@ export function nextVersion(current: string, bump: Bump): string {
 export const SECTIONS: { heading: string; takes: (c: Commit) => boolean }[] = [
   { heading: "Added", takes: (c) => !c.breaking && c.type === "feat" },
   { heading: "Changed", takes: (c) => c.breaking },
-  { heading: "Fixed", takes: (c) => !c.breaking && (c.type === "fix" || c.type === "perf") && c.scope !== "security" },
+  { heading: "Fixed", takes: (c) => !c.breaking && (c.type === "perf" || (c.type === "fix" && c.scope !== "security")) },
   { heading: "Security", takes: (c) => !c.breaking && c.type === "fix" && c.scope === "security" },
 ];
 

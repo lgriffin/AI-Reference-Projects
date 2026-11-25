@@ -5,6 +5,10 @@
  *   node scripts/release-version.ts --from v1.0.0 [--to HEAD]   # git log of this folder between two refs
  *   ... [--current 1.0.0] [--date 2026-11-25] [--write]
  *
+ * The next version is counted from --current, else from the release --from names (v1.0.0 is 1.0.0), else
+ * from package.json. So running it twice over the same commits asks for the same version, and --write
+ * refuses the second time: a version is released once.
+ *
  * Prints the bump, the next version and the section. With --write it also sets "version" in the root and
  * every app's package.json (one version for what ships, as upstream's root and apps/* share 17.1.0) and adds
  * the section to CHANGELOG.md under "## [Unreleased]". It never tags: a tag is a person's act (release/SOP.md).
@@ -14,7 +18,7 @@ import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { isMain, runMain } from "./lib/cli.ts";
-import { addRelease, bumpFor, changelogSection, explainBump, nextVersion, parseCommits } from "./lib/conventional.ts";
+import { addRelease, bumpFor, changelogSection, explainBump, nextVersion, parseCommits, versionOfRef } from "./lib/conventional.ts";
 
 export const ROOT = join(import.meta.dirname, "..");
 
@@ -58,7 +62,8 @@ export function main(argv: string[]): number {
   const options = parseArgs(argv);
   const text = options.commits ? readFileSync(options.commits, "utf8") : gitLog(options.from!, options.to);
   const { commits, unconventional } = parseCommits(text);
-  const current = options.current ?? JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
+  // Counted from the release the range starts at, when --from names one; else from package.json.
+  const current = options.current ?? (options.from ? versionOfRef(options.from) : undefined) ?? JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
   const bump = bumpFor(commits);
   const next = nextVersion(current, bump);
 
@@ -76,14 +81,16 @@ export function main(argv: string[]): number {
   const section = changelogSection(next, options.date, commits);
   process.stdout.write(section);
   if (options.write) {
+    // The changelog first: if it refuses (the version exists), no package.json has moved.
+    const changelog = join(ROOT, "CHANGELOG.md");
+    const released = addRelease(readFileSync(changelog, "utf8"), section);
     for (const file of versionedPackages()) {
       const path = join(ROOT, file);
       const pkg = JSON.parse(readFileSync(path, "utf8"));
       pkg.version = next;
       writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`);
     }
-    const changelog = join(ROOT, "CHANGELOG.md");
-    writeFileSync(changelog, addRelease(readFileSync(changelog, "utf8"), section));
+    writeFileSync(changelog, released);
     process.stdout.write(`\nwrote version ${next} to ${versionedPackages().join(", ")} and its section to CHANGELOG.md. Curate the section, then commit.\n`);
   }
   return 0;

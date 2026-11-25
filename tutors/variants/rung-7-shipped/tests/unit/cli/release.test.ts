@@ -96,3 +96,12 @@ test("an identity with no commit or date says unknown, and a short or odd revisi
   assert.equal(describeIdentity(buildIdentity("a", "1.0.0")), "a 1.0.0 (commit unknown, built unknown)");
   assert.equal(readBuildIdentity({ BUILD_DATE: "2026-11-25T10:00:00Z" }, tmpdir()).built, "2026-11-25T10:00:00Z");
 });
+
+test("the command's last line names what it wrote, private or not, pages or not", async () => {
+  const PRIVATE = join(ROOT, "tests", "fixtures", "private-course");
+  const line = async (args: string[]) => (await stdout(() => run([...args, mkdtempSync(join(tmpdir(), "rung-7-line-"))], SENTINEL))).text.replace(/ to .*\n$/, "");
+  assert.equal(await line([FIXTURE]), "wrote 8 pages, version.json and tutors.json");
+  assert.equal(await line(["--json-only", FIXTURE]), "wrote 0 pages and tutors.json");
+  assert.equal(await line(["--private", PRIVATE]), "wrote 2 pages, marked private, version.json and tutors.json");
+  assert.equal(await line(["--json-only", "--private", PRIVATE]), "wrote 0 pages, marked private, and tutors.json");
+});

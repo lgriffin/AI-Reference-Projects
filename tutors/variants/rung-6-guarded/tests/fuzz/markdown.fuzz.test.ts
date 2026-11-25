@@ -12,7 +12,7 @@ import { fuzzParameters } from "../support/fuzz.ts";
 const piece = fc.constantFrom("# ", "## ", "- ", "1. ", "```", "~~~", "**", "*", "_", "`", "[", "](", ")", "![", "<", ">", '"', "'", "&", " ", "\n", "\n\n", "---", "text", "javascript:alert(1)", "<script>", "onerror=", "\r\n");
 const markdown = fc.oneof(fc.array(piece, { maxLength: 40 }).map((parts) => parts.join("")), fc.string({ unit: "grapheme" }));
 
-const TAGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li", "pre", "code", "a", "img", "strong", "em"]);
+const TAGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "li", "pre", "code", "a", "img", "strong", "em", "span"]); // span: a refused address is shown as <span class="blocked"> (R-022)
 /** A tag the renderer writes: a known name, then only name="value" attributes whose value holds no quote. */
 const WELL_FORMED = /^<\/?([a-z][a-z0-9]*)((?:\s+[a-z-]+="[^"<>]*")*)\s*>$/;
 

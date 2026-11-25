@@ -37,7 +37,10 @@ test("--only and --skip choose steps, and a check that could not run is skipped,
   const only = runSteps(PLAN, { ...all, only: ["claims", "mutation"] }, run());
   assert.deepEqual(statuses(only), ["gate:skipped", "mutation:passed", "claims:passed", "container:skipped"]);
   assert.equal(only[0]!.note, undefined);
-  assert.deepEqual(statuses(runSteps(PLAN, { ...all, skip: ["gate"] }, run())), ["gate:skipped", "mutation:skipped", "claims:passed", "container:passed"]);
+  assert.equal(runSteps(PLAN, { ...all, only: ["claims"] }, run())[1]!.note, undefined, "with --only, an optional step left out was left out on purpose");
+  const skipped = runSteps(PLAN, { ...all, skip: ["gate"] }, run());
+  assert.deepEqual(statuses(skipped), ["gate:skipped", "mutation:skipped", "claims:passed", "container:passed"]);
+  assert.equal(skipped[0]!.note, undefined, "only an optional step says how to add it");
   const noDocker = runSteps(PLAN, all, run(undefined, "container"));
   assert.deepEqual([noDocker[3]!.status, noDocker[3]!.note], ["skipped", "no Docker daemon answers"]);
   assert.equal(summarise(noDocker).processSeconds, 21, "a skipped step adds no process time");
@@ -54,6 +57,8 @@ test("R-044: lead time is process time plus waiting, and flow efficiency is the 
 test("waits are given as step=seconds, once per known step", () => {
   assert.deepEqual(parseWaits(["claims=60", "gate=1.5"], ["gate", "claims"]), { claims: 60, gate: 1.5 });
   assert.deepEqual(parseWaits([], ["gate"]), {});
+  assert.deepEqual(parseWaits(["claims=1.25"], ["claims"]), { claims: 1.25 });
+  assert.throws(() => parseWaits(["9claims=60"], ["claims"]), /is not <step>=<seconds>/);
   assert.throws(() => parseWaits(["claims"], ["claims"]), /--wait claims is not <step>=<seconds>/);
   assert.throws(() => parseWaits(["claims=-1"], ["claims"]), /is not <step>=<seconds>/);
   assert.throws(() => parseWaits(["claims=1s"], ["claims"]), /is not <step>=<seconds>/);
@@ -81,4 +86,18 @@ test("the map is a table with a row per step, then the totals and where to look 
   assert.match(stopped, /- \*\*Waiting time:\*\* 0\.0 s \(none given: a machine ran every step back to back/);
   assert.match(stopped, /- \*\*The line stopped at gate\.\*\* Later steps did not run/);
   assert.doesNotMatch(stopped, /Longest wait/);
+});
+
+test("the map shows a wait only before a step that ran, and totals only what there is", () => {
+  const meta = { version: "1.1.0", commit: "unknown", date: "2026-11-25" };
+  const bullets = (map: string) => map.split("\n").filter((line) => line.startsWith("- **")).map((line) => line.slice(4, line.indexOf(":")));
+  const nothing = renderValueStream(runSteps(PLAN, { ...all, only: [], waits: { gate: 60 } }, run()), meta);
+  assert.doesNotMatch(nothing, /NaN/);
+  assert.match(nothing, /\| 1 \| The Single Gate \| 4 \| `pnpm test` \| - \| - \|  \| skipped \|/, "nothing waited for a step nobody took");
+  assert.deepEqual(bullets(nothing), ["Process time", "Waiting time", "Lead time", "Flow efficiency"]);
+  const failed = renderValueStream(runSteps(PLAN, { ...all, waits: { gate: 60, claims: 30 } }, run("gate")), meta);
+  assert.match(failed, /\| 1 \| The Single Gate \| 4 \| `pnpm test` \| 1 min 00 s \| 20\.0 s \| 100% \| failed \|/, "a step that failed still waited");
+  assert.match(failed, /\| 3 \| Release claims \| 6 \| `pnpm release:claims` \| - \| - \|  \| not run \|/);
+  assert.deepEqual(bullets(failed), ["Process time", "Waiting time", "Lead time", "Flow efficiency", "Longest step", "Longest wait", "The line stopped at gate.** Later steps did not run"]);
+  assert.deepEqual(bullets(renderValueStream(runSteps(PLAN, all, run()), meta)), ["Process time", "Waiting time", "Lead time", "Flow efficiency", "Longest step"]);
 });

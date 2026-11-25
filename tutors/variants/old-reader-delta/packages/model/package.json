@@ -1,8 +1,0 @@
-{
-  "name": "@ladder/model",
-  "version": "1.0.0",
-  "description": "The learning-object types of a Tutors course. Types only; imports nothing.",
-  "type": "module",
-  "private": true,
-  "exports": { ".": "./src/index.ts" }
-}

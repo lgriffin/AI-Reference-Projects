@@ -1,7 +1,0 @@
-feat(model): add the video learning object
----
-refactor(gen)!: FileSystemPort.list returns names only
----
-fix: keep lab step order stable
-
-BREAKING CHANGE: lab steps are now ordered by file name, not by title.

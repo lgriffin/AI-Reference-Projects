@@ -91,3 +91,24 @@ test("the changelog section for a version is read up to the next version", () =>
   assert.equal(changelogBody(changelog, "1.0.0"), "- b", "the last section runs to the end");
   assert.equal(changelogBody("## [1.0.0] - x\n\n## [0.9.0] - y\n", "1.0.0"), undefined, "an empty section is no section");
 });
+
+test("the page says exactly what it was given, and no more", () => {
+  const page = renderA3({ ...ready, changelog: "\n### Added\n\n- **cli:** --version\n\n" });
+  assert.match(page, /A3 for commit `1a2b3c4d5e6f`, 2026-11-25\./);
+  assert.match(page, /it is not value we can name\.\n\n### Added\n\n- \*\*cli:\*\* --version\n\n## 2\. Current condition/);
+  const rows = (text: string) => text.slice(text.indexOf("## 2."), text.indexOf("## 3.")).split("\n").filter((line) => line.startsWith("| "));
+  assert.equal(rows(page).length, 2 + 7, "a header, a rule, and one row per check: changelog, source, claims, one SLO, supply chain, mutation, container");
+  assert.equal(rows(renderA3({ ...ready, leadTime: "1 min" })).length, 2 + 8);
+  assert.equal(rows(renderA3({ ...ready, slo: { error: "bad file" } })).length, 2 + 7, "an SLO file that cannot be judged is one row");
+  assert.match(renderA3({ ...ready, changelog: undefined }), /name\.\n\n_No section for 1\.1\.0 in CHANGELOG\.md\._\n\n## 2\./);
+  const mixed = renderA3({ ...ready, slo: [...(ready.slo as []), { id: "reader-size", measure: "reader-bytes", unit: "bytes", value: 2000, budget: 1000, ok: false, message: "over" }] });
+  assert.match(mixed, /- \[ \] Every SLO within budget/, "one objective over budget leaves the box unticked");
+  assert.deepEqual(unproven({ ...ready, mutation: { status: "failed", reason: "below" }, container: { status: "failed", reason: "root" } }), [], "a failed check is a gap, not a check that did not run");
+});
+
+test("a changelog section is found by its heading at the start of a line, wherever the file ends", () => {
+  const changelog = "# Changelog\nAll notable changes.\n\n## [1.1.0] - 2026-11-25\n\n- write headings as ## [x.y.z]\n- a\n\n## [1.0.0] - 2026-01-01\n\n- b";
+  assert.equal(changelogBody(changelog, "1.1.0"), "- write headings as ## [x.y.z]\n- a");
+  assert.equal(changelogBody(changelog, "1.0.0"), "- b");
+  assert.equal(changelogBody(changelog, "9.9.9"), undefined);
+});

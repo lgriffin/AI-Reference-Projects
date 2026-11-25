@@ -1,6 +1,0 @@
-// The composition root: the one place with Node's types, so the one place that may use node:fs and process.
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["node"] },
-  "include": ["src"]
-}

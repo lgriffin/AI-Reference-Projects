@@ -70,7 +70,8 @@ test("sizes are written in bytes below a kilobyte and kB from there, times in wh
   assert.equal(format(1023, "bytes"), "1023 B");
   assert.equal(format(1024, "bytes"), "1.0 kB");
   assert.equal(format(86.6, "ms"), "87 ms");
-  assert.deepEqual(Object.keys(MEASURES), ["build-ms", "site-bytes", "reader-bytes"]);
+  // A new measure may join (Assignment 7 adds one); these three stay.
+  for (const measure of ["build-ms", "site-bytes", "reader-bytes"]) assert.ok(measure in MEASURES, measure);
 });
 
 test("a file that is not a list of objectives, an objective with no id, and a budget of zero are each named", () => {
@@ -79,4 +80,16 @@ test("a file that is not a list of objectives, an objective with no id, and a bu
   const { objectives, problems } = checkObjectives({ objectives: [{ measure: "build-ms", budget: 1 }, { id: "z", measure: "build-ms", budget: 0 }, { id: "ok", measure: "site-bytes", budget: 1 }, { id: "s", measure: "build-ms", budget: "1" }] });
   assert.deepEqual(objectives.map((o) => o.id), ["ok"]);
   assert.deepEqual(problems.map((p) => p.slice(0, 32)), ["objectives[0] needs an id.", 'SLO "z" needs a budget: a positi', 'SLO "s" needs a budget: a positi']);
+});
+
+test("a breach names the three largest files, largest first, and an entry that is not an objective is named without a crash", () => {
+  const many = { buildMs: 1, files: [{ path: "a.html", bytes: 10 }, { path: "b.html", bytes: 40 }, { path: "c.html", bytes: 30 }, { path: "d.html", bytes: 20 }] };
+  const [result] = evaluate([{ id: "site-size", measure: "site-bytes", budget: 50 }], many);
+  assert.match(result!.message, /The largest files are b\.html \(40 B\), c\.html \(30 B\), d\.html \(20 B\)\. Shrink/);
+  assert.deepEqual(checkObjectives(null).objectives, []);
+  const { objectives, problems } = checkObjectives({ objectives: [null, "site-size"] });
+  assert.deepEqual(objectives, []);
+  assert.equal(problems.length, 6);
+  assert.match(problems[0]!, /^objectives\[0\] needs an id\.$/);
+  assert.match(problems[1]!, /^objectives\[0\] measures "undefined", which this check does not know/);
 });
