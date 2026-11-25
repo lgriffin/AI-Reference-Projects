@@ -164,6 +164,24 @@ elimination of waste, with value stream mapping and root cause analysis as the m
 | 11 | Value stream map of a release; lead time; the A3 |
 | 12 | Kaizen upstream: one small improvement contributed to tutors-mono-repo |
 
+## The standard version
+
+Every rung ships its completed code to students as a zip, so that the whole class builds on the same
+standard version. The code lives in this repository under `variants/`, and
+`tutors/scripts/package-variants.sh` packages it:
+
+1. it stages a clean copy of the variant (tracked files only) beside the shared fixture;
+2. it proves the staged copy: install from the lockfile, the Single Gate (which compiles and tests), and the
+   showcase command on the sample course;
+3. only then does it write a reproducible zip into the course, as an archive learning object
+   (`unit-2-practice/archive-rung-N-<name>/`) in the rung's final week.
+
+A zip that does not build and run is never written. `package-variants.sh --check` fails when a zip in the
+course no longer matches its variant, so the code and the shipped zip cannot drift apart (a Closure Check).
+In the first week of a rung, the lab starts from the standard version of the rung below; in the last week,
+students compare their own work with the rung's standard version and then build beyond it. In Lean terms the
+standard version is standard work: the agreed baseline that improvement starts from.
+
 ## Variant conventions
 
 - TypeScript on Node 22.18 or later (the upstream mono-repo itself needs Node 26.13 or later), run with built-in type stripping (`node src/main.ts`), so only erasable
@@ -186,6 +204,7 @@ elimination of waste, with value stream mapping and root cause analysis as the m
 - `tutors/scripts/check-course.sh [folder]` validates a course with the upstream course rules and builds it
   with the upstream generator. Run it on `course/` and on the shared fixture. Zero errors is required;
   warnings are fixed unless explained here.
+- `tutors/scripts/package-variants.sh --check` proves every shipped zip matches its variant, builds and runs.
 - Each variant: `npm test` (rungs 1 and 2) or `pnpm install && pnpm test` (rung 3 and above) from its folder.
 - Assignment grading tests live in each variant's `tests/assignment/` and skip unless `LADDER_ASSIGNMENT=1`, so
   the gate stays green until a learner takes the assignment on.
